@@ -57,7 +57,10 @@ Usage
 -----
 Passing the `-h` option to **pypage** will produce the following help message explaning how to use it:
 
-    usage: pypage.py [-h] [-o OUTPUT_FILE] [-v] [-p] input_file
+    usage: pypage.py [-h] [-o OUTPUT_FILE] [-v] [-p]
+                     [--long_delim LONG_DELIM LONG_DELIM]
+                     [--short_delim SHORT_DELIM SHORT_DELIM]
+                     input_file
 
     Generates static HTML pages by executing the code within <python> and <py>
     tags, and replacing replacing them with the content passed to write() calls.
@@ -72,6 +75,14 @@ Passing the `-h` option to **pypage** will produce the following help message ex
       -v, --verbose         print a short message before preprocessing
       -p, --prettify        prettify the resulting HTML using BeautifulSoup --
                             requires BeautifulSoup4
+      --long_delim LONG_DELIM LONG_DELIM
+                            override the default long delimiters (<python> and
+                            </python>). Specify the opening and closing long
+                            delimiters, in sequence.
+      --short_delim SHORT_DELIM SHORT_DELIM
+                            override the default short delimiters (<py> and
+                            </py>). Specify the opening and closing short
+                            delimiters, in sequence.
 
 ### Using pypage as a library
 **pypage** exports two functions that enable it to be used as a library. The functions are:
