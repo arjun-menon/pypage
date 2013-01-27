@@ -49,9 +49,9 @@ def write(s):
         "__section__ = %d\n" % i + "".join(str(c) for c in co.code) 
                 for i, co in enumerate(code_objects) ) )
 
-        self.m = importCode(code, "preprocessor_module")
+        self.m = importCode(code, 'pypage_transient')
 
-        # apply indentation to output
+        # apply indentation to output:
         id_levels = list(map(lambda o: o.id_level, code_objects))
         for i, o in enumerate(self.m.__output__):
             self.m.__output__[i] = '\n'.join( ' ' * id_levels[i] + s for s in o.split('\n') )
@@ -59,23 +59,12 @@ def write(s):
     def __len__(self):
         return self.count
 
-    class execPythonCodeOutputIterator(object):
-        def __init__(self, output, length):
-            self.output, self.length = output, length
-            self.i = 0
-        def __iter__(self):
-            return self
-        def __next__(self):
-            if self.i < self.length:
-                output_i = self.output[self.i]
-                self.i += 1
-                return output_i
-            else:
-                raise StopIteration()
-
     def __iter__(self):
-        return self.execPythonCodeOutputIterator(self.m.__output__, self.count)
+        def output_iterator():
+            for o in self.m.__output__:
+                yield o
 
+        return output_iterator()
 
 def process_python_tags(lines):
     """ Proces <python>...</python> and <py>...</py> tags
