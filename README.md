@@ -49,7 +49,7 @@ Running `pypage`, turns the it into:
 
 There are two types of Python code delimiters in *pypage*:
 
-* Multi-line delimiters: The `<python>` tag is used when you have more the one line of Python code. If the opening `<python>` is indented by 8 spaces, **pypage** will remove the initial 8 characters from every line of code following the opening `<python>` tag. A caveat of this type of delimiter is that both the opening and closing tag has to be on a line by themselves alone (with no other tags/text/etc on it.)
+* Multi-line delimiters: The `<python>` tag is used when you have more the one line of Python code. If the opening `<python>` is indented by 8 spaces, **pypage** will remove the initial 8 characters from every line of code following the opening `<python>` tag. A caveat of this type of delimiter is that both the opening and closing tags have to be on a line by themselves (with no other tags/text/etc on it.)
 
 * Inline delimiters: The `<py>` tag is used for single lines of Python code.
 
@@ -71,3 +71,6 @@ Passing the `-h` option to **pypage** will produce the following help message ex
       -p, --prettify  prettify the resulting HTML using BeautifulSoup -- requires
                       BeautifulSoup4
 
+License
+-------
+The [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
