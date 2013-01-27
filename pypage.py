@@ -18,12 +18,6 @@ __all__ = ['pypage', 'pypage_multi']
 
 import sys, imp, re
 
-def importCode(code,name):
-    # Based on http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/
-    module = imp.new_module(name)
-    exec(code, module.__dict__)
-    return module
-
 class PythonCode(object):
     """ A light-weight wrapper around `string` to detect the difference 
         between a plain old string and a string containing Python code. """
@@ -35,32 +29,30 @@ class PythonCode(object):
     def __repr__(self):
         return "PythonCode:\n%s" % self.code
 
-class execPythonCode(object):
-    def __init__(self, code_objects):
-        code = """
+def exec_python_code(code_objects):
+    code = """
 __output__ = [""]*{count}
 
 def write(s):
     __output__[__section__] += str(s)
 
 {code}""".format(
-        count = len(code_objects),
-        code = '\n'.join(
-        "__section__ = %d\n" % i + "".join(str(c) for c in co.code) 
-                for i, co in enumerate(code_objects) ) )
+    count = len(code_objects),
+    code = '\n'.join(
+    "__section__ = %d\n" % i + "".join(str(c) for c in co.code) 
+            for i, co in enumerate(code_objects) ) )
+    
+    transient_module = imp.new_module('pypage_transient')
+    exec(code, transient_module.__dict__)
 
-        self.m = importCode(code, 'pypage_transient')
+    # apply indentation to output:
+    id_levels = list(map(lambda o: o.id_level, code_objects))
+    for i, o in enumerate(transient_module.__output__):
+        transient_module.__output__[i] = '\n'.join( ' ' * id_levels[i] + s for s in o.split('\n') )
 
-        # apply indentation to output:
-        id_levels = list(map(lambda o: o.id_level, code_objects))
-        for i, o in enumerate(self.m.__output__):
-            self.m.__output__[i] = '\n'.join( ' ' * id_levels[i] + s for s in o.split('\n') )
-
-    def __iter__(self):
-        def output_iterator():
-            for o in self.m.__output__:
-                yield o
-        return output_iterator()
+    # yield the output for each chunk:
+    for o in transient_module.__output__:
+        yield o
 
 def process_python_tags(lines,
         multiline_delimiter_open  =  '<python>',
@@ -156,7 +148,7 @@ def process_python_tags(lines,
 
 def process_file(input_text):
     chunks = process_python_tags(input_text)
-    output_iter = iter( execPythonCode([ c for c in chunks if type(c) == PythonCode ]) )
+    output_iter = exec_python_code( [ c for c in chunks if type(c) == PythonCode ] )
     return ''.join( next(output_iter) if type(c) == PythonCode else c for c in chunks )
 
 def pypage(input_text, verbose=False, prettify=False):
