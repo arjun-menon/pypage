@@ -1,15 +1,10 @@
 Static Python Page Generator (pypage)
 =====================================
-**pypage** is a really simple static page generator for Python. Ever wanted to programmatically generate parts of your HTML page without resorting to server-side solutions? (perhaps you can only host static pages?) Well, that's where **pyapge** come in. It's a drop-dead simple solution for generating snippets or the whole of you static page using Python.
+**pypage** is a really simple static page generator for Python. Ever wanted to programmatically generate parts of your HTML page without resorting to server-side solutions? (perhaps you can only host static pages?) Well, that's where ***pyapge*** come in. It's a drop-dead simple solution for generating snippets or the whole of your static page using Python.
 
-Usage
------
-**pypage** replaces the content enclosed by `<python>` and `<py>` in your static page, with content (passed as strings) to the `write(str)` function within these code segments.
-
-### Multi-line Delimiter
-The `<python>` tag is used when you have more the one line of  Python code.
-
-Here is an example of how it works:
+Tutorial
+--------
+Here's an example of what pypage does. For the following document:
 
 ```html
 <html>
@@ -33,7 +28,7 @@ Here is an example of how it works:
 </html>
 ```
 
-On running `pypage`, the above document gets turned into:
+Running `pypage`, turns the it into:
 
 ```html
 <html>
@@ -50,4 +45,29 @@ On running `pypage`, the above document gets turned into:
     </body>
 </html>
 ```
+**pypage** replaces the content enclosed by `<python>` and `<py>` in your static page, with the content (passed as strings) to the `write()` function within these code segments.
+
+There are two types of Python code delimiters in *pypage*:
+
+* Multi-line delimiters: The `<python>` tag is used when you have more the one line of Python code. If the opening `<python>` is indented by 8 spaces, **pypage** will remove the initial 8 characters from every line of code following the opening `<python>` tag. A caveat of this type of delimiter is that both the opening and closing tag has to be on a line by themselves alone (with no other tags/text/etc on it.)
+
+* Inline delimiters: The `<py>` tag is used for single lines of Python code.
+
+Usage
+-----
+Passing the `-h` option to **pypage** will produce the following help message explaning how to use it:
+
+    usage: pypage.py [-h] [-v] [-p] input_file
+
+    Generates static HTML pages by executing the code within <python> and <py>
+    tags, and replacing replacing them with the content passed to write() calls.
+
+    positional arguments:
+      input_file      HTML input file.
+
+    optional arguments:
+      -h, --help      show this help message and exit
+      -v, --verbose   print a short message before preprocessing
+      -p, --prettify  prettify the resulting HTML using BeautifulSoup -- requires
+                      BeautifulSoup4
 
