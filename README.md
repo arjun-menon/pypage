@@ -73,6 +73,15 @@ Passing the `-h` option to **pypage** will produce the following help message ex
       -p, --prettify        prettify the resulting HTML using BeautifulSoup --
                             requires BeautifulSoup4
 
+### Using pypage as a library
+**pypage** exports two functions that enable it to be used as a library. The functions are:
+ * `pypage(input_file, verbose=False, prettify=False)` — this function takes as argument a string of the contents 
+    of the input page and returns the resulting page (also as a string).
+ * `pypage_multi(*files, prepend_path='' verbose=False, prettify=False)` — this functions takes as arguments the names of one 
+    or more files to be processed. The keyword argument `prepend_path` will be prepended before each file's name along with a 
+    trailing `\` character. `pypage_multi` returns a dictionary mapping the file names to strings representing their 
+    corresponding generated output pages.
+
 License
 -------
 The [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).

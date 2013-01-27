@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+__all__ = ['pypage', 'pypage_multi']
+
 import sys, imp, re
 
 def importCode(code,name):
@@ -152,16 +154,16 @@ def process_python_tags(lines,
 
     return result
 
-def process_file(input_file):
-    chunks = process_python_tags( open(input_file).readlines() )
+def process_file(input_text):
+    chunks = process_python_tags(input_text)
     output_iter = iter( execPythonCode([ c for c in chunks if type(c) == PythonCode ]) )
     return ''.join( next(output_iter) if type(c) == PythonCode else c for c in chunks )
 
-def pypage(input_file, verbose=False, prettify=False):
+def pypage(input_text, verbose=False, prettify=False):
     if verbose:
         print("Preprocessing file %s" % input_file)
 
-    result = process_file(input_file)
+    result = process_file(input_text)
 
     if prettify:
         from bs4 import BeautifulSoup
@@ -169,8 +171,8 @@ def pypage(input_file, verbose=False, prettify=False):
 
     return result
 
-def pypage_multi(path, *files, verbose=False, prettify=False):
-    return { filename : pypage(path+'/'+filename, verbose, prettify) for filename in files }
+def pypage_multi(*files, prepend_path='' verbose=False, prettify=False):
+    return { filename : pypage( open( prepend_path + '/' + filename ).readlines() , verbose, prettify ) for filename in files }
 
 if __name__ == "__main__":
     import argparse
@@ -181,7 +183,8 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--prettify', action='store_true', help='prettify the resulting HTML using BeautifulSoup -- requires BeautifulSoup4')
     args = parser.parse_args()
 
-    result = pypage(args.input_file, args.verbose, args.prettify)
+    result = pypage( open(args.input_file).readlines(), args.verbose, args.prettify )
+
     if args.output_file:
         with open(args.output_file[0], 'w') as f:
             f.write(result)
