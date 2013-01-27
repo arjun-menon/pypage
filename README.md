@@ -18,17 +18,17 @@ Here's an example of what pypage does. For the following document:
             def li(item):
                 return "<li>" + item + "</li>"
 
-            def write_list(*items):
+            def write_items(*items):
                 write( "\n".join( li(item) for item in items ) )
             
-            write_list('Red', 'Blue', 'Green')
+            write_items('Red', 'Blue', 'Green')
             </python>
         </ul>
     </body>
 </html>
 ```
 
-Running `pypage`, turns the it into:
+Running `pypage`, turns it into:
 
 ```html
 <html>
@@ -45,13 +45,13 @@ Running `pypage`, turns the it into:
     </body>
 </html>
 ```
-**pypage** replaces the content enclosed by `<python>` and `<py>` in your static page, with the content (passed as strings) to the `write()` function within these code segments.
+**pypage** replaces the content enclosed by `<python>` and `<py>` in your static page, with the content (passed as strings) to the `write()` function within these enclosed code segments.
 
 There are two types of Python code delimiters in *pypage*:
 
-* Multi-line delimiters: The `<python>` tag is used when you have more the one line of Python code. If the opening `<python>` is indented by 8 spaces, **pypage** will remove the initial 8 characters from every line of code following the opening `<python>` tag. A caveat of this type of delimiter is that both the opening and closing tags have to be on a line by themselves (with no other tags/text/etc on it.)
+* Multi-line delimiters: The `<python>` tag is used when you have more than one line of Python code. If the opening `<python>` tag is indented by 8 spaces, *pypage* will remove the initial 8 characters from every line of code following the opening delimiter. A caveat of multi-line delimiters is that both the opening and closing tags have to be their own lines with no other tags/text/etc on those lines.
 
-* Inline delimiters: The `<py>` tag is used for single lines of Python code.
+* In-line delimiters: The `<py>` tag is used for single lines of Python code. Both the opening and closing tags have to be on the same line.
 
 Usage
 -----
