@@ -49,7 +49,7 @@ Running `pypage`, turns it into:
 
 There are two types of Python code delimiters in *pypage*:
 
-* Multi-line delimiters: The `<python>` tag is used when you have more than one line of Python code. If the opening `<python>` tag is indented by 8 spaces, *pypage* will remove the initial 8 characters from every line of code following the opening delimiter. A caveat of multi-line delimiters is that both the opening and closing tags have to be their own lines with no other tags/text/etc on those lines.
+* Multi-line delimiters: The `<python>` tag is used when you have more than one line of Python code. If the opening `<python>` tag is indented by 8 spaces, *pypage* will remove the initial 8 characters from every line of code following the opening delimiter. _Note:_ A caveat of multi-line delimiters is that both the opening and closing tags have to be on their own lines with no other non-space characters on them.
 
 * In-line delimiters: The `<py>` tag is used for single lines of Python code. Both the opening and closing tags have to be on the same line.
 
