@@ -24,7 +24,7 @@ class PythonCode(object):
             id_level: its former indentation level. """
 
     def __init__(self, code, id_level):
-        assert( type(code) == str )
+        assert( isinstance(code, str) )
         self.code, self.id_level = code, id_level
 
     def __repr__(self):
@@ -84,20 +84,12 @@ def process_python_tags(lines,
     re_short_open  =  re.compile(inline_delimiter_open)
     re_short_close =  re.compile(inline_delimiter_close)
 
-    def find_indentation_level(opening_line):
-        m = re_delimiter_open_tag_only.search(opening_line)
-        assert(m != None)
-
-        return m.start()
+    mode_plain, mode_code = 'plain', 'code' # the 2 possible collect modes
+    mode = mode_plain
+    id_level = 0
+    collect = ""
 
     result = list()
-
-    mode_plain, mode_code = 'plain', 'code' # the 2 possible collect modes
-
-    collect = ""
-    id_level = 0
-    mode = mode_plain
-
     for n, line in enumerate(lines):
         op = re_delimiter_open.match(line)
         cl = re_delimiter_close.match(line)
@@ -108,7 +100,7 @@ def process_python_tags(lines,
             result.append(collect)
 
             collect = ""
-            id_level = find_indentation_level(line)
+            id_level = re_delimiter_open_tag_only.search(line).start()
             mode = mode_code
 
         elif cl:
@@ -145,8 +137,8 @@ def process_python_tags(lines,
 
 def process_file(input_text):
     chunks = process_python_tags(input_text)
-    output_iter = exec_python_code( [ c for c in chunks if type(c) == PythonCode ] )
-    return ''.join( next(output_iter) if type(c) == PythonCode else c for c in chunks )
+    output_iter = exec_python_code( [ c for c in chunks if isinstance(c, PythonCode) ] )
+    return ''.join( next(output_iter) if isinstance(c, PythonCode) else c for c in chunks )
 
 def pypage(input_text, verbose=False, prettify=False):
     if verbose:
