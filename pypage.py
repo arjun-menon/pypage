@@ -47,13 +47,12 @@ def write(s):
     exec(code, transient_module.__dict__)
 
     # apply indentation to output:
-    id_levels = list(map(lambda o: o.id_level, code_objects))
-    for i, o in enumerate(transient_module.__output__):
-        transient_module.__output__[i] = '\n'.join( ' ' * id_levels[i] + s for s in o.split('\n') )
+    for i, output in enumerate(transient_module.__output__):
+        transient_module.__output__[i] = '\n'.join(' ' * code_objects[i].id_level + s for s in output.split('\n'))
 
     # yield the output for each chunk:
-    for o in transient_module.__output__:
-        yield o
+    for output in transient_module.__output__:
+        yield output
 
 def process_python_tags(lines,
         multiline_delimiter_open  =  '<python>',
