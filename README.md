@@ -73,7 +73,7 @@ Passing the `-h` option to **pypage** will produce the following help message ex
 
 Thanks
 ------
-Thanks to [Anders Hammarquist](http://code.activestate.com/recipes/users/136364/) for writing the `importCode` [recipe](http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/) (which I found on [StackOverflow](http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/).)
+Thanks to [Anders Hammarquist](http://code.activestate.com/recipes/users/136364/) on ActiveState for writing the `importCode` [recipe](http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/). (which I found via [StackOverflow](http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/).)
 
 License
 -------
