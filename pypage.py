@@ -142,7 +142,7 @@ def process_file(input_text):
 
 def pypage(input_text, verbose=False, prettify=False):
     if verbose:
-        print("Preprocessing file %s" % input_file)
+        print("pypage: processing %s" % input_file)
 
     result = process_file(input_text)
 
