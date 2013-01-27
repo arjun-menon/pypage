@@ -154,9 +154,9 @@ def process_python_tags(lines,
     return result
 
 def process_file(input_file):
-    result = process_python_tags( open(input_file).readlines() )
-    output_iter = iter( execPythonCode( list( filter( lambda x: type(x) == PythonCode, result ) ) ) )
-    return ''.join( next(output_iter) if type(r) == PythonCode else r for r in result )
+    chunks = process_python_tags( open(input_file).readlines() )
+    output_iter = iter( execPythonCode([ c for c in chunks if type(c) == PythonCode ]) )
+    return ''.join( next(output_iter) if type(c) == PythonCode else c for c in chunks )
 
 def pypage(input_file, verbose=False, prettify=False):
     if verbose:

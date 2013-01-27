@@ -1,6 +1,6 @@
 Static Python Page Generator (pypage)
 =====================================
-**pypage** is a really simple static page generator for Python. Ever wanted to programmatically generate parts of your HTML page without resorting to server-side solutions? (perhaps you can only host static pages?) Well, that's where ***pyapge*** come in. It's a drop-dead simple solution for generating snippets or the whole of your static page using Python.
+**pypage** is a really simple static page generator for Python. Ever wanted to programmatically generate parts of your HTML page without resorting to server-side solutions? (perhaps you can only host static pages?) Well, that's where **pypage** come in. It's a drop-dead simple solution for generating snippets or the whole of your static page using Python.
 
 Tutorial
 --------
