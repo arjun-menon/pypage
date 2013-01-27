@@ -171,7 +171,7 @@ def pypage(input_text, verbose=False, prettify=False):
 
     return result
 
-def pypage_multi(*files, prepend_path='' verbose=False, prettify=False):
+def pypage_multi(*files, prepend_path='', verbose=False, prettify=False):
     return { filename : pypage( open( prepend_path + '/' + filename ).readlines() , verbose, prettify ) for filename in files }
 
 if __name__ == "__main__":
