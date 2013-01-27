@@ -82,6 +82,15 @@ Passing the `-h` option to **pypage** will produce the following help message ex
     trailing `\` character. `pypage_multi` returns a dictionary mapping the file names to strings representing their 
     corresponding generated output pages.
 
+Installation
+------------
+There is no straightforward way of installing *pypage* at the moment.
+
+On POSIX systems, an easy way to use *pypage* either as a library or as a command-line tool would be to symlink to `pypage.py` on 
+the `/usr/bin` directory (for use as a command-line tool) or on the `/usr/lib/python3/dist-packages` directory (for use as a 
+Python3 library). *pypage* has only been tested with Python 3 and most probably will not work under Python 2.x. 
+To get updates automatically, you could clone this git repo and setup a cron job to `git pull` every now and then.
+
 License
 -------
 The [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
