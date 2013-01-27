@@ -19,12 +19,13 @@ __all__ = ['pypage', 'pypage_multi']
 import sys, imp, re
 
 class PythonCode(object):
-    """ A light-weight wrapper around `string` to detect the difference 
-        between a plain old string and a string containing Python code. """
+    """ Store Python code.
+            code: string containing the Python code.
+            id_level: its former indentation level. """
 
-    def __init__(self, code, id_level, index):
+    def __init__(self, code, id_level):
         assert( type(code) == str )
-        self.code, self.id_level, self.index = code, id_level, index
+        self.code, self.id_level = code, id_level
 
     def __repr__(self):
         return "PythonCode:\n%s" % self.code
@@ -59,7 +60,7 @@ def process_python_tags(lines,
         multiline_delimiter_close = '</python>',
         inline_delimiter_open  =  '<py>',
         inline_delimiter_close = '</py>'):
-    """ Proces <python>...</python> and <py>...</py> tags
+    """ Process <python>...</python> and <py>...</py> tags.
 
         Args:
             lines: list of strings representing each line of an unprocessed HTML file
@@ -96,7 +97,6 @@ def process_python_tags(lines,
 
     collect = ""
     id_level = 0
-    pc_index = 0
     mode = mode_plain
 
     for n, line in enumerate(lines):
@@ -113,8 +113,7 @@ def process_python_tags(lines,
             mode = mode_code
 
         elif cl:
-            result.append( PythonCode(collect, id_level, pc_index) )
-            pc_index += 1
+            result.append( PythonCode(collect, id_level) )
 
             collect = '\n'
             id_level = 0
@@ -131,8 +130,7 @@ def process_python_tags(lines,
             result.append(collect)
 
             collect = in_py
-            result.append( PythonCode(collect, 0, pc_index) )
-            pc_index += 1
+            result.append( PythonCode(collect, 0) )
 
             collect = post_py
 
