@@ -57,19 +57,21 @@ Usage
 -----
 Passing the `-h` option to **pypage** will produce the following help message explaning how to use it:
 
-    usage: pypage.py [-h] [-v] [-p] input_file
+    usage: pypage.py [-h] [-o OUTPUT_FILE] [-v] [-p] input_file
 
     Generates static HTML pages by executing the code within <python> and <py>
     tags, and replacing replacing them with the content passed to write() calls.
 
     positional arguments:
-      input_file      HTML input file.
+      input_file            HTML input file.
 
     optional arguments:
-      -h, --help      show this help message and exit
-      -v, --verbose   print a short message before preprocessing
-      -p, --prettify  prettify the resulting HTML using BeautifulSoup -- requires
-                      BeautifulSoup4
+      -h, --help            show this help message and exit
+      -o OUTPUT_FILE, --output_file OUTPUT_FILE
+                            Write output to output_file. Default: stdout
+      -v, --verbose         print a short message before preprocessing
+      -p, --prettify        prettify the resulting HTML using BeautifulSoup --
+                            requires BeautifulSoup4
 
 Thanks
 ------

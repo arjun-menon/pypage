@@ -66,11 +66,16 @@ def write(s):
 
         return output_iterator()
 
-def process_python_tags(lines):
+def process_python_tags(lines,
+        multiline_delimiter_open  =  '<python>',
+        multiline_delimiter_close = '</python>',
+        inline_delimiter_open  =  '<py>',
+        inline_delimiter_close = '</py>'):
     """ Proces <python>...</python> and <py>...</py> tags
 
         Args:
             lines: list of strings representing each line of an unprocessed HTML file
+            keywords args: their names explain what they are for
 
         Returns:
             A list containing either `string` or `PythonCode` objects, where 
@@ -83,12 +88,6 @@ def process_python_tags(lines):
             function removes the indentation from your code based on the amount of 
             whitespace preceding the opening <python> tag.
     """
-
-    multiline_delimiter_open  =  '<python>'
-    multiline_delimiter_close = '</python>'
-
-    inline_delimiter_open  =  '<py>'
-    inline_delimiter_close = '</py>'
 
     re_delimiter_open  = re.compile(r"\s*%s\s*\n" % multiline_delimiter_open)
     re_delimiter_open_tag_only = re.compile(r"%s" % multiline_delimiter_open)
@@ -156,7 +155,7 @@ def process_python_tags(lines):
 
     return result
 
-def pypage(input_file):
+def process_file(input_file):
     with open(input_file) as f:
         lines = f.readlines()
 
@@ -171,11 +170,11 @@ def pypage(input_file):
 
     return ''.join(result)
 
-def main(input_file, verbose=False, prettify=False):
+def pypage(input_file, verbose=False, prettify=False):
     if verbose:
         print("Preprocessing file %s" % input_file)
 
-    result = pypage(input_file)
+    result = process_file(input_file)
 
     if prettify:
         from bs4 import BeautifulSoup
@@ -183,15 +182,21 @@ def main(input_file, verbose=False, prettify=False):
 
     return result
 
-def preprocess_multiple_files(path, *files, verbose=False, prettify=False):
-    return { filename : main(path+'/'+filename, verbose, prettify) for filename in files }
+def pypage_multi(path, *files, verbose=False, prettify=False):
+    return { filename : pypage(path+'/'+filename, verbose, prettify) for filename in files }
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Generates static HTML pages by executing the code within <python> and <py> tags, and replacing replacing them with the content passed to write() calls.")
     parser.add_argument('input_file', type=str, help="HTML input file.")
+    parser.add_argument('-o', '--output_file', nargs=1, type=str, default=None, help='Write output to output_file. Default: stdout')
     parser.add_argument('-v', '--verbose', action='store_true', help='print a short message before preprocessing')
     parser.add_argument('-p', '--prettify', action='store_true', help='prettify the resulting HTML using BeautifulSoup -- requires BeautifulSoup4')
     args = parser.parse_args()
 
-    print( main(args.input_file, args.verbose, args.prettify) , end='' )
+    result = pypage(args.input_file, args.verbose, args.prettify)
+    if args.output_file:
+        with open(args.output_file[0], 'w') as f:
+            f.write(result)
+    else:
+        print(result, end="")
