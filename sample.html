@@ -1,0 +1,19 @@
+<html>
+    <head>
+        <title><py>write("Primary Colors")</py></title>
+    </head>
+    <body>
+        List of primary colors:
+        <ul>        
+            <python>
+            def li(item):
+                return "<li>" + item + "</li>"
+
+            def write_list(*items):
+                write( "\n".join( li(item) for item in items ) )
+            
+            write_list('Red', 'Blue', 'Green')
+            </python>
+        </ul>
+    </body>
+</html>
