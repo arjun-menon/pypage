@@ -20,9 +20,9 @@ class PythonCode(object):
     """ A light-weight wrapper around `string` to detect the difference 
         between a plain old string and a string containing Python code. """
 
-    def __init__(self, code, id_level):
+    def __init__(self, code, id_level, index):
         assert( type(code) == str )
-        self.code, self.id_level = code, id_level
+        self.code, self.id_level, self.index = code, id_level, index
 
     def __repr__(self):
         return "PythonCode:\n%s" % self.code
@@ -35,8 +35,6 @@ def importCode(code,name):
 
 class execPythonCode(object):
     def __init__(self, code_objects):
-        self.count = len(code_objects)
-
         code = """
 __output__ = [""]*{count}
 
@@ -44,7 +42,7 @@ def write(s):
     __output__[__section__] += str(s)
 
 {code}""".format(
-        count = self.count,
+        count = len(code_objects),
         code = '\n'.join(
         "__section__ = %d\n" % i + "".join(str(c) for c in co.code) 
                 for i, co in enumerate(code_objects) ) )
@@ -55,9 +53,6 @@ def write(s):
         id_levels = list(map(lambda o: o.id_level, code_objects))
         for i, o in enumerate(self.m.__output__):
             self.m.__output__[i] = '\n'.join( ' ' * id_levels[i] + s for s in o.split('\n') )
-
-    def __len__(self):
-        return self.count
 
     def __iter__(self):
         def output_iterator():
@@ -108,6 +103,7 @@ def process_python_tags(lines,
 
     collect = ""
     id_level = 0
+    pc_index = 0
     mode = mode_plain
 
     for n, line in enumerate(lines):
@@ -124,7 +120,8 @@ def process_python_tags(lines,
             mode = mode_code
 
         elif cl:
-            result.append( PythonCode(collect, id_level) )
+            result.append( PythonCode(collect, id_level, pc_index) )
+            pc_index += 1
 
             collect = '\n'
             id_level = 0
@@ -141,7 +138,8 @@ def process_python_tags(lines,
             result.append(collect)
 
             collect = in_py
-            result.append( PythonCode(collect, 0) )
+            result.append( PythonCode(collect, 0, pc_index) )
+            pc_index += 1
 
             collect = post_py
 
@@ -156,19 +154,9 @@ def process_python_tags(lines,
     return result
 
 def process_file(input_file):
-    with open(input_file) as f:
-        lines = f.readlines()
-
-    result = process_python_tags(lines)
-
-    output = execPythonCode( list(filter(lambda x: type(x) == PythonCode, result)) )
-    outputIter = iter(output)
-
-    for ri in range( len(result) ):
-        if type(result[ri]) == PythonCode:
-            result[ri] = next(outputIter)
-
-    return ''.join(result)
+    result = process_python_tags( open(input_file).readlines() )
+    output_iter = iter( execPythonCode( list( filter( lambda x: type(x) == PythonCode, result ) ) ) )
+    return ''.join( next(output_iter) if type(r) == PythonCode else r for r in result )
 
 def pypage(input_file, verbose=False, prettify=False):
     if verbose:
