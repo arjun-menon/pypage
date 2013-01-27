@@ -212,7 +212,7 @@ if __name__ == "__main__":
 Generates static HTML pages by executing the code within <python> and <py> tags, and replacing replacing them with the content passed to write() calls.""")
     parser.add_argument('input_file', type=str, help="HTML input file.")
     parser.add_argument('-v', '--verbose', action='store_true', help='print a short message before preprocessing')
-    parser.add_argument('-p', '--prettify', action='store_true', help='prettify the resulting HTML using BeautifulSoup')
+    parser.add_argument('-p', '--prettify', action='store_true', help='prettify the resulting HTML using BeautifulSoup -- requires BeautifulSoup4')
     args = parser.parse_args()
 
     print( main(args.input_file, args.verbose, args.prettify) , end='' )
