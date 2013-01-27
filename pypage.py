@@ -16,6 +16,12 @@
 
 import sys, imp, re
 
+def importCode(code,name):
+    # Based on http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/
+    module = imp.new_module(name)
+    exec(code, module.__dict__)
+    return module
+
 class PythonCode(object):
     """ A light-weight wrapper around `string` to detect the difference 
         between a plain old string and a string containing Python code. """
@@ -26,12 +32,6 @@ class PythonCode(object):
 
     def __repr__(self):
         return "PythonCode:\n%s" % self.code
-
-def importCode(code,name):
-    # Based on http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/
-    module = imp.new_module(name)
-    exec(code, module.__dict__)
-    return module
 
 class execPythonCode(object):
     def __init__(self, code_objects):
@@ -58,7 +58,6 @@ def write(s):
         def output_iterator():
             for o in self.m.__output__:
                 yield o
-
         return output_iterator()
 
 def process_python_tags(lines,
