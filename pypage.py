@@ -59,7 +59,8 @@ def process_python_tags(lines,
         multiline_delimiter_close = '</python>',
         inline_delimiter_open  =  '<py>',
         inline_delimiter_close = '</py>'):
-    """ Process <python>...</python> and <py>...</py> tags.
+    """ Extract Python code from multi-line delimited (<python> ... </python>) and 
+        in-line delimited (<py> ... </py>) code segments.
 
         Args:
             lines: list of strings representing each line of an unprocessed HTML file
@@ -67,14 +68,8 @@ def process_python_tags(lines,
 
         Returns:
             A list containing either `string` or `PythonCode` objects, where 
-            plain string lines have been concatenated and PythonCode strings have been 
-            adjusted for indentation and concatenated.
-
-        Notes:
-            These tags are used when you want indentation in your Python code to 
-            keep it consistent with indentation of the surrounding HTML. This 
-            function removes the indentation from your code based on the amount of 
-            whitespace preceding the opening <python> tag.
+            plain string lines have been concatenated and PythonCode.code strings 
+            have been adjusted for indentation and concatenated.
     """
 
     re_delimiter_open  = re.compile(r"\s*%s\s*\n" % multiline_delimiter_open)
