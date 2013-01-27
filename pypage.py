@@ -54,17 +54,16 @@ def write(s):
     for output in transient_module.__output__:
         yield output
 
-def process_python_tags(lines,
-        multiline_delimiter_open  =  '<python>',
-        multiline_delimiter_close = '</python>',
-        inline_delimiter_open  =  '<py>',
-        inline_delimiter_close = '</py>'):
-    """ Extract Python code from multi-line delimited (<python> ... </python>) and 
-        in-line delimited (<py> ... </py>) code segments.
+def split_text(lines, multiline_delimiter_open, multiline_delimiter_close,
+                         inline_delimiter_open, inline_delimiter_close):
+    """ Split the text (fed in as lines) into plan-text string and PythonCode objects.
+        Python code is extractacted from from multi-line delimited (e.g. <python> ... </python>) 
+        and in-line delimited (<py> ... </py>) code segments and stored in PythonCode.code along 
+        with indentation for multi-line delimited code segments.
 
         Args:
             lines: list of strings representing each line of an unprocessed HTML file
-            keywords args: their names explain what they are for
+            keywords args: the delimiters
 
         Returns:
             A list containing either `string` or `PythonCode` objects, where 
@@ -130,16 +129,22 @@ def process_python_tags(lines,
 
     return result
 
-def process_file(input_text):
-    chunks = process_python_tags(input_text)
-    output_iter = exec_python_code( [ c for c in chunks if isinstance(c, PythonCode) ] )
-    return ''.join( next(output_iter) if isinstance(c, PythonCode) else c for c in chunks )
-
-def pypage(input_text, verbose=False, prettify=False):
+def pypage(input_text, verbose=False, prettify=False,
+            multiline_delimiter_open  =  '<python>',
+            multiline_delimiter_close = '</python>',
+            inline_delimiter_open  =  '<py>',
+            inline_delimiter_close = '</py>'):
     if verbose:
         print("pypage: processing %s" % input_file)
 
-    result = process_file(input_text)
+    # split the text into plain text & PythonCode chunks:
+    chunks = split_text(input_text, multiline_delimiter_open, multiline_delimiter_close, inline_delimiter_open, inline_delimiter_close)
+
+    # execute code and collect output:
+    output_iter = exec_python_code( [ c for c in chunks if isinstance(c, PythonCode) ] )
+
+    # merge the outputs and form the resulting string
+    result = ''.join( next(output_iter) if isinstance(c, PythonCode) else c for c in chunks )
 
     if prettify:
         from bs4 import BeautifulSoup
@@ -147,8 +152,8 @@ def pypage(input_text, verbose=False, prettify=False):
 
     return result
 
-def pypage_multi(*files, prepend_path='', verbose=False, prettify=False):
-    return { filename : pypage( open( prepend_path + '/' + filename ).readlines() , verbose, prettify ) for filename in files }
+def pypage_files(*files, prepend_path='', verbose=False, prettify=False, **delimiter_override):
+    return { filename : pypage( open( prepend_path + '/' + filename ).readlines() , verbose, prettify, **delimiter_override ) for filename in files }
 
 if __name__ == "__main__":
     import argparse
