@@ -1,6 +1,20 @@
 #!/usr/bin/python3
 
-import sys, re
+# Copyright 2013 Arjun G. Menon
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#    http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import sys, imp, re
 
 class PythonCode(object):
     """ A light-weight wrapper around `string` to detect the difference 
@@ -13,40 +27,13 @@ class PythonCode(object):
     def __repr__(self):
         return "PythonCode:\n%s" % self.code
 
+def importCode(code,name):
+    # Based on http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/
+    module = imp.new_module(name)
+    exec(code, module.__dict__)
+    return module
+
 class execPythonCode(object):
-    @staticmethod
-    def importCode(code,name,add_to_sys_modules=0):
-        # Found this at: http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/
-        #           via: http://stackoverflow.com/questions/3614537/python-import-string-of-python-code-as-module
-        """
-        Import dynamically generated code as a module. code is the
-        object containing the code (a string, a file handle or an
-        actual compiled code object, same types as accepted by an
-        exec statement). The name is the name to give to the module,
-        and the final argument says wheter to add it to sys.modules
-        or not. If it is added, @staticmethoda subsequent import statement using
-        name will return this module. If it is not added to sys.modules
-        import will try to load it in the normal fashion.
-
-        import foo
-
-        is equivalent to
-
-        foofile = open("/path/to/foo.py")
-        foo = importCode(foofile,"foo",1)
-
-        Returns a newly generated module.
-        """
-        import sys,imp
-
-        module = imp.new_module(name)
-
-        exec(code, module.__dict__)
-        if add_to_sys_modules:
-            sys.modules[name] = module
-
-        return module
-
     def __init__(self, code_objects):
         self.count = len(code_objects)
 
@@ -62,7 +49,7 @@ def write(s):
         "__section__ = %d\n" % i + "".join(str(c) for c in co.code) 
                 for i, co in enumerate(code_objects) ) )
 
-        self.m = self.importCode(code, "preprocessor_module")
+        self.m = importCode(code, "preprocessor_module")
 
         # apply indentation to output
         id_levels = list(map(lambda o: o.id_level, code_objects))
@@ -91,31 +78,35 @@ def write(s):
 
 
 def process_python_tags(lines):
-    """ Proces <python> ... </python> tags
+    """ Proces <python>...</python> and <py>...</py> tags
 
-        These tags are used when you want indentation in your Python code to 
-        keep it consistent with indentation of the surrounding HTML. This 
-        function removes the indentation from your code based on the amount of 
-        whitespace preceding the opening <python> tag.
+        Args:
+            lines: list of strings representing each line of an unprocessed HTML file
 
-        Argument: list of strings representing each line of an unprocessed HTML file
+        Returns:
+            A list containing either `string` or `PythonCode` objects, where 
+            plain string lines have been concatenated and PythonCode strings have been 
+            adjusted for indentation and concatenated.
 
-        Returns: a list containing either `string` or `PythonCode` objects, where 
-        plain string lines have been concatenated and PythonCode strings have been 
-        adjusted for indentation and concatenated.
+        Notes:
+            These tags are used when you want indentation in your Python code to 
+            keep it consistent with indentation of the surrounding HTML. This 
+            function removes the indentation from your code based on the amount of 
+            whitespace preceding the opening <python> tag.
     """
-    long_delimiter_open  =  '<python>'
-    long_delimiter_close = '</python>'
 
-    short_delimiter_open  =  '<py>'
-    short_delimiter_close = '</py>'
+    multiline_delimiter_open  =  '<python>'
+    multiline_delimiter_close = '</python>'
 
-    re_delimiter_open  = re.compile(r"\s*%s\s*\n" % long_delimiter_open)
-    re_delimiter_open_tag_only = re.compile(r"%s" % long_delimiter_open)
-    re_delimiter_close = re.compile(r"\s*%s\s*\n" % long_delimiter_close)
+    inline_delimiter_open  =  '<py>'
+    inline_delimiter_close = '</py>'
 
-    re_short_open  =  re.compile(short_delimiter_open)
-    re_short_close =  re.compile(short_delimiter_close)
+    re_delimiter_open  = re.compile(r"\s*%s\s*\n" % multiline_delimiter_open)
+    re_delimiter_open_tag_only = re.compile(r"%s" % multiline_delimiter_open)
+    re_delimiter_close = re.compile(r"\s*%s\s*\n" % multiline_delimiter_close)
+
+    re_short_open  =  re.compile(inline_delimiter_open)
+    re_short_close =  re.compile(inline_delimiter_close)
 
     def find_indentation_level(opening_line):
         m = re_delimiter_open_tag_only.search(opening_line)
@@ -176,7 +167,7 @@ def process_python_tags(lines):
 
     return result
 
-def preprocess(input_file):
+def pypage(input_file):
     with open(input_file) as f:
         lines = f.readlines()
 
@@ -195,7 +186,7 @@ def main(input_file, verbose=False, prettify=False):
     if verbose:
         print("Preprocessing file %s" % input_file)
 
-    result = preprocess(input_file)
+    result = pypage(input_file)
 
     if prettify:
         from bs4 import BeautifulSoup
@@ -208,8 +199,7 @@ def preprocess_multiple_files(path, *files, verbose=False, prettify=False):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="""
-Generates static HTML pages by executing the code within <python> and <py> tags, and replacing replacing them with the content passed to write() calls.""")
+    parser = argparse.ArgumentParser(description="Generates static HTML pages by executing the code within <python> and <py> tags, and replacing replacing them with the content passed to write() calls.")
     parser.add_argument('input_file', type=str, help="HTML input file.")
     parser.add_argument('-v', '--verbose', action='store_true', help='print a short message before preprocessing')
     parser.add_argument('-p', '--prettify', action='store_true', help='prettify the resulting HTML using BeautifulSoup -- requires BeautifulSoup4')

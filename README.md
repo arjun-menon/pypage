@@ -71,6 +71,10 @@ Passing the `-h` option to **pypage** will produce the following help message ex
       -p, --prettify  prettify the resulting HTML using BeautifulSoup -- requires
                       BeautifulSoup4
 
+Thanks
+------
+Thanks to [Anders Hammarquist](http://code.activestate.com/recipes/users/136364/) for writing the `importCode` [recipe](http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/) (which I found on [StackOverflow](http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/).)
+
 License
 -------
 The [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
