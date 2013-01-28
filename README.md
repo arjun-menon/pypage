@@ -93,16 +93,14 @@ Passing the `-h` option to **pypage** will produce the following help message ex
 
 Installation
 ------------
-There is no automatic installation mechanism or package for *pypage* at the moment. In the future I might release Debian/Ubuntu package on [Launchpad](https://launchpad.net/).
-
-On POSIX systems, an easy way to use *pypage* either as a library or as a command-line tool would be to symlink to `pypage.py` on the `/usr/bin` directory (for use as a command-line tool) or on the `/usr/lib/python3/dist-packages` directory (for use as a Python3 library).
+There is no automatic installation mechanism or package for *pypage* at the moment. In the future I might release a Debian/Ubuntu package on [Launchpad](https://launchpad.net/). On POSIX systems, an easy way to use *pypage* either as a library or as a command-line tool would be to symlink to `pypage.py` on the `/usr/bin` directory (for use as a command-line tool) or on the `/usr/lib/python3/dist-packages` directory (for use as a Python3 library).
 
 ### Compatibility and Updates
 *pypage* has only been tested with Python 3 and most probably will not work under Python 2.x. To get updates automatically, you could clone this git repo and setup a cron job to `git pull` every now and then. Once a Debian/Ubuntu package is released, this will no longer be necessary.
 
 Ideas
 -----
-If you have ideas on how to improve *pypage*, please let me know. I am willing and interested in accepting good pull requests. Thanks for any ideas/improvements in advance!
+If you have any ideas on how to improve *pypage*, please let me know. I am willing to accept good pull requests. Thanks for any ideas/improvements in advance!
 
 License
 -------
