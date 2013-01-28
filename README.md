@@ -100,10 +100,10 @@ On POSIX systems, an easy way to use *pypage* either as a library or as a comman
 ### Compatibility and Updates
 *pypage* has only been tested with Python 3 and most probably will not work under Python 2.x. To get updates automatically, you could clone this git repo and setup a cron job to `git pull` every now and then. Once a Debian/Ubuntu package is released, this will no longer be necessary.
 
+Ideas
+-----
+If you have ideas on how to improve *pypage*, please let me know. I am willing and interested in accepting good pull requests. Thanks for any ideas/improvements in advance!
+
 License
 -------
 The [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
-
-Ideas
------
-If you have ideas on how to improve *pypage*, please let me know! I am willing to accept good pull requests. Thanks for any ideas in advance.
