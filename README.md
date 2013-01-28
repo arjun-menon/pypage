@@ -59,32 +59,32 @@ Usage
 -----
 Passing the `-h` option to **pypage** will produce the following help message explaning how to use it:
 
-  usage: pypage.py [-h] [-o OUTPUT_FILE] [-v] [-p]
-                   [-y MULTILINE_DELIM MULTILINE_DELIM]
-                   [-z--inline_delim Z__INLINE_DELIM Z__INLINE_DELIM]
-                   input_file
+    usage: pypage.py [-h] [-o OUTPUT_FILE] [-v] [-p]
+                     [-y MULTILINE_DELIM MULTILINE_DELIM]
+                     [-z--inline_delim Z__INLINE_DELIM Z__INLINE_DELIM]
+                     input_file
 
-  Generates static HTML pages by executing the code within <python> and <py>
-  tags, and replacing replacing them with the content passed to write() calls.
+    Generates static HTML pages by executing the code within <python> and <py>
+    tags, and replacing replacing them with the content passed to write() calls.
 
-  positional arguments:
-    input_file            HTML input file.
+    positional arguments:
+      input_file            HTML input file.
 
-  optional arguments:
-    -h, --help            show this help message and exit
-    -o OUTPUT_FILE, --output_file OUTPUT_FILE
-                          Write output to output_file. Default: stdout
-    -v, --verbose         print a short message before preprocessing
-    -p, --prettify        prettify the resulting HTML using BeautifulSoup --
-                          requires BeautifulSoup4
-    -y MULTILINE_DELIM MULTILINE_DELIM, --multiline_delim MULTILINE_DELIM MULTILINE_DELIM
-                          override the default multi-line delimiters (<python>
-                          and </python>). Specify the opening and closing long
-                          delimiters, in sequence.
-    -z--inline_delim Z__INLINE_DELIM Z__INLINE_DELIM
-                          override the default in-line delimiters (<py> and
-                          </py>). Specify the opening and closing short
-                          delimiters, in sequence.
+    optional arguments:
+      -h, --help            show this help message and exit
+      -o OUTPUT_FILE, --output_file OUTPUT_FILE
+                            Write output to output_file. Default: stdout
+      -v, --verbose         print a short message before preprocessing
+      -p, --prettify        prettify the resulting HTML using BeautifulSoup --
+                            requires BeautifulSoup4
+      -y MULTILINE_DELIM MULTILINE_DELIM, --multiline_delim MULTILINE_DELIM MULTILINE_DELIM
+                            override the default multi-line delimiters (<python>
+                            and </python>). Specify the opening and closing long
+                            delimiters, in sequence.
+      -z--inline_delim Z__INLINE_DELIM Z__INLINE_DELIM
+                            override the default in-line delimiters (<py> and
+                            </py>). Specify the opening and closing short
+                            delimiters, in sequence.
 
 ### Using pypage as a library
 **pypage** exports two functions that enable it to be used as a library. The functions are:
