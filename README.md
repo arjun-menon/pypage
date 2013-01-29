@@ -60,8 +60,8 @@ Usage
 Passing the `-h` option to **pypage** will produce the following help message explaning how to use it:
 
     usage: pypage.py [-h] [-o OUTPUT_FILE] [-v] [-p]
-                     [-y MULTILINE_DELIM MULTILINE_DELIM]
-                     [-z--inline_delim Z__INLINE_DELIM Z__INLINE_DELIM]
+                     [-a MULTILINE_DELIM MULTILINE_DELIM]
+                     [-g INLINE_DELIM INLINE_DELIM]
                      input_file
 
     Generates static HTML pages by executing the code within <python> and <py>
@@ -77,13 +77,13 @@ Passing the `-h` option to **pypage** will produce the following help message ex
       -v, --verbose         print a short message before preprocessing
       -p, --prettify        prettify the resulting HTML using BeautifulSoup --
                             requires BeautifulSoup4
-      -y MULTILINE_DELIM MULTILINE_DELIM, --multiline_delim MULTILINE_DELIM MULTILINE_DELIM
+      -a MULTILINE_DELIM MULTILINE_DELIM, --multiline_delim MULTILINE_DELIM MULTILINE_DELIM
                             override the default multi-line delimiters (<python>
-                            and </python>). Specify the opening and closing long
-                            delimiters, in sequence.
-      -z--inline_delim Z__INLINE_DELIM Z__INLINE_DELIM
+                            and </python>). Specify the opening and closing multi-
+                            line delimiters, in sequence.
+      -g INLINE_DELIM INLINE_DELIM, --inline_delim INLINE_DELIM INLINE_DELIM
                             override the default in-line delimiters (<py> and
-                            </py>). Specify the opening and closing short
+                            </py>). Specify the opening and closing in-line
                             delimiters, in sequence.
 
 ### Using pypage as a library

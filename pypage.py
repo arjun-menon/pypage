@@ -71,30 +71,30 @@ def split_text(lines, multiline_delimiter_open, multiline_delimiter_close,
             have been adjusted for indentation and concatenated.
     """
 
-    re_delimiter_open  = re.compile(r"\s*%s\s*\n" % multiline_delimiter_open)
-    re_delimiter_open_tag_only = re.compile(r"%s" % multiline_delimiter_open)
-    re_delimiter_close = re.compile(r"\s*%s\s*\n" % multiline_delimiter_close)
+    re_multiline_open_line  = re.compile(r"\s*%s\s*\n" % multiline_delimiter_open)
+    re_multiline_open_only  = re.compile(r"%s" % multiline_delimiter_open)
+    re_multiline_close_line = re.compile(r"\s*%s\s*\n" % multiline_delimiter_close)
 
-    re_short_open  =  re.compile(inline_delimiter_open)
-    re_short_close =  re.compile(inline_delimiter_close)
+    re_inline_open  = re.compile(inline_delimiter_open)
+    re_inline_close = re.compile(inline_delimiter_close)
 
-    mode_plain, mode_code = 'plain', 'code' # the 2 possible collect modes
+    mode_plain, mode_code = 'plain', 'code' # the two possible collect modes
     mode = mode_plain
     id_level = 0
     collect = ""
 
     result = list()
     for n, line in enumerate(lines):
-        op = re_delimiter_open.match(line)
-        cl = re_delimiter_close.match(line)
-        ops = re_short_open.search(line)
-        cls = re_short_close.search(line)
+        op = re_multiline_open_line.match(line)
+        cl = re_multiline_close_line.match(line)
+        ops = re_inline_open.search(line)
+        cls = re_inline_close.search(line)
 
         if op:
             result.append(collect)
 
             collect = ""
-            id_level = re_delimiter_open_tag_only.search(line).start()
+            id_level = re_multiline_open_only.search(line).start()
             mode = mode_code
 
         elif cl:
@@ -162,10 +162,10 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--output_file', nargs=1, type=str, default=None, help='Write output to output_file. Default: stdout')
     parser.add_argument('-v', '--verbose', action='store_true', help='print a short message before preprocessing')
     parser.add_argument('-p', '--prettify', action='store_true', help='prettify the resulting HTML using BeautifulSoup -- requires BeautifulSoup4')
-    parser.add_argument('-y', '--multiline_delim', nargs=2, type=str, default=["<python>", "</python>"], 
-        help='override the default multi-line delimiters (<python> and </python>). Specify the opening and closing long delimiters, in sequence.')
-    parser.add_argument('-z' '--inline_delim', nargs=2, type=str, default=["<py>", "</py>"], 
-        help='override the default in-line delimiters (<py> and </py>). Specify the opening and closing short delimiters, in sequence.')
+    parser.add_argument('-a', '--multiline_delim', nargs=2, type=str, default=["<python>", "</python>"], 
+        help="override the default multi-line delimiters (<python> and </python>). Specify the opening and closing multi-line delimiters, in sequence.")
+    parser.add_argument('-g', '--inline_delim', nargs=2, type=str, default=["<py>", "</py>"], 
+        help="override the default in-line delimiters (<py> and </py>). Specify the opening and closing in-line delimiters, in sequence.")
     args = parser.parse_args()
 
     result = pypage( open(args.input_file).readlines(), args.verbose, args.prettify, 
