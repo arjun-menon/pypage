@@ -129,11 +129,14 @@ def split_text(lines, multiline_delimiter_open, multiline_delimiter_close,
 
     return result
 
-def pypage(input_text, verbose=False, prettify=False,
-            multiline_delimiter_open  =  '<python>',
-            multiline_delimiter_close = '</python>',
-            inline_delimiter_open  =  '<py>',
-            inline_delimiter_close = '</py>'):
+default_multiline_delim = [ "<python>", "</python>" ]
+default_inline_delim    = [ "<py>"    , "</py>"     ]
+
+def pypage( input_text, verbose=False, prettify=False,
+            multiline_delimiter_open   = default_multiline_delim[0],
+            multiline_delimiter_close  = default_multiline_delim[1],
+            inline_delimiter_open      = default_inline_delim[0],
+            inline_delimiter_close     = default_inline_delim[1] ):
     if verbose:
         print("pypage: processing %s" % input_file)
 
@@ -162,9 +165,9 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--output_file', nargs=1, type=str, default=None, help='Write output to output_file. Default: stdout')
     parser.add_argument('-v', '--verbose', action='store_true', help='print a short message before preprocessing')
     parser.add_argument('-p', '--prettify', action='store_true', help='prettify the resulting HTML using BeautifulSoup -- requires BeautifulSoup4')
-    parser.add_argument('-a', '--multiline_delim', nargs=2, type=str, default=["<python>", "</python>"], 
+    parser.add_argument('-a', '--multiline_delim', nargs=2, type=str, default=default_multiline_delim, 
         help="override the default multi-line delimiters (<python> and </python>). Specify the opening and closing multi-line delimiters, in sequence.")
-    parser.add_argument('-g', '--inline_delim', nargs=2, type=str, default=["<py>", "</py>"], 
+    parser.add_argument('-g', '--inline_delim', nargs=2, type=str, default=default_inline_delim, 
         help="override the default in-line delimiters (<py> and </py>). Specify the opening and closing in-line delimiters, in sequence.")
     args = parser.parse_args()
 
