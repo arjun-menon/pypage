@@ -35,5 +35,5 @@ nosetests.xml
 .pydevproject
 
 # Test files
-sample_in.html
-sample_out.html
+#sample_in.html
+#sample_out.html
