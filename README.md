@@ -102,6 +102,10 @@ Ideas
 -----
 If you have any ideas on how to improve *pypage*, please let me know. I am willing to accept good pull requests. Thanks for any ideas/improvements in advance!
 
+### Todos
+* `pypage-service`: Allows users to set up directories to be monitored via [pyinotify](https://github.com/seb-m/pyinotify/wiki). Files ending with `*.pypage` in these directories are automatically mapped to their corresponding pypage-processed counterparts; and the mappings are kept up-to-update thanks to [intoify](https://en.wikipedia.org/wiki/Inotify).
+* Integrate [markup.py](http://markup.sourceforge.net/) into pypage -- i.e. always import markup (implicity) and make its faculties available to the programmer.
+
 License
 -------
 The [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
