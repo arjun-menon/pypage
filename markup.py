@@ -423,11 +423,11 @@ def _argsdicts( args, mydict ):
         yield thisarg, thisdict
 
 def _totuple( x ):
-    """Utility stuff to convert string, int, long, float, None or anything to a usable tuple."""
+    """Utility stuff to convert string, int, float, None or anything to a usable tuple."""
 
     if isinstance( x, basestring ):
         out = x,
-    elif isinstance( x, ( int, long, float ) ):
+    elif isinstance( x, ( int, int, float ) ):
         out = str( x ),
     elif x is None:
         out = None,
