@@ -98,13 +98,33 @@ There is no automatic installation mechanism or package for *pypage* at the mome
 ### Compatibility and Updates
 *pypage* has only been tested with Python 3 and most probably will not work under Python 2.x. To get updates automatically, you could clone this git repo and setup a cron job to `git pull` every now and then. Once a Debian/Ubuntu package is released, this will no longer be necessary.
 
-Ideas
------
-If you have any ideas on how to improve *pypage*, please let me know. I am willing to accept good pull requests. Thanks for any ideas/improvements in advance!
+Tips
+----
+#### Makefile
 
-### Todos
-* `pypage-service`: Allows users to set up directories to be monitored via [pyinotify](https://github.com/seb-m/pyinotify/wiki). Files ending with `*.pypage` in these directories are automatically mapped to their corresponding pypage-processed counterparts; and the mappings are kept up-to-update thanks to [intoify](https://en.wikipedia.org/wiki/Inotify).
-* Integrate [markup.py](http://markup.sourceforge.net/) into pypage -- i.e. always import markup (implicity) and make its faculties available to the programmer.
+I've written down a nifty Makefile that helps me build all the pypage files in my website. It's not perfect, and its style might be considered bad practise by some, but *it works*. Hat tip to [bobah](http://stackoverflow.com/a/2908351) and [Betah](http://stackoverflow.com/a/4038459).
+
+```Makefile
+PYPAGE_FILES := $(wildcard *.html.pypage) $(wildcard */*.html.pypage) $(wildcard */*/*.html.pypage)
+HTML_FILES := $(PYPAGE_FILES:.html.pypage=.html)
+
+all: $(HTML_FILES)
+#	ls -l $(PYPAGE_FILES)
+#	ls -l $(HTML_FILES)
+
+%.html: %.html.pypage
+	pypage $< -o $@
+```
+
+#### Automatic make
+
+You can use [fswatch](http://stackoverflow.com/a/13807906) on OS X, and [inotifywatch](http://linux.die.net/man/1/inotifywatch) on Linux, to automatically issue a `make` command whenever any file or folder inside a selected directory is modified. The command I use on my Mac is: `fswatch . make`
+
+This command is extremely useful while developing *pypage* websites, because it eliminates the need for me to even issue a `make` after making changes. All I need to do now, is just save – and tada, the file is automatically compiled. The next step would be to get the page on your browser to auto-refresh, but that's a project for another day.
+
+#### Ideas
+
+If you have any ideas on how to improve *pypage*, please let me know. I am willing to accept good pull requests. Thanks for any ideas/improvements in advance!
 
 License
 -------
