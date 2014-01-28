@@ -102,15 +102,13 @@ Tips
 ----
 #### Makefile
 
-I've written down a nifty Makefile that helps me build all the pypage files in my website. It's not perfect, and its style might be considered bad practise by some, but *it works*. Hat tip to [bobah](http://stackoverflow.com/a/2908351) and [Betah](http://stackoverflow.com/a/4038459).
+I've written down a nifty Makefile that helps me build all the pypage files in my website. It's not perfect, and its style might be considered bad practise by some, but *it works*. Hat tip to [bobah](http://stackoverflow.com/a/2908351) and [Beta](http://stackoverflow.com/a/4038459).
 
 ```Makefile
 PYPAGE_FILES := $(wildcard *.html.pypage) $(wildcard */*.html.pypage) $(wildcard */*/*.html.pypage)
 HTML_FILES := $(PYPAGE_FILES:.html.pypage=.html)
 
 all: $(HTML_FILES)
-#	ls -l $(PYPAGE_FILES)
-#	ls -l $(HTML_FILES)
 
 %.html: %.html.pypage
 	pypage $< -o $@
