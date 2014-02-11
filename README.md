@@ -116,13 +116,15 @@ all: $(HTML_FILES)
 
 #### Automatic make
 
-You can use [fswatch](http://stackoverflow.com/a/13807906) on OS X, and [inotifywatch](http://linux.die.net/man/1/inotifywatch) on Linux, to automatically issue a `make` command whenever any file or folder inside a selected directory is modified. The command I use on my Mac is: `fswatch . make`
+On OS X, you can use [fswatch](http://stackoverflow.com/a/13807906) to automatically issue a `make` command whenever any file or folder inside a selected directory is modified. Navigate to the directory containing the `Makefile` and issue the command: `fswatch . make`
 
-This command is extremely useful while developing *pypage* websites, because it eliminates the need for me to even issue a `make` after making changes. All I need to do now, is just save – and tada, the file is automatically compiled. The next step would be to get the page on your browser to auto-refresh, but that's a project for another day.
+On Linux, you can use [inotifymake.sh](https://raw.github.com/afcowie/buildtools/master/inotifymake.sh), a useful script written by Andrew Cowie. Check out [this blog post](http://blogs.operationaldynamics.com/andrew/software/haskell/rebuilding-via-inotify) for more info on it. `inotifymake.sh` depends on a command `inotifywait`, that on Ubuntu can obtained by installing the `inotify-tools` package.
+
+Automatic builds are extremely useful while developing *pypage* websites, because it eliminates the need to issue a `make` each time before refreshing the page on your browser. Now all that is necessary is just _to save_ – and voilà: the file is automatically built.
 
 #### Ideas
 
-If you have any ideas on how to improve *pypage*, please let me know. I am willing to accept good pull requests. Thanks for any ideas/improvements in advance!
+If you have any ideas or suggestions for *pypage*, please let me know. I will accept good pull requests.
 
 License
 -------
