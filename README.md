@@ -120,11 +120,11 @@ On OS X, you can use [fswatch](http://stackoverflow.com/a/13807906) to automatic
 
 On Linux, you can use [inotifymake.sh](https://raw.github.com/afcowie/buildtools/master/inotifymake.sh), a useful script written by Andrew Cowie. Check out [this blog post](http://blogs.operationaldynamics.com/andrew/software/haskell/rebuilding-via-inotify) for more info on it. `inotifymake.sh` depends on a command `inotifywait`, that on Ubuntu can obtained by installing the `inotify-tools` package.
 
-Automatic builds are extremely useful while developing *pypage* websites, because it eliminates the need to issue a `make` each time before refreshing the page on your browser. Now all that is necessary is just _to save_ – and voilà: the file is automatically built.
+Automatic builds are extremely useful while developing *pypage* websites, because it eliminates the need to issue a `make` each time before refreshing the page on your browser. Now, all that is necessary is to just *save*, and voilà: everything is automatically built!
 
 #### Ideas
 
-If you have any ideas or suggestions for *pypage*, please let me know. I will accept good pull requests.
+If you have any ideas or suggestions for *pypage*, please let do me know!
 
 License
 -------
