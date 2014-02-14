@@ -427,7 +427,7 @@ def _totuple( x ):
 
     if isinstance( x, basestring ):
         out = x,
-    elif isinstance( x, ( int, int, float ) ):
+    elif isinstance( x, ( int, float ) ):
         out = str( x ),
     elif x is None:
         out = None,
