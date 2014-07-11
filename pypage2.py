@@ -129,10 +129,9 @@ def lex(src):
         else:
             line_c += 1
 
-        # If we don't belong to any node, we need 
-        # to find a node to belong to. We look for 
-        # any valid opening delimiters, and if there 
-        # are none, then we become a TextNode.
+        # We don't belong to any node, so:
+        #   - Look for any DelimitedNode open_delims
+        #   - If there aren't any, create a TextNode
         if not node:
             if c2 in open_delims.keys():
                 node = open_delims[c2]((line, line_c))
@@ -141,8 +140,7 @@ def lex(src):
             else:
                 node =  TextNode()
 
-        # If we're in a TextNode currently, then we look 
-        # for opening delimiters that'll end this TextNode.
+        # Currently in TextNode, look for open_delims
         if isinstance(node, TextNode):
             if c2 in open_delims.keys():
                 tokens.append(node)
@@ -150,8 +148,7 @@ def lex(src):
                 i += 2
                 continue
 
-        # If we're in a DelimitedNode, then we look for 
-        # closing delimiters that'll complete this node.
+        # Look for DelimitedNode close_delim
         if isinstance(node, DelimitedNode):
             if c2 == node.close_delim:
                 # If we're in a TagNode, will strip node.src
