@@ -163,6 +163,11 @@ def lex(src):
                 i += 2
                 continue
 
+        if c2 == '\{' or c2 == '\}':
+            node.src += c2[1]
+            i += 2
+            continue
+
         if i < len(src) - 2:
             node.src += c
             i += 1
