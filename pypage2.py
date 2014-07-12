@@ -16,12 +16,6 @@
 
 import sys, os
 
-def indent(lines, level=1, spaces=4):
-    return '\n'.join( ' '  * spaces * level + line for line in lines.splitlines())
-
-def indent2(lines, level=1, spaces=4):
-    return '\n'.join( ' '  * spaces * level + line for line in lines.split('\n'))
-
 class RootNode(object):
     def __init__(self):
         self.children = list()
@@ -35,7 +29,7 @@ class TextNode(object):
     def __init__(self):
         self.src = str()
     def __repr__(self):
-        return 'Text:\n' + indent(self.src) + '\n'
+        return 'Text:\n' + indent_filtered(self.src)
 
 class DelimitedNode(object):
     """
@@ -63,7 +57,7 @@ class CodeNode(DelimitedNode):
     def __init__(self, loc):
         super(CodeNode, self).__init__(loc)
     def __repr__(self):
-        return 'Code:\n' + indent(self.src) + '\n'
+        return 'Code:\n' + indent_filtered(self.src)
 
 class TagNode(DelimitedNode):
     """
@@ -94,9 +88,6 @@ class CloseTagNode(TagNode):
     def __repr__(self):
         return 'CloseTagNode.\n'
 
-delimitedNodeTypes = [CodeNode, TagNode]
-open_delims = { t.open_delim : t for t in delimitedNodeTypes }
-
 class PypageSyntaxError(Exception):
     def __init__(self, description='undefined'):
         self.description = description
@@ -110,8 +101,8 @@ class IncompleteDelimitedNode(PypageSyntaxError):
 
 class MultiLineTag(PypageSyntaxError):
     def __init__(self, node):
-        self.description = "The tag starting at line %d, column %d spans multiple lines. \
-This is not permitted. All tags ('{%% ... %%}') must be on one line." % (node.loc[0], node.loc[1])
+        self.description = "The tag starting at line %d, column %d spans multiple lines. This is not permitted. \
+All tags ('%s ... %s') must be on one line." % (node.loc[0], node.loc[1], node.open_delim, node.close_delim)
 
 class UnboundCloseTag(PypageSyntaxError):
     def __init__(self, node):
@@ -123,9 +114,23 @@ class UnclosedTag(PypageSyntaxError):
         self.description = "Missing closing '%s %s' tag for opening '%s%s%s' at line %d, column %d." % (
             node.open_delim, node.close_delim, node.open_delim, node.src, node.close_delim, node.loc[0], node.loc[1])
 
-def lex(src):
-    tokens = list()
+def filterlines(text):
+    return '\n'.join( filter(lambda line: line.strip(), text.splitlines()) )
 
+def prepend(text, prefix):
+    return '\n'.join( prefix + line for line in text.splitlines() )
+
+def indent(text, level=1, width=4):
+    return prepend(text, ' '  * width * level)
+
+def indent_filtered(text, level=1, width=4):
+    return prepend(filterlines(text), ' '  * width * level)
+
+def lex(src):
+    delimitedNodeTypes = [CodeNode, TagNode]
+    open_delims = { t.open_delim : t for t in delimitedNodeTypes }
+
+    tokens = list()
     node = None
 
     i = 0
@@ -216,15 +221,10 @@ def build_tree(node, tokens):
             raise UnclosedTag(node)
 
 def parse(src):
-    try:
-        tree = RootNode()
-        tokens = iter( lex(src) )
-        build_tree(tree, tokens)
-
-    except PypageSyntaxError as e:
-        print e
-        sys.exit(1)
-
+    tree = RootNode()
+    tokens = iter( lex(src) )
+    build_tree(tree, tokens)
+    print(tree)
     return tree
 
 class PypageExec(object):
@@ -237,7 +237,7 @@ class PypageExec(object):
         def write(self, text):
             self.output += str(text)
 
-    def __init__(self, env=dict(), name='page'):
+    def __init__(self, env=dict(), name='pypage_transient'):
         import __builtin__
         self.env = env
         self.env['__builtins__'] = __builtin__
@@ -290,4 +290,8 @@ if __name__ == "__main__":
     with open(args.source_file, 'r') as source_file:
         source = source_file.read()
 
-    execute(source)
+    try:
+        execute(source)
+    except PypageSyntaxError as error:
+        print error
+
