@@ -118,23 +118,22 @@ def lex(src):
     node = None
 
     i = 0
-    line, line_c = 1, 0
+    line, line_i = 1, 0
     while i < len(src) - 1:
         c  = src[i]
         c2 = src[i] + src[i+1]
 
         if c == '\n':
             line += 1
-            line_c = 0
-        else:
-            line_c += 1
+            line_i = i
+        c_pos_in_line = i - line_i
 
         # We don't belong to any node, so:
         #   - Look for any DelimitedNode open_delims
         #   - If there aren't any, create a TextNode
         if not node:
             if c2 in open_delims.keys():
-                node = open_delims[c2]((line, line_c))
+                node = open_delims[c2]((line, c_pos_in_line))
                 i += 2
                 continue
             else:
@@ -144,7 +143,7 @@ def lex(src):
         if isinstance(node, TextNode):
             if c2 in open_delims.keys():
                 tokens.append(node)
-                node = open_delims[c2]((line, line_c))
+                node = open_delims[c2]((line, c_pos_in_line))
                 i += 2
                 continue
 
@@ -184,10 +183,10 @@ def lex(src):
 
     return tokens
 
-def build_tree(node, toks):
+def build_tree(node, tokens):
     try:
         while True:
-            tok = toks.next()
+            tok = tokens.next()
 
             if isinstance(tok, CloseTagNode):
                 if isinstance(node, TagNode):
@@ -198,27 +197,74 @@ def build_tree(node, toks):
             node.children.append(tok)
 
             if isinstance(tok, TagNode):
-                build_tree(tok, toks)
+                build_tree(tok, tokens)
     
     except StopIteration:
         if not isinstance(node, RootNode):
             raise UnclosedTag(node)
 
-def execute(src):
+def parse(src):
     try:
-        tokens = lex(src)
-    
         tree = RootNode()
-
-        tokens_iterator = iter(tokens)
-
-        build_tree(tree, tokens_iterator)
+        tokens = iter( lex(src) )
+        build_tree(tree, tokens)
 
     except PypageSyntaxError as e:
         print e
-        return
+        sys.exit(1)
 
-    print tree
+    return tree
+
+class PypageExec(object):
+    """
+    Execute or evaluate code, while persisting the environment.
+    """
+    def __init__(self, env=dict(), name='page'):
+        import __builtin__
+        self.env = env
+        self.env['__builtins__'] = __builtin__
+        self.env['__package__'] = None
+        self.env['__name__'] = name
+        self.env['__doc__'] = None
+
+        self.env['write'] = self.write
+        self.output = str()
+
+    def write(self, text):
+        self.output += str(text)
+
+    def run(self, code):
+        if '\n' in code or ';' in code:
+            self.output = str()
+            exec code in self.env
+            return self.output
+        else:
+            return eval(code, self.env)
+
+class OutputCollector(object):
+    def __init__(self):
+        self.text = str()
+    def append(self, text):
+        self.text += str(text)
+
+def exec_tree(parent_node, pe, output):
+    for node in parent_node.children:
+
+        if isinstance(node, TextNode):
+            output.append( node.src )
+
+        elif isinstance(node, CodeNode):
+            output.append( pe.run(node.src) )
+
+        elif isinstance(node, TagNode):
+            exec_tree(node, pe, output)
+
+def execute(src):
+    tree = parse(src)
+    pe = PypageExec()
+    output = OutputCollector()
+    exec_tree(tree, pe, output)
+    print output.text
 
 if __name__ == "__main__":
     import argparse

@@ -1,14 +1,18 @@
 Hello,
 
 How are you, {{'Bob'}}?
+{{s="quixotic"
+write('Just wondering...')}}
 
 {% if 1 == 2 %}
 I like you very much.
-{% n2 %}
-    Where are we going next time?
-{%  %}
+
+    {% if k %}
+        Where are we going next time?
+        To a {{s}} place?
+    {%  %}
+
 {%    %}
 
-
-
+Wishing you well,
 -{\{Alice}\}
