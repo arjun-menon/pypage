@@ -22,7 +22,7 @@ import imp
 
 # print "\n\n k after exec:", k
 
-# import __builtin__
+import __builtin__
 
 # env = dict()
 # env['__builtins__'] = __builtin__
@@ -42,7 +42,6 @@ import imp
 
 class Exec(object):
     def __init__(self):
-        import __builtin__
         self.env = dict()
         self.env['__builtins__'] = __builtin__
         self.env['__package__'] = None
@@ -65,13 +64,60 @@ class Exec(object):
 
 e = Exec()
 
-print e.run("x = 5;")
-print e.run("x+2")
-print e.run("wr('yea')")
+# print e.run("x = 5;")
+# print e.run("x+2")
+# print e.run("wr('yea')")
+
+global_env = {'__builtins__': __builtin__}
+local_env = dict()
+
+#
+# Module-level variables are stored locally.
+#
+
+# exec """
+# x = 5
+# """ in global_env, local_env
+
+# print global_env
+# print local_env
+
+#
+# They are inaccessible.
+#
+
+# exec """
+# x = 5
+# def foo():
+#     print x
+# foo()
+# """ in global_env, local_env
+
+'''
+    Traceback (most recent call last):
+      File "lab.py", line 94, in <module>
+        """ in global_env, local_env
+      File "<string>", line 5, in <module>
+      File "<string>", line 4, in foo
+    NameError: global name 'x' is not defined
+'''
+
+# exec """
+# x = 5
+# def foo():
+#     print x
+# foo()
+# """ in global_env
+
+'''
+This works.
+'''
 
 exec """
-k = 4
-def foo(x):
-    global k
-    k += x
-foo(3)"""
+x = 5
+def foo():
+    print x
+print globals()
+print locals()
+""" in global_env, local_env
+

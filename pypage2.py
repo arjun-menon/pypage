@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import string, sys, os
+import sys, os
 
 def indent(lines, level=1, spaces=4):
     return '\n'.join( ' '  * spaces * level + line for line in lines.splitlines())
@@ -41,16 +41,18 @@ class DelimitedNode(object):
     """
     A type representing all delimited nodes.
 
-    Derived classes must have:
-        open_delim: string containig the opening delimiter
-        close_delim: string containig the closing delimiter
-
+    Members:
         src: the body of the delimited tag
         loc: location (line & column numbers) of the 
              opening delimiter in the source
+
+    Derived classes must have:
+        open_delim: string containig the opening delimiter
+        close_delim: string containig the closing delimiter
     """
-    def __init__(self):
-        pass
+    def __init__(self, loc):
+        self.src = str()
+        self.loc = loc
 
 class CodeNode(DelimitedNode):
     """
@@ -59,58 +61,62 @@ class CodeNode(DelimitedNode):
     open_delim, close_delim = '{{', '}}'
 
     def __init__(self, loc):
-        self.loc = loc
-        self.src = str()
+        super(CodeNode, self).__init__(loc)
     def __repr__(self):
         return 'Code:\n' + indent(self.src) + '\n'
 
 class TagNode(DelimitedNode):
     """
     A node containing special directives.
+
+    Members:
+        children: child nodes belonging to this node
     """
     open_delim, close_delim = '{%', '%}'
 
     def __init__(self, loc):
-        self.loc = loc
-        self.src = str()
+        super(TagNode, self).__init__(loc)
         self.children = list()
     def __repr__(self):
         return "{%% %s %%}:\n" % self.src + indent('\n'.join(repr(child) for child in self.children))
 
-class CloseTagNode(object):
+class CloseTagNode(TagNode):
     """
-    A TagNode with an empty body is replaced with this.
+    Signifies a closing tag.
     """
-    def __init__(self):
-        self.src = None
+    @staticmethod
+    def identify(src):
+        "Return `True` if `src` denotes a closing tag."
+        return not src.strip()
+    def __init__(self, node):
+        super(CloseTagNode, self).__init__(node.loc)
+        self.src = node.src
     def __repr__(self):
         return 'CloseTagNode.\n'
 
 delimitedNodeTypes = [CodeNode, TagNode]
 open_delims = { t.open_delim : t for t in delimitedNodeTypes }
 
-class PypageSyntaxError(Exception):
-    def __init__(self):
-        self.description = 'undefined'
+class PypageError(Exception):
+    def __init__(self, description='undefined'):
+        self.description = description
     def __str__(self):
-        return "Syntax Error: " + self.description
+        return self.description
 
-class NodeIncompleteDelimited(PypageSyntaxError):
+class IncompleteDelimitedNode(PypageError):
     def __init__(self, node):
-        self.node = node
-        self.description = "Missing closing '%s' for opening '%s' at line %d, column %d." % ( 
-            self.node.close_delim, self.node.open_delim, 
-            self.node.loc[0], self.node.loc[1] )
+        self.description = "Syntax Error: Missing closing '%s' for opening '%s' at line %d, column %d." % ( 
+            node.close_delim, node.open_delim, node.loc[0], node.loc[1])
 
-class UnboundCloseTag(PypageSyntaxError):
+class UnboundCloseTag(PypageError):
     def __init__(self, node):
-        self.node = node
-        self.description = "UnboundCloseTag"
+        self.description = "Syntax Error: Unbound closing tag '%s%s%s' at line %d, column %d." % (
+           node.open_delim, node.src, node.close_delim, node.loc[0], node.loc[1])
 
-class UnclosedTag(PypageSyntaxError):
+class UnclosedTag(PypageError):
     def __init__(self, node):
-        self.node = node
-        self.description = "UnclosedTag"
+        self.description = "Syntax Error: Missing closing '%s %s' tag for opening '%s%s%s' at line %d, column %d." % (
+            node.open_delim, node.close_delim, node.open_delim, node.src, node.close_delim, node.loc[0], node.loc[1])
 
 def lex(src):
     tokens = list()
@@ -150,12 +156,12 @@ def lex(src):
         # Look for DelimitedNode close_delim
         if isinstance(node, DelimitedNode):
             if c2 == node.close_delim:
-                # If we're in a TagNode, will strip node.src
-                if isinstance(node, TagNode):
-                    node.src = node.src.strip()
-
-                    if not node.src:
-                        node = CloseTagNode()
+                # Check if we're a CloseTagNode
+                if isinstance(node, TagNode) and CloseTagNode.identify(node.src):
+                    node = CloseTagNode(node)
+                # # If we're in a regular TagNode, we'll strip node.src
+                # if isinstance(node, TagNode):
+                #     node.src = node.src.strip()
 
                 tokens.append(node)
                 node = None
@@ -179,20 +185,20 @@ def lex(src):
             tokens.append(node)
             node = None
         else:
-            raise NodeIncompleteDelimited(node)
+            raise IncompleteDelimitedNode(node)
 
     return tokens
 
 def build_tree(node, tokens):
     try:
         while True:
-            tok = tokens.next()
+            tok = next(tokens)
 
             if isinstance(tok, CloseTagNode):
                 if isinstance(node, TagNode):
                     return
                 else:
-                    raise UnboundCloseTag(node)
+                    raise UnboundCloseTag(tok)
 
             node.children.append(tok)
 
@@ -209,7 +215,7 @@ def parse(src):
         tokens = iter( lex(src) )
         build_tree(tree, tokens)
 
-    except PypageSyntaxError as e:
+    except PypageError as e:
         print e
         sys.exit(1)
 
@@ -219,6 +225,12 @@ class PypageExec(object):
     """
     Execute or evaluate code, while persisting the environment.
     """
+    class OutputCollector(object):
+        def __init__(self):
+            self.output = str()
+        def write(self, text):
+            self.output += str(text)
+
     def __init__(self, env=dict(), name='page'):
         import __builtin__
         self.env = env
@@ -227,44 +239,38 @@ class PypageExec(object):
         self.env['__name__'] = name
         self.env['__doc__'] = None
 
-        self.env['write'] = self.write
-        self.output = str()
-
-    def write(self, text):
-        self.output += str(text)
+        self.oc = self.OutputCollector()
+        self.env['write'] = self.oc.write
 
     def run(self, code):
         if '\n' in code or ';' in code:
-            self.output = str()
             exec code in self.env
-            return self.output
         else:
-            return eval(code, self.env)
+            self.oc.write( eval(code, self.env) )
 
-class OutputCollector(object):
-    def __init__(self):
-        self.text = str()
-    def append(self, text):
-        self.text += str(text)
+    def raw_eval(self, code):
+        "Evaluate an expression, and return the result raw (without stringifying it)."
+        if '\n' in code or ';' in code:
+            raise PypageError("Internal Error: PypageExec.raw_eval invoked with a non-expression.")
+        return eval(code, self.env)
 
-def exec_tree(parent_node, pe, output):
+def exec_tree(parent_node, pe):
     for node in parent_node.children:
 
         if isinstance(node, TextNode):
-            output.append( node.src )
+            pe.oc.write( node.src )
 
         elif isinstance(node, CodeNode):
-            output.append( pe.run(node.src) )
+            pe.run(node.src)
 
         elif isinstance(node, TagNode):
-            exec_tree(node, pe, output)
+            exec_tree(node, pe)
 
 def execute(src):
     tree = parse(src)
     pe = PypageExec()
-    output = OutputCollector()
-    exec_tree(tree, pe, output)
-    print output.text
+    exec_tree(tree, pe)
+    print pe.oc.output
 
 if __name__ == "__main__":
     import argparse
