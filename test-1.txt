@@ -4,5 +4,12 @@ activity = 'skiing'
 }}
 How are you, {{name}}?
 I heard you went {{activity}}.
+{% for x in [1,2,3] %}
+{% %}
+Here's a poem for you:
+        {{
+for vowel in 'a', 'e', 'i', 'o', 'u':
+    write(vowel*5 + '\n')
+        }}
 Best,
 Alice

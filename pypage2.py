@@ -224,19 +224,12 @@ def parse(src):
     tree = RootNode()
     tokens = iter( lex(src) )
     build_tree(tree, tokens)
-    print(tree)
     return tree
 
 class PypageExec(object):
     """
     Execute or evaluate code, while persisting the environment.
     """
-    class OutputCollector(object):
-        def __init__(self):
-            self.output = str()
-        def write(self, text):
-            self.output += str(text)
-
     def __init__(self, env=dict(), name='pypage_transient'):
         import __builtin__
         self.env = env
@@ -245,36 +238,44 @@ class PypageExec(object):
         self.env['__name__'] = name
         self.env['__doc__'] = None
 
-        self.oc = self.OutputCollector()
-        self.env['write'] = self.oc.write
+        self.env['write'] = self.write
+
+    def write(self, text):
+        self.output += str(text)
 
     def run(self, code):
         if '\n' in code or ';' in code:
+            self.output = str()
             exec code in self.env
+            return self.output
         else:
-            self.oc.write( eval(code, self.env) )
+            return eval(code, self.env)
 
     def raw_eval(self, code):
         "Evaluate an expression, and return the result raw (without stringifying it)."
         return eval(code, self.env)
 
 def exec_tree(parent_node, pe):
+    output = str()
+
     for node in parent_node.children:
 
         if isinstance(node, TextNode):
-            pe.oc.write( node.src )
+            output += node.src
 
         elif isinstance(node, CodeNode):
-            pe.run(node.src)
+            output += pe.run(node.src)
 
         elif isinstance(node, TagNode):
-            exec_tree(node, pe)
+            output += exec_tree(node, pe)
+
+    return output
 
 def execute(src):
     tree = parse(src)
+    #print(tree)
     pe = PypageExec()
     exec_tree(tree, pe)
-    print pe.oc.output
 
 if __name__ == "__main__":
     import argparse
