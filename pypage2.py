@@ -17,8 +17,12 @@
 import sys, os
 
 class RootNode(object):
+    """
+    Root node of the abstract syntax tree built from source.
+    """
     def __init__(self):
         self.children = list()
+
     def __repr__(self):
         return "Tree:\n" + indent('\n'.join(repr(child) for child in self.children))
 
@@ -28,6 +32,7 @@ class TextNode(object):
     """
     def __init__(self):
         self.src = str()
+
     def __repr__(self):
         return 'Text:\n' + indent_filtered(self.src)
 
@@ -56,6 +61,7 @@ class CodeNode(DelimitedNode):
 
     def __init__(self, loc):
         super(CodeNode, self).__init__(loc)
+
     def __repr__(self):
         return 'Code:\n' + indent_filtered(self.src)
 
@@ -71,20 +77,64 @@ class TagNode(DelimitedNode):
     def __init__(self, loc):
         super(TagNode, self).__init__(loc)
         self.children = list()
+
     def __repr__(self):
         return "{%% %s %%}:\n" % self.src + indent('\n'.join(repr(child) for child in self.children))
 
+class ForTagNode(TagNode):
+    """
+    The for loop tag. Example: {% for ... in ... %}
+
+    The `for` expression is evaluated as a generator expression.
+    """
+    @staticmethod
+    def identify(src):
+        return src.strip().startswith('for')
+
+    def __init__(self, node):
+        super(ForTagNode, self).__init__(node.loc)
+        self.src = node.src
+        self.targets = self._find_targets()
+        self.genexpr = self._construct_generator_expression()
+
+    def __repr__(self):
+        return "{%% %s %%}:\n" % self.src + indent('\n'.join(repr(child) for child in self.children))
+
+    def _find_targets(self):
+        """
+        Some of the Python grammar rules behind generator expressions are:
+
+            generator_expression ::=  "(" expression comp_for ")"
+            comprehension ::=  expression comp_for
+            comp_for      ::=  "for" target_list "in" or_test [comp_iter]
+            comp_iter     ::=  comp_for | comp_if
+            comp_if       ::=  "if" expression_nocond [comp_iter]
+            target_list   ::=  target ("," target)* [","]
+
+        The grammar we are permitting here will be a subset of the full Python grammar. 
+        We will strictly expect a comma-separated list of identifiers between 'for' and 'in'.
+
+        All target lists will be combined into the `targets` set, and returned.
+        """
+        targets = set()
+        return targets
+
+    def _construct_generator_expression(self):
+        pass
+
 class CloseTagNode(TagNode):
     """
-    Signifies a closing tag.
+    Signifies a closing tag. A CloseTagNode has a whitespace-only body, i.e.: {%    %}
     """
     @staticmethod
     def identify(src):
         "Return `True` if `src` denotes a closing tag."
         return not src.strip()
+
     def __init__(self, node):
         super(CloseTagNode, self).__init__(node.loc)
         self.src = node.src
+
     def __repr__(self):
         return 'CloseTagNode.\n'
 
@@ -171,8 +221,10 @@ def lex(src):
                     if '\n' in node.src:
                         raise MultiLineTag(node)
 
-                    if CloseTagNode.identify(node.src): # Check if we're a CloseTagNode
+                    if CloseTagNode.identify(node.src):
                         node = CloseTagNode(node)
+                    elif ForTagNode.identify(node.src):
+                        node = ForTagNode(node)
 
                 tokens.append(node)
                 node = None
@@ -273,9 +325,10 @@ def exec_tree(parent_node, pe):
 
 def execute(src):
     tree = parse(src)
-    #print(tree)
+    #print tree
     pe = PypageExec()
-    exec_tree(tree, pe)
+    output = exec_tree(tree, pe)
+    print output
 
 if __name__ == "__main__":
     import argparse
