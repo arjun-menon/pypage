@@ -97,25 +97,30 @@ class CloseTagNode(TagNode):
 delimitedNodeTypes = [CodeNode, TagNode]
 open_delims = { t.open_delim : t for t in delimitedNodeTypes }
 
-class PypageError(Exception):
+class PypageSyntaxError(Exception):
     def __init__(self, description='undefined'):
         self.description = description
     def __str__(self):
-        return self.description
+        return "Syntax Error: " + self.description
 
-class IncompleteDelimitedNode(PypageError):
+class IncompleteDelimitedNode(PypageSyntaxError):
     def __init__(self, node):
-        self.description = "Syntax Error: Missing closing '%s' for opening '%s' at line %d, column %d." % ( 
+        self.description = "Missing closing '%s' for opening '%s' at line %d, column %d." % ( 
             node.close_delim, node.open_delim, node.loc[0], node.loc[1])
 
-class UnboundCloseTag(PypageError):
+class MultiLineTag(PypageSyntaxError):
     def __init__(self, node):
-        self.description = "Syntax Error: Unbound closing tag '%s%s%s' at line %d, column %d." % (
+        self.description = "The tag starting at line %d, column %d spans multiple lines. \
+This is not permitted. All tags ('{%% ... %%}') must be on one line." % (node.loc[0], node.loc[1])
+
+class UnboundCloseTag(PypageSyntaxError):
+    def __init__(self, node):
+        self.description = "Unbound closing tag '%s%s%s' at line %d, column %d." % (
            node.open_delim, node.src, node.close_delim, node.loc[0], node.loc[1])
 
-class UnclosedTag(PypageError):
+class UnclosedTag(PypageSyntaxError):
     def __init__(self, node):
-        self.description = "Syntax Error: Missing closing '%s %s' tag for opening '%s%s%s' at line %d, column %d." % (
+        self.description = "Missing closing '%s %s' tag for opening '%s%s%s' at line %d, column %d." % (
             node.open_delim, node.close_delim, node.open_delim, node.src, node.close_delim, node.loc[0], node.loc[1])
 
 def lex(src):
@@ -156,12 +161,13 @@ def lex(src):
         # Look for DelimitedNode close_delim
         if isinstance(node, DelimitedNode):
             if c2 == node.close_delim:
-                # Check if we're a CloseTagNode
-                if isinstance(node, TagNode) and CloseTagNode.identify(node.src):
-                    node = CloseTagNode(node)
-                # # If we're in a regular TagNode, we'll strip node.src
-                # if isinstance(node, TagNode):
-                #     node.src = node.src.strip()
+                if isinstance(node, TagNode):
+                    # A TagNode must be contained on _one_ line.
+                    if '\n' in node.src:
+                        raise MultiLineTag(node)
+
+                    if CloseTagNode.identify(node.src): # Check if we're a CloseTagNode
+                        node = CloseTagNode(node)
 
                 tokens.append(node)
                 node = None
@@ -215,7 +221,7 @@ def parse(src):
         tokens = iter( lex(src) )
         build_tree(tree, tokens)
 
-    except PypageError as e:
+    except PypageSyntaxError as e:
         print e
         sys.exit(1)
 
@@ -250,8 +256,6 @@ class PypageExec(object):
 
     def raw_eval(self, code):
         "Evaluate an expression, and return the result raw (without stringifying it)."
-        if '\n' in code or ';' in code:
-            raise PypageError("Internal Error: PypageExec.raw_eval invoked with a non-expression.")
         return eval(code, self.env)
 
 def exec_tree(parent_node, pe):
