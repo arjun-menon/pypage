@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys, os
+import itertools, sys, os
 
 class RootNode(object):
     """
@@ -93,12 +93,36 @@ class ForTagNode(TagNode):
 
     def __init__(self, node):
         super(ForTagNode, self).__init__(node.loc)
-        self.src = node.src
+        self.src = node.src.strip()
         self.targets = self._find_targets()
         self.genexpr = self._construct_generator_expression()
 
     def __repr__(self):
         return "{%% %s %%}:\n" % self.src + indent('\n'.join(repr(child) for child in self.children))
+
+    def run(self, pe):
+        output = str()
+
+        conflicting = set(pe.env.keys()) & set(self.targets)
+        backup = { x : pe.env[x] for x in conflicting }
+
+        gen = pe.raw_eval(self.genexpr)
+        while True:
+            try:
+                for_targets = { k : v for k, v in zip( self.targets, next(gen) ) }
+                pe.env.update(for_targets)
+
+                output += exec_tree(self, pe)
+
+            except StopIteration:
+                break
+
+        for target in self.targets:
+            del pe.env[target]
+
+        pe.env.update(backup)
+
+        return output
 
     def _find_targets(self):
         """
@@ -116,11 +140,34 @@ class ForTagNode(TagNode):
 
         All target lists will be combined into the `targets` set, and returned.
         """
+        def isidentifier(s):
+            # As per: https://docs.python.org/2/reference/lexical_analysis.html#identifiers
+            return s and (s[0].isalpha() or s[0]=='_') and all(c for c in s if c.isalnum() or c=='_')
+
         targets = set()
-        return targets
+        tokens = self.src.split()
+
+        while tokens:
+            try:
+                for_index = tokens.index('for')
+                in_index = tokens.index('in')
+            except ValueError:
+                break
+
+            target_list_str = ''.join(tokens[for_index + 1 : in_index])
+            tokens = tokens[in_index+1:]
+
+            target_list = [''.join(c for c in s if c.isalnum() or c=='_') for s in target_list_str.split(',')]
+            target_set = set( itertools.ifilter(lambda s: isidentifier(s), target_list) )
+            targets |= target_set
+        
+        if not targets:
+            raise IncorrectForTag
+
+        return tuple(sorted(targets))
 
     def _construct_generator_expression(self):
-        pass
+        return "((%s) %s)" % (', '.join(self.targets), self.src)
 
 class CloseTagNode(TagNode):
     """
@@ -163,6 +210,14 @@ class UnclosedTag(PypageSyntaxError):
     def __init__(self, node):
         self.description = "Missing closing '%s %s' tag for opening '%s%s%s' at line %d, column %d." % (
             node.open_delim, node.close_delim, node.open_delim, node.src, node.close_delim, node.loc[0], node.loc[1])
+
+class IncorrectForTag(PypageSyntaxError):
+    def __init__(self, node):
+        self.description = "Incorrect pypage for tag syntax: '%s'" % node.src
+
+class UnknownTag(PypageSyntaxError):
+    def __init__(self, node):
+        self.description = "Unkown/unrecognized tag: '%s%s%s'" % (node.open_delim, node.src, node.close_delim)
 
 def filterlines(text):
     return '\n'.join( filter(lambda line: line.strip(), text.splitlines()) )
@@ -225,6 +280,8 @@ def lex(src):
                         node = CloseTagNode(node)
                     elif ForTagNode.identify(node.src):
                         node = ForTagNode(node)
+                    else:
+                        raise UnknownTag(node)
 
                 tokens.append(node)
                 node = None
@@ -301,7 +358,7 @@ class PypageExec(object):
             exec code in self.env
             return self.output
         else:
-            return eval(code, self.env)
+            return str( eval(code, self.env) )
 
     def raw_eval(self, code):
         "Evaluate an expression, and return the result raw (without stringifying it)."
@@ -318,8 +375,8 @@ def exec_tree(parent_node, pe):
         elif isinstance(node, CodeNode):
             output += pe.run(node.src)
 
-        elif isinstance(node, TagNode):
-            output += exec_tree(node, pe)
+        elif isinstance(node, ForTagNode):
+            output += node.run(pe)
 
     return output
 
