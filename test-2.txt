@@ -1,6 +1,11 @@
 {{
 i = 10
 j = 20
-}}Numbers from {{i}} to {{j}}:
+}}
+{% capture ten2twenty %}
+Numbers from {{i}} to {{j}}:
 {% while i <= j %}{{write(str(i) + '\n'); i += 1}}{%%}
+{%%}
+Wanna see something?
+{{ten2twenty}}
 {% while dofirst False %}That's all, folks!{%%}

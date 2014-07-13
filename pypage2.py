@@ -228,6 +228,34 @@ class WhileTag(TagNode):
 
         return output
 
+class CaptureTag(TagNode):
+    """
+    Capture all content within this tag, and bind it to a variable.
+    """
+    tag_startswith = 'capture '
+
+    @staticmethod
+    def identify(src):
+        return src.strip().startswith(CaptureTag.tag_startswith)
+
+    def __init__(self, node):
+        super(CaptureTag, self).__init__(node.loc)
+        self.src = node.src.strip()
+        assert CaptureTag.identify(self.src)
+
+        self.varname = self.src[len(self.tag_startswith):].strip()
+
+        if not isidentifier(self.varname):
+            raise PypageSyntaxError("Incorrect CommentTag: '%s' is not a valid Python identifier." % self.varname)
+
+    def __repr__(self):
+        return "{%% %s %%}:\n" % self.src + indent('\n'.join(repr(child) for child in self.children))
+
+    def run(self, pe):
+        capture_output = exec_tree(self, pe)
+        pe.env[self.varname] = capture_output
+        return ""
+
 class CommentTag(TagNode):
     """
     The comment tag. All content within this tag is ignored.
@@ -328,7 +356,7 @@ def isidentifier(s):
 def lex(src):
     delimitedNodeTypes = [CodeNode, TagNode]
     open_delims = { t.open_delim : t for t in delimitedNodeTypes }
-    tagNodeTypes = [ForTag, CloseTag, WhileTag, CommentTag]
+    tagNodeTypes = [ForTag, CloseTag, WhileTag, CaptureTag, CommentTag]
 
     tokens = list()
     node = None
