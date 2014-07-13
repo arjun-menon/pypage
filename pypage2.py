@@ -104,9 +104,6 @@ class ForTag(BlockTag):
         self.targets = self._find_targets()
         self.genexpr = self._construct_generator_expression()
 
-    def __repr__(self):
-        return "{%% %s %%}:\n" % self.src + indent('\n'.join(repr(child) for child in self.children))
-
     def run(self, pe):
         output = str()
 
@@ -213,9 +210,6 @@ class WhileTag(BlockTag):
             self.slow = True
         else:
             self.slow = False
-
-    def __repr__(self):
-        return "{%% %s %%}:\n" % self.src + indent('\n'.join(repr(child) for child in self.children))
 
     def run(self, pe):
         output = str()
@@ -336,7 +330,6 @@ class CloseTag(BlockTag):
 
     def __init__(self, node):
         super(CloseTag, self).__init__(node.loc)
-        self.src = node.src
 
     def __repr__(self):
         return 'CloseTag.\n'
