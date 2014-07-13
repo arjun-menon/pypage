@@ -36,38 +36,39 @@ class TextNode(object):
     def __repr__(self):
         return 'Text:\n' + indent_filtered(self.src)
 
-class DelimitedNode(object):
+class TagNode(object):
     """
-    A type representing all delimited nodes.
+    A tag node.
 
     Members:
-        src: the body of the delimited tag
-        loc: location (line & column numbers) of the 
-             opening delimiter in the source
+        src: the body of the tag (content between delimiters)
+        loc: location of the opening delimiter, in a tuple of 
+             the form: (line_number, column_number)
 
-    Derived classes must have:
-        open_delim: string containig the opening delimiter
+    Subclasses must have:
+        open_delim:  string containig the opening delimiter
         close_delim: string containig the closing delimiter
     """
     def __init__(self, loc):
         self.src = str()
         self.loc = loc
 
-class CodeNode(DelimitedNode):
+class CodeTag(TagNode):
     """
     A leaf node containing Python code.
     """
     open_delim, close_delim = '{{', '}}'
 
     def __init__(self, loc):
-        super(CodeNode, self).__init__(loc)
+        super(CodeTag, self).__init__(loc)
 
     def __repr__(self):
         return 'Code:\n' + indent_filtered(self.src)
 
-class TagNode(DelimitedNode):
+class BlockTag(TagNode):
     """
-    A node containing special directives.
+    A block tag contains sepcial directives and subsumes 
+    a part of the document into `self.children`.
 
     Members:
         children: child nodes belonging to this node
@@ -75,16 +76,16 @@ class TagNode(DelimitedNode):
     open_delim, close_delim = '{%', '%}'
 
     def __init__(self, loc):
-        super(TagNode, self).__init__(loc)
+        super(BlockTag, self).__init__(loc)
         self.children = list()
 
     def __repr__(self):
         return "{%% %s %%}:\n" % self.src + indent('\n'.join(repr(child) for child in self.children))
 
     def run(self, pe):
-        raise Exception("TagNode.run not implemented in %r" % type(self))
+        raise Exception("BlockTag.run not implemented in %r" % type(self))
 
-class ForTag(TagNode):
+class ForTag(BlockTag):
     """
     The for loop tag. {% for ... in ... %}
 
@@ -173,7 +174,7 @@ class ForTag(TagNode):
     def _construct_generator_expression(self):
         return "((%s) %s)" % (', '.join(self.targets), self.src)
 
-class WhileTag(TagNode):
+class WhileTag(BlockTag):
     """
     The while loop tag. {% while ... %}
     """
@@ -228,7 +229,7 @@ class WhileTag(TagNode):
 
         return output
 
-class CaptureTag(TagNode):
+class CaptureTag(BlockTag):
     """
     Capture all content within this tag, and bind it to a variable.
     """
@@ -256,7 +257,7 @@ class CaptureTag(TagNode):
         pe.env[self.varname] = capture_output
         return ""
 
-class CommentTag(TagNode):
+class CommentTag(BlockTag):
     """
     The comment tag. All content within this tag is ignored.
     """
@@ -277,7 +278,7 @@ class CommentTag(TagNode):
     def run(self, pe):
         return ""
 
-class CloseTag(TagNode):
+class CloseTag(BlockTag):
     """
     Signifies a closing tag. A CloseTag has a whitespace-only body, i.e.: {%    %}
     """
@@ -299,7 +300,7 @@ class PypageSyntaxError(Exception):
     def __str__(self):
         return "Syntax Error: " + self.description
 
-class IncompleteDelimitedNode(PypageSyntaxError):
+class IncompleteTagNode(PypageSyntaxError):
     def __init__(self, node):
         self.description = "Missing closing '%s' for opening '%s' at line %d, column %d." % ( 
             node.close_delim, node.open_delim, node.loc[0], node.loc[1])
@@ -354,9 +355,9 @@ def isidentifier(s):
     return all( [bool(s) and (s[0].isalpha() or s[0]=='_')] + map(lambda c: c.isalnum() or c=='_', s) )
 
 def lex(src):
-    delimitedNodeTypes = [CodeNode, TagNode]
-    open_delims = { t.open_delim : t for t in delimitedNodeTypes }
-    tagNodeTypes = [ForTag, CloseTag, WhileTag, CaptureTag, CommentTag]
+    tagNodeTypes = [CodeTag, BlockTag]
+    open_delims = { t.open_delim : t for t in tagNodeTypes }
+    blockTagTypes = [ForTag, CloseTag, WhileTag, CaptureTag, CommentTag]
 
     tokens = list()
     node = None
@@ -373,7 +374,7 @@ def lex(src):
         c_pos_in_line = i - line_i
 
         # We don't belong to any node, so:
-        #   - Look for any DelimitedNode open_delims
+        #   - Look for any TagNode open_delims
         #   - If there aren't any, create a TextNode
         if not node:
             if c2 in open_delims.keys():
@@ -391,15 +392,15 @@ def lex(src):
                 i += 2
                 continue
 
-        # Look for DelimitedNode close_delim
-        if isinstance(node, DelimitedNode):
+        # Look for TagNode close_delim
+        if isinstance(node, TagNode):
             if c2 == node.close_delim:
-                if isinstance(node, TagNode):
-                    # A TagNode must be contained on _one_ line.
+                if isinstance(node, BlockTag):
+                    # A BlockTag must be contained on _one_ line.
                     if '\n' in node.src:
                         raise MultiLineTag(node)
 
-                    nodeType = first_true(lambda t: t.identify(node.src), tagNodeTypes)
+                    nodeType = first_true(lambda t: t.identify(node.src), blockTagTypes)
                     if nodeType == None:
                         raise UnknownTag(node)
                     else:
@@ -427,7 +428,7 @@ def lex(src):
             tokens.append(node)
             node = None
         else:
-            raise IncompleteDelimitedNode(node)
+            raise IncompleteTagNode(node)
 
     return tokens
 
@@ -437,14 +438,14 @@ def build_tree(node, tokens):
             tok = next(tokens)
 
             if isinstance(tok, CloseTag):
-                if isinstance(node, TagNode):
+                if isinstance(node, BlockTag):
                     return
                 else:
                     raise UnboundCloseTag(tok)
 
             node.children.append(tok)
 
-            if isinstance(tok, TagNode):
+            if isinstance(tok, BlockTag):
                 build_tree(tok, tokens)
     
     except StopIteration:
@@ -474,7 +475,7 @@ class PypageExec(object):
     def write(self, text):
         self.output += str(text)
 
-    def run(self, code):
+    def run(self, code, loc):
         code_lines = code.split('\n')
         self.output = str()
 
@@ -486,7 +487,10 @@ class PypageExec(object):
             for i in range(1, len(code_lines)):
                 # Ensure all code lines have the same base indendation:
                 if code_lines[i][:indentation_len] != indentation_chars and code_lines[i].strip():
-                    print repr((code_lines[i], indentation_chars))
+                    raise PypageSyntaxError("Mismtaching indentation in line %d: %r. \
+Indentation must match the second line of code in the tag (i.e. line %d). \
+The expected minimum indentation is: %r (%d characters)." % 
+(loc[0] + i, code_lines[i], loc[0] +1, indentation_chars, len(indentation_chars)))
 
                 # Strip away the base indentation:
                 code_lines[i] = code_lines[i][indentation_len:]
@@ -519,10 +523,10 @@ def exec_tree(parent_node, pe):
         if isinstance(node, TextNode):
             output += node.src
 
-        elif isinstance(node, CodeNode):
-            output += pe.run(node.src)
+        elif isinstance(node, CodeTag):
+            output += pe.run(node.src, node.loc)
 
-        elif isinstance(node, TagNode):
+        elif isinstance(node, BlockTag):
             output += node.run(pe)
 
     return output
