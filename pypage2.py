@@ -212,6 +212,27 @@ class WhileTag(TagNode):
 
         return output
 
+class CommentTag(TagNode):
+    """
+    The comment tag. All content within this tag is ignored.
+    """
+    tag_startswith = 'comment'
+
+    @staticmethod
+    def identify(src):
+        return src.strip().startswith(CommentTag.tag_startswith)
+
+    def __init__(self, node):
+        super(CommentTag, self).__init__(node.loc)
+        self.src = node.src.strip()
+        assert CommentTag.identify(self.src)
+
+    def __repr__(self):
+        return "{%% %s %%}:\n" % self.src + indent('\n'.join(repr(child) for child in self.children))
+
+    def run(self, pe):
+        return ""
+
 class CloseTag(TagNode):
     """
     Signifies a closing tag. A CloseTag has a whitespace-only body, i.e.: {%    %}
@@ -291,7 +312,7 @@ def isidentifier(s):
 def lex(src):
     delimitedNodeTypes = [CodeNode, TagNode]
     open_delims = { t.open_delim : t for t in delimitedNodeTypes }
-    tagNodeTypes = [ForTag, CloseTag, WhileTag]
+    tagNodeTypes = [ForTag, CloseTag, WhileTag, CommentTag]
 
     tokens = list()
     node = None
