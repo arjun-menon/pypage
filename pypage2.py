@@ -483,16 +483,27 @@ def lex(src):
 
     return tokens
 
-def build_tree(node, tokens):
+def prune_tokens(tokens):
+    """
+    Strip away newlines before or after a tag if there is nothing 
+    but whitespace between the newline and the delimiter.
+    """
+    new_tokens = list()
+
+    # TODO
+
+    return tokens
+
+def build_tree(node, tokens_iterator):
     try:
         while True:
-            tok = next(tokens)
+            tok = next(tokens_iterator)
 
             if isinstance(tok, ConditionalTag):
                 if tok.tag_startswith == ConditionalTag.tag_elif or tok.tag_startswith == ConditionalTag.tag_else:
                     if node.tag_startswith == ConditionalTag.tag_if or node.tag_startswith == ConditionalTag.tag_elif:
                         node.continuation = tok
-                        build_tree(tok, tokens)
+                        build_tree(tok, tokens_iterator)
                         return
                     else:
                         raise ElifOrElseWithoutIf(tok)
@@ -509,16 +520,19 @@ def build_tree(node, tokens):
             node.children.append(tok)
 
             if isinstance(tok, BlockTag):
-                build_tree(tok, tokens)
+                build_tree(tok, tokens_iterator)
     
     except StopIteration:
         if not isinstance(node, RootNode):
             raise UnclosedTag(node)
 
 def parse(src):
+    tokens = lex(src)
+    tokens = prune_tokens(tokens)
+
     tree = RootNode()
-    tokens = iter( lex(src) )
-    build_tree(tree, tokens)
+    build_tree( tree, iter(tokens) )
+
     return tree
 
 class PypageExec(object):
