@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools, sys, os
+import itertools, sys, time, os
 
 class RootNode(object):
     """
@@ -178,7 +178,10 @@ class WhileTag(TagNode):
     The while loop tag. {% while ... %}
     """
     tag_startswith = 'while '
+    loop_time_limit = 2.0 # seconds
+
     dofirst_startswith = 'dofirst '
+    slow_endswith = 'slow'
 
     @staticmethod
     def identify(src):
@@ -188,15 +191,21 @@ class WhileTag(TagNode):
         super(WhileTag, self).__init__(node.loc)
         self.src = node.src.strip()
         assert WhileTag.identify(self.src)
-        self.expr = self.src[len(self.tag_startswith):]
+        self.expr = self.src[len(self.tag_startswith):].strip()
 
         # Check if there's a dofirst:
-        if self.expr.strip().startswith(self.dofirst_startswith):
-            self.expr = self.expr.strip()
-            self.expr = self.expr[len(self.dofirst_startswith):]
+        if self.expr.startswith(self.dofirst_startswith):
+            self.expr = self.expr[len(self.dofirst_startswith) : ].strip()
             self.dofirst = True
         else:
             self.dofirst = False
+
+        # Check if this loop is slow:
+        if self.expr.endswith(self.slow_endswith):
+            self.expr = self.expr[ : -len(self.slow_endswith)].strip()
+            self.slow = True
+        else:
+            self.slow = False
 
     def __repr__(self):
         return "{%% %s %%}:\n" % self.src + indent('\n'.join(repr(child) for child in self.children))
@@ -207,8 +216,15 @@ class WhileTag(TagNode):
         if self.dofirst:
             output += exec_tree(self, pe)
 
+        loop_start_time = time.time()
+
         while pe.raw_eval(self.expr):
             output += exec_tree(self, pe)
+
+            if not self.slow and time.time() - loop_start_time > 2.0:
+                # TODO: more elegant handling
+                print "Loop '%s' terminated." % self.expr
+                break
 
         return output
 
