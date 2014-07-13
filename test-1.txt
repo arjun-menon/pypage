@@ -1,6 +1,7 @@
-Hi,{{
-name = 'Bob'
-activity = 'skiing'
+Hi,
+{{
+    name = 'Bob'
+    activity = 'skiing'
 }}
 How are you, {{name}}?
 I heard you went {{activity}}.
@@ -11,8 +12,8 @@ Here is a nice pattern:
 
 And here's an ode to you:
 {{
-for vowel in 'a', 'e', 'i', 'o', 'u':
-    write(vowel*5 + '\n')
+    for vowel in 'a', 'e', 'i', 'o', 'u':
+        write(vowel*5 + '\n')
 }}
 Best,
 Alice

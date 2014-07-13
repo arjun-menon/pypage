@@ -387,7 +387,7 @@ def lex(src):
         if isinstance(node, TextNode):
             if c2 in open_delims.keys():
                 tokens.append(node)
-                node = open_delims[c2]((line, c_pos_in_line))
+                node = open_delims[c2]( (line, c_pos_in_line) )
                 i += 2
                 continue
 
@@ -475,16 +475,40 @@ class PypageExec(object):
         self.output += str(text)
 
     def run(self, code):
-        if '\n' in code or ';' in code:
-            self.output = str()
+        code_lines = code.split('\n')
+        self.output = str()
+
+        if len(code_lines) > 1:
+            # Determine indentation level
+            indentation_len = len(code_lines[1]) - len(code_lines[1].strip())
+            indentation_chars = code_lines[1][:indentation_len]
+
+            for i in range(1, len(code_lines)):
+                # Ensure all code lines have the same base indendation:
+                if code_lines[i][:indentation_len] != indentation_chars and code_lines[i].strip():
+                    print repr((code_lines[i], indentation_chars))
+
+                # Strip away the base indentation:
+                code_lines[i] = code_lines[i][indentation_len:]
+
+            code = '\n'.join(code_lines)
             exec code in self.env
+
+            # Add the base indentation to the output
+            self.output = '\n'.join(
+                indentation_chars + output_line if output_line.strip() else output_line 
+                    for output_line in self.output.split('\n'))
+
             return self.output
         else:
-            return str( eval(code, self.env) )
+            if ';' in code:
+                exec code in self.env
+                return self.output
+            else:
+                return str( eval(code, self.env) )
 
     def raw_eval(self, code):
         "Evaluate an expression, and return the result raw (without stringifying it)."
-        assert '\n' not in code
         return eval(code, self.env)
 
 def exec_tree(parent_node, pe):

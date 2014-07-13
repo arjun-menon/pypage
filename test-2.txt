@@ -1,6 +1,6 @@
 {{
-i = 10
-j = 20
+    i = 10
+    j = 20
 }}
 {% capture ten2twenty %}
 Numbers from {{i}} to {{j}}:

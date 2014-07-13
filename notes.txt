@@ -13,6 +13,7 @@ Todos
 
 - Do not allow (i.e. strip out) invalid chars in for tag target list
 
-- "while dofirst " alternative to do-while
-- Print warning to stdout when a loop has taken more than 2 seconds.
+- Handle user code errors gracefully
+
+- Raise an error for 2 sec+ while loops.
 
