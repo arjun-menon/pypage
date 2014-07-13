@@ -100,7 +100,6 @@ class ForTag(BlockTag):
     def __init__(self, node):
         super(ForTag, self).__init__(node.loc)
         self.src = node.src.strip()
-        assert ForTag.identify(self.src)
 
         self.targets = self._find_targets()
         self.genexpr = self._construct_generator_expression()
@@ -115,10 +114,18 @@ class ForTag(BlockTag):
         backup = { x : pe.env[x] for x in conflicting }
 
         gen = pe.raw_eval(self.genexpr)
+
+        def get_for_targets():
+            result = next(gen)
+
+            if len(self.targets) == 1:
+                return { self.targets[0] : result }
+            else:
+                return { k : v for k, v in zip( self.targets, result ) }
+
         while True:
             try:
-                for_targets = { k : v for k, v in zip( self.targets, next(gen) ) }
-                pe.env.update(for_targets)
+                pe.env.update( get_for_targets() )
 
                 output += exec_tree(self, pe)
 
@@ -191,7 +198,6 @@ class WhileTag(BlockTag):
     def __init__(self, node):
         super(WhileTag, self).__init__(node.loc)
         self.src = node.src.strip()
-        assert WhileTag.identify(self.src)
         self.expr = self.src[len(self.tag_startswith):].strip()
 
         # Check if there's a dofirst:
@@ -229,6 +235,49 @@ class WhileTag(BlockTag):
 
         return output
 
+class ConditionalTag(BlockTag):
+    """
+    Implements `if`, `elif` and `else` conditional block tags.
+    """
+    tag_if = 'if'
+    tag_elif = 'elif'
+    tag_else = 'else'
+    tag_startswith_options = [tag_if, tag_elif, tag_else]
+
+    @staticmethod
+    def identify(src):
+        return bool(any(src.strip().startswith(sw) for sw in ConditionalTag.tag_startswith_options))
+
+    def __init__(self, node):
+        super(ConditionalTag, self).__init__(node.loc)
+        self.src = node.src.strip()
+
+        self.tag_startswith = first_true(lambda sw: self.src.startswith(sw), self.tag_startswith_options)
+        self.expr = self.src[len(self.tag_startswith):].strip()
+
+        if self.tag_startswith == self.tag_else:
+            if self.expr:
+                raise PypageSyntaxError("An `else` tag cannot have an expression.")
+            self.expr = 'True'
+
+        if not self.expr:
+            raise ExpressionMissing(self)
+
+        self.continuation = None
+
+    def __repr__(self):
+        return "{%% %s %%}:\n" % (self.src) + indent(
+            '\n'.join(repr(child) for child in self.children)) + (
+            '\n' + indent(repr(self.continuation)) if self.continuation else '')
+
+    def run(self, pe):
+        if pe.raw_eval(self.expr):
+            output = exec_tree(self, pe)
+        else:
+            output = self.continuation.run(pe)
+
+        return output
+
 class CaptureTag(BlockTag):
     """
     Capture all content within this tag, and bind it to a variable.
@@ -242,7 +291,6 @@ class CaptureTag(BlockTag):
     def __init__(self, node):
         super(CaptureTag, self).__init__(node.loc)
         self.src = node.src.strip()
-        assert CaptureTag.identify(self.src)
 
         self.varname = self.src[len(self.tag_startswith):].strip()
 
@@ -270,7 +318,6 @@ class CommentTag(BlockTag):
     def __init__(self, node):
         super(CommentTag, self).__init__(node.loc)
         self.src = node.src.strip()
-        assert CommentTag.identify(self.src)
 
     def __repr__(self):
         return "{%% %s %%}:\n" % self.src + indent('\n'.join(repr(child) for child in self.children))
@@ -320,13 +367,22 @@ class UnclosedTag(PypageSyntaxError):
         self.description = "Missing closing '%s %s' tag for opening '%s%s%s' at line %d, column %d." % (
             node.open_delim, node.close_delim, node.open_delim, node.src, node.close_delim, node.loc[0], node.loc[1])
 
+class ExpressionMissing(PypageSyntaxError):
+    def __init__(self, node):
+        self.description = "Expression missing in `%s` tag at line %d, column %d." % (node.tag_startswith, node.loc[0], node.loc[1])
+
+class ElifOrElseWithoutIf(PypageSyntaxError):
+    def __init__(self, node):
+        self.description = "Missing initial `if` tag for conditional `%s` tag at line %d, column %d." % (node.tag_startswith, node.loc[0], node.loc[1])
+
 class IncorrectForTag(PypageSyntaxError):
     def __init__(self, node):
-        self.description = "Incorrect pypage for tag syntax: '%s'" % node.src
+        self.description = "Incorrect `for` tag syntax: '%s'" % node.src
 
 class UnknownTag(PypageSyntaxError):
     def __init__(self, node):
-        self.description = "Unkown/unrecognized tag: '%s%s%s'" % (node.open_delim, node.src, node.close_delim)
+        self.description = "Unknown tag '%s%s%s' at line %d, column %d." % (
+            node.open_delim, node.src, node.close_delim, node.loc[0], node.loc[1])
 
 def filterlines(text):
     return '\n'.join( filter(lambda line: line.strip(), text.splitlines()) )
@@ -357,7 +413,7 @@ def isidentifier(s):
 def lex(src):
     tagNodeTypes = [CodeTag, BlockTag]
     open_delims = { t.open_delim : t for t in tagNodeTypes }
-    blockTagTypes = [ForTag, CloseTag, WhileTag, CaptureTag, CommentTag]
+    blockTagTypes = [ForTag, WhileTag, ConditionalTag, CaptureTag, CommentTag, CloseTag]
 
     tokens = list()
     node = None
@@ -384,42 +440,44 @@ def lex(src):
             else:
                 node =  TextNode()
 
-        # Currently in TextNode, look for open_delims
-        if isinstance(node, TextNode):
-            if c2 in open_delims.keys():
-                tokens.append(node)
-                node = open_delims[c2]( (line, c_pos_in_line) )
-                i += 2
-                continue
+        # If in TextNode, look for open_delims
+        if isinstance(node, TextNode) and c2 in open_delims.keys():
+            tokens.append(node)
+            node = open_delims[c2]( (line, c_pos_in_line) )
+            i += 2
+            continue
 
-        # Look for TagNode close_delim
-        if isinstance(node, TagNode):
-            if c2 == node.close_delim:
-                if isinstance(node, BlockTag):
-                    # A BlockTag must be contained on _one_ line.
-                    if '\n' in node.src:
-                        raise MultiLineTag(node)
+        # If in TagNode, look for close_delim
+        if isinstance(node, TagNode) and c2 == node.close_delim:
+            if isinstance(node, BlockTag):
+                if '\n' in node.src:
+                    # a BlockTag must be on a single line
+                    raise MultiLineTag(node)
 
-                    nodeType = first_true(lambda t: t.identify(node.src), blockTagTypes)
-                    if nodeType == None:
-                        raise UnknownTag(node)
-                    else:
-                        node = nodeType(node)
+                # Identify the block tag type, and convert it
+                nodeType = first_true(lambda t: t.identify(node.src), blockTagTypes)
+                if nodeType == None:
+                    raise UnknownTag(node)
+                else:
+                    node = nodeType(node)
 
-                tokens.append(node)
-                node = None
-                i += 2
-                continue
+            tokens.append(node)
+            node = None
+            i += 2
+            continue
 
+        # Skipe escaped braces
         if c2 == '\{' or c2 == '\}':
             node.src += c2[1]
             i += 2
             continue
 
         if i < len(src) - 2:
+            # Consume a character of source
             node.src += c
             i += 1
         else:
+            # If we're at the second-to-last character, consume two
             node.src += c2
             i += 2
 
@@ -436,6 +494,18 @@ def build_tree(node, tokens):
     try:
         while True:
             tok = next(tokens)
+
+            if isinstance(tok, ConditionalTag):
+                if tok.tag_startswith == ConditionalTag.tag_elif or tok.tag_startswith == ConditionalTag.tag_else:
+                    if node.tag_startswith == ConditionalTag.tag_if or node.tag_startswith == ConditionalTag.tag_elif:
+                        node.continuation = tok
+                        build_tree(tok, tokens)
+                        return
+                    else:
+                        raise ElifOrElseWithoutIf(tok)
+
+                elif tok.tag_startswith == ConditionalTag.tag_else:
+                    return
 
             if isinstance(tok, CloseTag):
                 if isinstance(node, BlockTag):

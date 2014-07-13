@@ -1,0 +1,18 @@
+Hi,
+{{
+    import random
+    # Randomly pick a greeting
+    greeting = random.randint(1,4)
+}}
+{% if greeting == 1 %}
+Wazzup
+{% elif greeting == 2 %}
+How you crackin' ?
+{% elif greeting == 3 %}
+Howdy
+{% else %}
+What's up?
+{% %}
+
+Good luck,
+Mindy

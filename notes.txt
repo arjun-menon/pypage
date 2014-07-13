@@ -1,13 +1,52 @@
 
-Todos
-~~~~~
-- Indentation support (code & output)
+pypage (Python Page Generator)
+======
 
-    Take the output indent with `prefix` from the second line onwards.
-    So just split the output on '\n' and re-join with (prefix + '\n')
+pypage lets you embed Python code easily and flexibly in documents (plain text, HTML, etc). 
+Its syntax is similar templating languages like [Liquify]() and [mm]().
+
+
+
+Features
+--------
+
+- Code tag
+
+  - Intelligent Indentation Handling
 
     The second line of code determines indentation.
     All lines of code after the second must match its indentation or be empty.
+    The output is indented based on the second line's indentation.
+
+
+- Conditional (if, elif, else) tag
+
+
+- For loop tag
+
+
+- While tag
+
+  - dofirst option
+  - slow option
+
+
+- Capture tag
+
+
+- Comment tag
+
+
+Todos
+~~~~~
+
+- Strip away newlines before or after a tag, if there is nothing but whitespace 
+  between the newline and the delimiter. 
+    
+  i.e. If an opening delimiter is on a line by itself, strip away the newline before it.
+       Same goes for the closing delimiter.
+
+- Optional close tag in the form of "endtag"
 
 - Optional stripping of the leading and/or trailing newline+whitespace before delimitedNodes
 
