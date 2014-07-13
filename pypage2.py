@@ -18,13 +18,13 @@ import itertools, sys, os
 
 class RootNode(object):
     """
-    Root node of the abstract syntax tree built from source.
+    Root node of the abstract syntax tree (AST) representing the entire source.
     """
     def __init__(self):
         self.children = list()
 
     def __repr__(self):
-        return "Tree:\n" + indent('\n'.join(repr(child) for child in self.children))
+        return "Root:\n" + indent('\n'.join(repr(child) for child in self.children))
 
 class TextNode(object):
     """
@@ -140,9 +140,6 @@ class ForTagNode(TagNode):
 
         All target lists will be combined into the `targets` set, and returned.
         """
-        def isidentifier(s):
-            # As per: https://docs.python.org/2/reference/lexical_analysis.html#identifiers
-            return s and (s[0].isalpha() or s[0]=='_') and all(c for c in s if c.isalnum() or c=='_')
 
         targets = set()
         tokens = self.src.split()
@@ -231,9 +228,24 @@ def indent(text, level=1, width=4):
 def indent_filtered(text, level=1, width=4):
     return prepend(filterlines(text), ' '  * width * level)
 
+def first_true(function, sequence):
+    """
+    Return the first element of sequence for which 
+    the result of applying function is True.
+    Returns None if no element returns True.
+    """
+    for item in sequence:
+        if function(item):
+            return item
+
+def isidentifier(s):
+    # As per: https://docs.python.org/2/reference/lexical_analysis.html#identifiers
+    return all( [bool(s) and (s[0].isalpha() or s[0]=='_')] + map(lambda c: c.isalnum() or c=='_', s) )
+
 def lex(src):
     delimitedNodeTypes = [CodeNode, TagNode]
     open_delims = { t.open_delim : t for t in delimitedNodeTypes }
+    tagNodeTypes = [ForTagNode, CloseTagNode]
 
     tokens = list()
     node = None
@@ -276,12 +288,11 @@ def lex(src):
                     if '\n' in node.src:
                         raise MultiLineTag(node)
 
-                    if CloseTagNode.identify(node.src):
-                        node = CloseTagNode(node)
-                    elif ForTagNode.identify(node.src):
-                        node = ForTagNode(node)
-                    else:
+                    nodeType = first_true(lambda t: t.identify(node.src), tagNodeTypes)
+                    if nodeType == None:
                         raise UnknownTag(node)
+                    else:
+                        node = nodeType(node)
 
                 tokens.append(node)
                 node = None
