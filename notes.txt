@@ -1,0 +1,18 @@
+
+Todos
+~~~~~
+- Indentation support (code & output)
+
+    Take the output indent with `prefix` from the second line onwards.
+    So just split the output on '\n' and re-join with (prefix + '\n')
+
+    The second line of code determines indentation.
+    All lines of code after the second must match its indentation or be empty.
+
+- Optional stripping of the leading and/or trailing newline+whitespace before delimitedNodes
+
+- Do not allow (i.e. strip out) invalid chars in for tag target list
+
+- "while dofirst " alternative to do-while
+- Print warning to stdout when a loop has taken more than 2 seconds.
+

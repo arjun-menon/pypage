@@ -18,7 +18,7 @@ import itertools, sys, os
 
 class RootNode(object):
     """
-    Root node of the abstract syntax tree (AST) representing the entire source.
+    Root node of the abstract syntax tree.
     """
     def __init__(self):
         self.children = list()
@@ -81,19 +81,26 @@ class TagNode(DelimitedNode):
     def __repr__(self):
         return "{%% %s %%}:\n" % self.src + indent('\n'.join(repr(child) for child in self.children))
 
-class ForTagNode(TagNode):
-    """
-    The for loop tag. Example: {% for ... in ... %}
+    def run(self, pe):
+        raise Exception("TagNode.run not implemented in %r" % type(self))
 
-    The `for` expression is evaluated as a generator expression.
+class ForTag(TagNode):
     """
+    The for loop tag. {% for ... in ... %}
+
+    The `for` expression is evaluated in/as a generator expression.
+    """
+    tag_startswith = 'for '
+
     @staticmethod
     def identify(src):
-        return src.strip().startswith('for')
+        return src.strip().startswith(ForTag.tag_startswith)
 
     def __init__(self, node):
-        super(ForTagNode, self).__init__(node.loc)
+        super(ForTag, self).__init__(node.loc)
         self.src = node.src.strip()
+        assert ForTag.identify(self.src)
+
         self.targets = self._find_targets()
         self.genexpr = self._construct_generator_expression()
 
@@ -136,7 +143,7 @@ class ForTagNode(TagNode):
             target_list   ::=  target ("," target)* [","]
 
         The grammar we are permitting here will be a subset of the full Python grammar. 
-        We will strictly expect a comma-separated list of identifiers between 'for' and 'in'.
+        We will expect a comma-separated list of identifiers between 'for' and 'in'.
 
         All target lists will be combined into the `targets` set, and returned.
         """
@@ -166,9 +173,48 @@ class ForTagNode(TagNode):
     def _construct_generator_expression(self):
         return "((%s) %s)" % (', '.join(self.targets), self.src)
 
-class CloseTagNode(TagNode):
+class WhileTag(TagNode):
     """
-    Signifies a closing tag. A CloseTagNode has a whitespace-only body, i.e.: {%    %}
+    The while loop tag. {% while ... %}
+    """
+    tag_startswith = 'while '
+    dofirst_startswith = 'dofirst '
+
+    @staticmethod
+    def identify(src):
+        return src.strip().startswith(WhileTag.tag_startswith)
+
+    def __init__(self, node):
+        super(WhileTag, self).__init__(node.loc)
+        self.src = node.src.strip()
+        assert WhileTag.identify(self.src)
+        self.expr = self.src[len(self.tag_startswith):]
+
+        # Check if there's a dofirst:
+        if self.expr.strip().startswith(self.dofirst_startswith):
+            self.expr = self.expr.strip()
+            self.expr = self.expr[len(self.dofirst_startswith):]
+            self.dofirst = True
+        else:
+            self.dofirst = False
+
+    def __repr__(self):
+        return "{%% %s %%}:\n" % self.src + indent('\n'.join(repr(child) for child in self.children))
+
+    def run(self, pe):
+        output = str()
+
+        if self.dofirst:
+            output += exec_tree(self, pe)
+
+        while pe.raw_eval(self.expr):
+            output += exec_tree(self, pe)
+
+        return output
+
+class CloseTag(TagNode):
+    """
+    Signifies a closing tag. A CloseTag has a whitespace-only body, i.e.: {%    %}
     """
     @staticmethod
     def identify(src):
@@ -176,11 +222,11 @@ class CloseTagNode(TagNode):
         return not src.strip()
 
     def __init__(self, node):
-        super(CloseTagNode, self).__init__(node.loc)
+        super(CloseTag, self).__init__(node.loc)
         self.src = node.src
 
     def __repr__(self):
-        return 'CloseTagNode.\n'
+        return 'CloseTag.\n'
 
 class PypageSyntaxError(Exception):
     def __init__(self, description='undefined'):
@@ -245,7 +291,7 @@ def isidentifier(s):
 def lex(src):
     delimitedNodeTypes = [CodeNode, TagNode]
     open_delims = { t.open_delim : t for t in delimitedNodeTypes }
-    tagNodeTypes = [ForTagNode, CloseTagNode]
+    tagNodeTypes = [ForTag, CloseTag, WhileTag]
 
     tokens = list()
     node = None
@@ -325,7 +371,7 @@ def build_tree(node, tokens):
         while True:
             tok = next(tokens)
 
-            if isinstance(tok, CloseTagNode):
+            if isinstance(tok, CloseTag):
                 if isinstance(node, TagNode):
                     return
                 else:
@@ -373,6 +419,7 @@ class PypageExec(object):
 
     def raw_eval(self, code):
         "Evaluate an expression, and return the result raw (without stringifying it)."
+        assert '\n' not in code
         return eval(code, self.env)
 
 def exec_tree(parent_node, pe):
@@ -386,7 +433,7 @@ def exec_tree(parent_node, pe):
         elif isinstance(node, CodeNode):
             output += pe.run(node.src)
 
-        elif isinstance(node, ForTagNode):
+        elif isinstance(node, TagNode):
             output += node.run(pe)
 
     return output

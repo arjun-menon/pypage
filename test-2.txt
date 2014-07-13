@@ -1,0 +1,6 @@
+{{
+i = 10
+j = 20
+}}Numbers from {{i}} to {{j}}:
+{% while i <= j %}{{write(str(i) + '\n'); i += 1}}{%%}
+{% while dofirst False %}That's all, folks!{%%}
