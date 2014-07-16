@@ -1,19 +1,16 @@
 <html>
     <head>
-        <title><py>write("Primary Colors")</py></title>
+        <title>{{"Primary Colors"}}</title>
+        {{
+            colors = ['Red', 'Blue', 'Green']
+        }}
     </head>
     <body>
         List of primary colors:
         <ul>        
-            <python>
-            def li(item):
-                return "<li>" + item + "</li>"
-
-            def write_items(*items):
-                write( "\n".join( li(item) for item in items ) )
-
-            write_items('Red', 'Blue', 'Green')
-            </python>
+            {% for color in colors %}
+            <li>{{color}}</li>
+            {% %}
         </ul>
     </body>
 </html>
