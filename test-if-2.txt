@@ -2,9 +2,9 @@
     {% if x == 1 %}  
     One.
     {% elif x == 2 %}  
-    Two.
+    {{'Two.'}}
     {% elif x == 3 %}  
-    {{ write('Three.') }}
+    {{ write('Three.', end='') }}
     {% else %}
     Not one, two, or three.
     {% %}

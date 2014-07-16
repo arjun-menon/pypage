@@ -18,6 +18,11 @@ Features
     All lines of code after the second must match its indentation or be empty.
     The output is indented based on the second line's indentation.
 
+- Block tag
+
+If a block tag is on a line by itself, surrounded only by whitespace, then that whitespace is 
+automatically excluded from the output. This allows you indent your block tags without 
+worrying about any excess whitespace floating around.
 
 - Conditional (if, elif, else) tag
 
@@ -39,17 +44,6 @@ Features
 
 Todos
 ~~~~~
-
-strip all block tags appearing on lines by themselves
-strip single line code tags
-    
-  i.e. If an opening delimiter is on a line by itself, strip away the newline before it.
-       Same goes for the closing delimiter.
-
-- Instead of write(), replace sys.stdout
-
-- Provide the user with a function that escapes (non-HTML) text, optionally.
-  For exampe, make set env['escape'] = cgi.escape, so that the user could {{ escape(...) }}
 
 - Optional close tag in the form of "endtag"
 

@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import string, itertools, sys, time, os
+import string, itertools, sys, time, os, cgi
 
 class RootNode(object):
     """
@@ -614,9 +614,30 @@ class PypageExec(object):
         self.env['__doc__'] = None
 
         self.env['write'] = self.write
+        self.env['escape'] = cgi.escape
 
-    def write(self, text):
-        self.output += str(text)
+    def write(self, *args, **kwargs):
+        """Writes *args to output.
+
+        Optional keyword arguments: end = ' ', sep = '\n', escape = False
+
+        Before writing each element of *args to output, end is appended to 
+        it, and all the elemented are joined using sep. If escape is True, 
+        then cgi.escape is applied on each element of *args.
+        """
+
+        def kwarg(name):
+            if name in kwargs:
+                return kwargs[name]
+
+        def get_kwarg(name, default):
+            return kwargs[name] if name in kwargs else default
+
+        sep = str( get_kwarg('sep',  ' ') )
+        end = str( get_kwarg('end', '\n') )
+        escape = get_kwarg('escape', False)
+
+        self.output += sep.join(cgi.escape(arg) if escape else str(arg) + end for arg in args)
 
     def run(self, code, loc):
         code_lines = code.split('\n')
