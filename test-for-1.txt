@@ -3,17 +3,22 @@ Hi,
     name = 'Bob'
     activity = 'skiing'
 }}
+
 How are you, {{name}}?
+
 I heard you went {{activity}}.
 
 Here is a nice pattern:
 {% for x in [1,2,3] for y in ['a','b','c']  %}
-{{x}} -> {{y}}{%%}
+    {{x}} -> {{y}}
+{%%}
 
 And here's an ode to you:
+
 {{
     for vowel in 'a', 'e', 'i', 'o', 'u':
-        write(vowel*5 + '\n')
+        write(vowel*5)
 }}
+
 Best,
 Alice

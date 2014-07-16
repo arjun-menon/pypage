@@ -526,6 +526,8 @@ def prune_tokens(tokens):
                 prev_nl_pos = last_occurrence(tokens[i-1].src, '\n')
                 if prev_nl_pos != None:
                     leading_text = tokens[i-1].src[prev_nl_pos+1:]
+                else:
+                    leading_text = tokens[i-1].src
 
             # Check if the next token is a TextNode:
             trailing_text, next_nl_pos = [], None
@@ -533,6 +535,8 @@ def prune_tokens(tokens):
                 next_nl_pos = first_occurrence(tokens[i+1].src, '\n')
                 if next_nl_pos != None:
                     trailing_text = tokens[i+1].src[:next_nl_pos+1]
+                else:
+                    trailing_text = tokens[i+1].src
 
             should_strip = all(c in string.whitespace for c in leading_text) and all(
                                c in string.whitespace for c in trailing_text) and not (
@@ -701,7 +705,7 @@ def exec_tree(parent_node, pe):
 
 def execute(src):
     tree = parse(src)
-    print tree
+    #print tree
     pe = PypageExec()
     output = exec_tree(tree, pe)
     print output
