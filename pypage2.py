@@ -24,7 +24,7 @@ class RootNode(object):
         self.children = list()
 
     def __repr__(self):
-        return "Root:\n%s\n" % indent('\n'.join(repr(child) for child in self.children))
+        return "Root:\n" + indent('\n'.join(repr(child) for child in self.children))
 
 class TextNode(object):
     """
@@ -653,7 +653,7 @@ class PypageExec(object):
             indentation_chars = code_lines[1][:indentation_len]
 
             for i in range(1, len(code_lines)):
-                # Ensure all code lines have the same base indendation:
+                # Ensure all code lines have the same base indentation:
                 if code_lines[i][:indentation_len] != indentation_chars and code_lines[i].strip():
                     raise PypageSyntaxError("Mismtaching indentation in line %d: %r. \
 Indentation must match the second line of code in the tag (i.e. line %d). \
@@ -703,18 +703,21 @@ def exec_tree(parent_node, pe):
 
     return output
 
-def execute(src):
-    tree = parse(src)
-    #print tree
-    pe = PypageExec()
-    output = exec_tree(tree, pe)
-    print output
+def pypage(source):
+    """pypage(source) -> output
 
-if __name__ == "__main__":
+    Takes source, transforms it and returns it.
+    """
+    tree = parse(source)
+    pe = PypageExec()
+    return exec_tree(tree, pe)
+
+def main():
     import argparse
     parser = argparse.ArgumentParser(description="Light-weight Python templating engine.")
     parser.add_argument('source_file', type=str, help="Source file name")
-    parser.add_argument('-t', '--target_file', nargs=1, type=str, default=None, help='Target file name; default: stdout')
+    parser.add_argument('-o', '--output_file', nargs=1, type=str, default=None, help='output file name; default: stdout')
+    parser.add_argument('--tree', action='store_true', help='print the abstract syntax tree and exit')
     args = parser.parse_args()
 
     if not os.path.exists(args.source_file):
@@ -725,6 +728,29 @@ if __name__ == "__main__":
         source = source_file.read()
 
     try:
-        execute(source)
+        tree = parse(source)
+
+        if args.tree:
+            print tree
+            sys.exit(0)
+
+        pe = PypageExec()
+
+        output = exec_tree(tree, pe)
+
     except PypageSyntaxError as error:
         print error
+        sys.exit(1)
+
+    output_file = args.output_file[0] if args.output_file else None
+
+    if not output_file:
+        output_file = sys.stdout
+    else:
+        output_file = open(output_file, 'w')
+
+    with output_file:
+        output_file.write(output)
+
+if __name__ == "__main__":
+    main()

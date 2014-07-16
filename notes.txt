@@ -47,8 +47,6 @@ Todos
 
 - Optional close tag in the form of "endtag"
 
-- Optional stripping of the leading and/or trailing newline+whitespace before delimitedNodes
-
 - Do not allow (i.e. strip out) invalid chars in for tag target list
 
 - Handle user code errors gracefully with an optional "embed_errors" option
