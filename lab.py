@@ -1,5 +1,5 @@
 
-import imp
+import imp, __builtin__, sys
 
 # cb = "def foo(n):\n\
 #     return n*n\n\
@@ -21,8 +21,6 @@ import imp
 # exec cb in k
 
 # print "\n\n k after exec:", k
-
-import __builtin__
 
 # env = dict()
 # env['__builtins__'] = __builtin__

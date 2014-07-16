@@ -1,10 +1,10 @@
 {% for x in range(5) %}
-    {% if x == 1 %}
+    {% if x == 1 %}  
     One.
-    {% elif x == 2 %}
+    {% elif x == 2 %}  
     Two.
-    {% elif x == 3 %}
-    Three.
+    {% elif x == 3 %}  
+    {{ write('Three.') }}
     {% else %}
     Not one, two, or three.
     {% %}

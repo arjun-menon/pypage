@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools, sys, time, os
+import string, itertools, sys, time, os
 
 class RootNode(object):
     """
@@ -24,7 +24,7 @@ class RootNode(object):
         self.children = list()
 
     def __repr__(self):
-        return "Root:\n" + indent('\n'.join(repr(child) for child in self.children))
+        return "Root:\n%s\n" % indent('\n'.join(repr(child) for child in self.children))
 
 class TextNode(object):
     """
@@ -64,6 +64,18 @@ class CodeTag(TagNode):
 
     def __repr__(self):
         return 'Code:\n' + indent_filtered(self.src)
+
+class CommentTag(TagNode):
+    """
+    A leaf node containing ignored content.
+    """
+    open_delim, close_delim = '{#', '#}'
+
+    def __init__(self, loc):
+        super(CommentTag, self).__init__(loc)
+
+    def __repr__(self):
+        return 'Comment:\n' + indent_filtered(self.src)
 
 class BlockTag(TagNode):
     """
@@ -251,7 +263,7 @@ class ConditionalTag(BlockTag):
 
         if self.tag_startswith == self.tag_else:
             if self.expr:
-                raise PypageSyntaxError("An `else` tag cannot have an expression.")
+                raise ExpressionProhibited(self)
             self.expr = 'True'
 
         if not self.expr:
@@ -265,9 +277,11 @@ class ConditionalTag(BlockTag):
             '\n' + indent(repr(self.continuation)) if self.continuation else '')
 
     def run(self, pe):
+        output = str()
+
         if pe.raw_eval(self.expr):
             output = exec_tree(self, pe)
-        else:
+        elif self.continuation:
             output = self.continuation.run(pe)
 
         return output
@@ -289,7 +303,7 @@ class CaptureTag(BlockTag):
         self.varname = self.src[len(self.tag_startswith):].strip()
 
         if not isidentifier(self.varname):
-            raise PypageSyntaxError("Incorrect CommentTag: '%s' is not a valid Python identifier." % self.varname)
+            raise PypageSyntaxError("Incorrect CaptureTag: '%s' is not a valid Python identifier." % self.varname)
 
     def __repr__(self):
         return "{%% %s %%}:\n" % self.src + indent('\n'.join(repr(child) for child in self.children))
@@ -299,7 +313,7 @@ class CaptureTag(BlockTag):
         pe.env[self.varname] = capture_output
         return ""
 
-class CommentTag(BlockTag):
+class CommentBlockTag(BlockTag):
     """
     The comment tag. All content within this tag is ignored.
     """
@@ -307,10 +321,10 @@ class CommentTag(BlockTag):
 
     @staticmethod
     def identify(src):
-        return src.strip().startswith(CommentTag.tag_startswith)
+        return src.strip().startswith(CommentBlockTag.tag_startswith)
 
     def __init__(self, node):
-        super(CommentTag, self).__init__(node.loc)
+        super(CommentBlockTag, self).__init__(node.loc)
         self.src = node.src.strip()
 
     def __repr__(self):
@@ -347,7 +361,7 @@ class IncompleteTagNode(PypageSyntaxError):
 
 class MultiLineTag(PypageSyntaxError):
     def __init__(self, node):
-        self.description = "The tag starting at line %d, column %d spans multiple lines. This is not permitted. \
+        self.description = "The tag starting at line %d, column %d, spans multiple lines. This is not permitted. \
 All tags ('%s ... %s') must be on one line." % (node.loc[0], node.loc[1], node.open_delim, node.close_delim)
 
 class UnboundCloseTag(PypageSyntaxError):
@@ -363,6 +377,10 @@ class UnclosedTag(PypageSyntaxError):
 class ExpressionMissing(PypageSyntaxError):
     def __init__(self, node):
         self.description = "Expression missing in `%s` tag at line %d, column %d." % (node.tag_startswith, node.loc[0], node.loc[1])
+
+class ExpressionProhibited(PypageSyntaxError):
+    def __init__(self, node):
+        self.description = "The `%s` tag at line %d, column %d, must appear by itself without any text next to it." % (node.tag_startswith, node.loc[0], node.loc[1])
 
 class ElifOrElseWithoutIf(PypageSyntaxError):
     def __init__(self, node):
@@ -403,31 +421,43 @@ def isidentifier(s):
     # As per: https://docs.python.org/2/reference/lexical_analysis.html#identifiers
     return all( [bool(s) and (s[0].isalpha() or s[0]=='_')] + map(lambda c: c.isalnum() or c=='_', s) )
 
+def first_occurrence(text, c):
+    "Position of the first occurence of character ``c`` in ``text``."
+    for i in range(len(text)):
+        if text[i] == c:
+            return i
+
+def last_occurrence(text, c):
+    "Position of the last occurence of character ``c`` in ``text``."
+    for i in range(len(text)-1, -1, -1):
+        if text[i] == c:
+            return i
+
 def lex(src):
-    tagNodeTypes = [CodeTag, BlockTag]
+    tagNodeTypes = [CodeTag, CommentTag, BlockTag]
     open_delims = { t.open_delim : t for t in tagNodeTypes }
-    blockTagTypes = [ForTag, WhileTag, ConditionalTag, CaptureTag, CommentTag, CloseTag]
+    blockTagTypes = [ForTag, WhileTag, ConditionalTag, CaptureTag, CommentBlockTag, CloseTag]
 
     tokens = list()
     node = None
 
     i = 0
-    line, line_i = 1, 0
+    line_number, newline_position = 1, 0
     while i < len(src) - 1:
         c  = src[i]
         c2 = src[i] + src[i+1]
 
         if c == '\n':
-            line += 1
-            line_i = i
-        c_pos_in_line = i - line_i
+            line_number += 1
+            newline_position = i
+        column_number = i - newline_position
 
         # We don't belong to any node, so:
         #   - Look for any TagNode open_delims
         #   - If there aren't any, create a TextNode
         if not node:
             if c2 in open_delims.keys():
-                node = open_delims[c2]((line, c_pos_in_line))
+                node = open_delims[c2]((line_number, column_number))
                 i += 2
                 continue
             else:
@@ -436,7 +466,7 @@ def lex(src):
         # If in TextNode, look for open_delims
         if isinstance(node, TextNode) and c2 in open_delims.keys():
             tokens.append(node)
-            node = open_delims[c2]( (line, c_pos_in_line) )
+            node = open_delims[c2]( (line_number, column_number) )
             i += 2
             continue
 
@@ -447,7 +477,6 @@ def lex(src):
                     # a BlockTag must be on a single line
                     raise MultiLineTag(node)
 
-                # Identify the block tag type, and convert it
                 nodeType = first_true(lambda t: t.identify(node.src), blockTagTypes)
                 if nodeType == None:
                     raise UnknownTag(node)
@@ -485,14 +514,51 @@ def lex(src):
 
 def prune_tokens(tokens):
     """
-    Strip away newlines before or after a tag if there is nothing 
-    but whitespace between the newline and the delimiter.
+    Strip away the leading and trailing whitespace surrounding a tag.
     """
+    stripped_prev = False
+    for i in range(len(tokens)):
+        if isinstance(tokens[i], TagNode):
+
+            # Check if the previous token is a TextNode:
+            leading_text, prev_nl_pos = [], None
+            if i > 0 and isinstance(tokens[i-1], TextNode):
+                prev_nl_pos = last_occurrence(tokens[i-1].src, '\n')
+                if prev_nl_pos != None:
+                    leading_text = tokens[i-1].src[prev_nl_pos+1:]
+
+            # Check if the next token is a TextNode:
+            trailing_text, next_nl_pos = [], None
+            if i < (len(tokens) - 1) and isinstance(tokens[i+1], TextNode):
+                next_nl_pos = first_occurrence(tokens[i+1].src, '\n')
+                if next_nl_pos != None:
+                    trailing_text = tokens[i+1].src[:next_nl_pos+1]
+
+            should_strip = all(c in string.whitespace for c in leading_text) and all(
+                               c in string.whitespace for c in trailing_text) and not (
+                               isinstance(tokens[i], CodeTag) and '\n' not in tokens[i].src )
+
+            if should_strip:
+                if prev_nl_pos != None:
+                    tokens[i-1].src = tokens[i-1].src[:prev_nl_pos+1]
+
+                if next_nl_pos != None:
+                    tokens[i+1].src = tokens[i+1].src[next_nl_pos+1:]
+
+                if stripped_prev and i-2 >= 0:
+                    if isinstance(tokens[i-1], TextNode) and isinstance(tokens[i-2], TagNode):
+                        if '\n' not in tokens[i-1].src and all(c in string.whitespace for c in tokens[i-1].src):
+                            tokens[i-1].src = ''
+
+            stripped_prev = should_strip
+
+    # Discard empty TextNodes
     new_tokens = list()
+    for token in tokens:
+        if not( isinstance(token, TextNode) and not token.src ):
+            new_tokens.append(token)
 
-    # TODO
-
-    return tokens
+    return new_tokens
 
 def build_tree(node, tokens_iterator):
     try:
@@ -586,7 +652,11 @@ The expected minimum indentation is: %r (%d characters)." %
                 exec code in self.env
                 return self.output
             else:
-                return str( eval(code, self.env) )
+                result = eval(code, self.env)
+                # The condition below takes care of a {{ write(...) }}
+                if not(result == None and self.output):
+                    self.output += str(eval(code, self.env))
+                return self.output
 
     def raw_eval(self, code):
         "Evaluate an expression, and return the result raw (without stringifying it)."
@@ -610,7 +680,7 @@ def exec_tree(parent_node, pe):
 
 def execute(src):
     tree = parse(src)
-    #print tree
+    print tree
     pe = PypageExec()
     output = exec_tree(tree, pe)
     print output
@@ -633,4 +703,3 @@ if __name__ == "__main__":
         execute(source)
     except PypageSyntaxError as error:
         print error
-

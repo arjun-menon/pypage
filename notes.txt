@@ -3,7 +3,7 @@ pypage (Python Page Generator)
 ======
 
 pypage lets you embed Python code easily and flexibly in documents (plain text, HTML, etc). 
-Its syntax is similar templating languages like [Liquify]() and [mm]().
+Its syntax is similar templating languages like [Liquify]() and [Jinja]().
 
 
 
@@ -40,11 +40,16 @@ Features
 Todos
 ~~~~~
 
-- Strip away newlines before or after a tag, if there is nothing but whitespace 
-  between the newline and the delimiter. 
+strip all block tags appearing on lines by themselves
+strip single line code tags
     
   i.e. If an opening delimiter is on a line by itself, strip away the newline before it.
        Same goes for the closing delimiter.
+
+- Instead of write(), replace sys.stdout
+
+- Provide the user with a function that escapes (non-HTML) text, optionally.
+  For exampe, make set env['escape'] = cgi.escape, so that the user could {{ escape(...) }}
 
 - Optional close tag in the form of "endtag"
 
