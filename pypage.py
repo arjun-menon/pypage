@@ -556,10 +556,10 @@ def prune_tokens(tokens):
 
             stripped_prev = should_strip
 
-    # Discard empty TextNodes
+    # Discard empty TextNodes and CommentTags
     new_tokens = list()
     for token in tokens:
-        if not( isinstance(token, TextNode) and not token.src ):
+        if not( isinstance(token, TextNode) and not token.src ) and not isinstance(token, CommentTag):
             new_tokens.append(token)
 
     return new_tokens
