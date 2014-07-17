@@ -97,6 +97,51 @@ class BlockTag(TagNode):
     def run(self, pe):
         raise Exception("BlockTag.run not implemented in %r" % type(self))
 
+class ConditionalTag(BlockTag):
+    """
+    Implements `if`, `elif` and `else` conditional block tags.
+    """
+    tag_if = 'if'
+    tag_elif = 'elif'
+    tag_else = 'else'
+    tag_startswith_options = [tag_if, tag_elif, tag_else]
+
+    @staticmethod
+    def identify(src):
+        return bool(any(src.strip().startswith(sw) for sw in ConditionalTag.tag_startswith_options))
+
+    def __init__(self, node):
+        super(ConditionalTag, self).__init__(node.loc)
+        self.src = node.src.strip()
+
+        self.tag_startswith = first_true(lambda sw: self.src.startswith(sw), self.tag_startswith_options)
+        self.expr = self.src[len(self.tag_startswith):].strip()
+
+        if self.tag_startswith == self.tag_else:
+            if self.expr:
+                raise ExpressionProhibited(self)
+            self.expr = 'True'
+
+        if not self.expr:
+            raise ExpressionMissing(self)
+
+        self.continuation = None
+
+    def __repr__(self):
+        return "{%% %s %%}:\n" % (self.src) + indent(
+            '\n'.join(repr(child) for child in self.children)) + (
+            '\n' + indent(repr(self.continuation)) if self.continuation else '')
+
+    def run(self, pe):
+        output = str()
+
+        if pe.raw_eval(self.expr):
+            output = exec_tree(self, pe)
+        elif self.continuation:
+            output = self.continuation.run(pe)
+
+        return output
+
 class ForTag(BlockTag):
     """
     The for loop tag. {% for ... in ... %}
@@ -238,51 +283,6 @@ class WhileTag(BlockTag):
                 # TODO: more elegant handling
                 print "Loop '%s' terminated." % self.expr
                 break
-
-        return output
-
-class ConditionalTag(BlockTag):
-    """
-    Implements `if`, `elif` and `else` conditional block tags.
-    """
-    tag_if = 'if'
-    tag_elif = 'elif'
-    tag_else = 'else'
-    tag_startswith_options = [tag_if, tag_elif, tag_else]
-
-    @staticmethod
-    def identify(src):
-        return bool(any(src.strip().startswith(sw) for sw in ConditionalTag.tag_startswith_options))
-
-    def __init__(self, node):
-        super(ConditionalTag, self).__init__(node.loc)
-        self.src = node.src.strip()
-
-        self.tag_startswith = first_true(lambda sw: self.src.startswith(sw), self.tag_startswith_options)
-        self.expr = self.src[len(self.tag_startswith):].strip()
-
-        if self.tag_startswith == self.tag_else:
-            if self.expr:
-                raise ExpressionProhibited(self)
-            self.expr = 'True'
-
-        if not self.expr:
-            raise ExpressionMissing(self)
-
-        self.continuation = None
-
-    def __repr__(self):
-        return "{%% %s %%}:\n" % (self.src) + indent(
-            '\n'.join(repr(child) for child in self.children)) + (
-            '\n' + indent(repr(self.continuation)) if self.continuation else '')
-
-    def run(self, pe):
-        output = str()
-
-        if pe.raw_eval(self.expr):
-            output = exec_tree(self, pe)
-        elif self.continuation:
-            output = self.continuation.run(pe)
 
         return output
 
