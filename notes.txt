@@ -1,11 +1,13 @@
-
-pypage (Python Page Generator)
 ======
+pypage
+======
+pypage is a Python-based templating engine, that lets embed logic and Python code easily and 
+flexibly in textual documents (such as HTML, reStructuredText_, plain text, etc). Its syntax 
+is similar to, and partially inspired by the templating languages Jinja_ and Liquid_.
 
-pypage lets you embed Python code easily and flexibly in documents (plain text, HTML, etc). 
-Its syntax is similar templating languages like [Liquify]() and [Jinja]().
-
-
+.. _reStructuredText: http://docutils.sourceforge.net/docs/user/rst/quickref.html
+.. _Jinja: http://jinja.pocoo.org/docs/
+.. _Liquid: https://github.com/Shopify/liquid/wiki/Liquid-for-Designers
 
 Features
 --------
@@ -38,13 +40,14 @@ worrying about any excess whitespace floating around.
 
 - Capture tag
 
-- Include tag
 
 - Comment tag
 
 
 Todos
 ~~~~~
+
+- Include tag
 
 - Optional close tag in the form of "endtag"
 
@@ -54,4 +57,7 @@ Todos
 
 - Raise an error for 2 sec+ while loops.
 
-- Remove the CommentBlockTag
+- Remove the CommentBlockTag (maybe)
+
+- Raw tag
+
