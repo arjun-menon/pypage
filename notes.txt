@@ -38,6 +38,7 @@ worrying about any excess whitespace floating around.
 
 - Capture tag
 
+- Include tag
 
 - Comment tag
 
@@ -53,3 +54,4 @@ Todos
 
 - Raise an error for 2 sec+ while loops.
 
+- Remove the CommentBlockTag
