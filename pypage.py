@@ -97,7 +97,7 @@ class BlockTag(TagNode):
     def run(self, pe):
         raise Exception("BlockTag.run not implemented in %r" % type(self))
 
-class ConditionalTag(BlockTag):
+class ConditionalBlock(BlockTag):
     """
     Implements `if`, `elif` and `else` conditional block tags.
     """
@@ -108,10 +108,10 @@ class ConditionalTag(BlockTag):
 
     @staticmethod
     def identify(src):
-        return bool(any(src.strip().startswith(sw) for sw in ConditionalTag.tag_startswith_options))
+        return bool(any(src.strip().startswith(sw) for sw in ConditionalBlock.tag_startswith_options))
 
     def __init__(self, node):
-        super(ConditionalTag, self).__init__(node.loc)
+        super(ConditionalBlock, self).__init__(node.loc)
         self.src = node.src.strip()
 
         self.tag_startswith = first_true(lambda sw: self.src.startswith(sw), self.tag_startswith_options)
@@ -142,7 +142,7 @@ class ConditionalTag(BlockTag):
 
         return output
 
-class ForTag(BlockTag):
+class ForBlock(BlockTag):
     """
     The for loop tag. {% for ... in ... %}
 
@@ -152,10 +152,10 @@ class ForTag(BlockTag):
 
     @staticmethod
     def identify(src):
-        return src.strip().startswith(ForTag.tag_startswith)
+        return src.strip().startswith(ForBlock.tag_startswith)
 
     def __init__(self, node):
-        super(ForTag, self).__init__(node.loc)
+        super(ForBlock, self).__init__(node.loc)
         self.src = node.src.strip()
 
         self.targets = self._find_targets()
@@ -235,7 +235,7 @@ class ForTag(BlockTag):
     def _construct_generator_expression(self):
         return "((%s) %s)" % (', '.join(self.targets), self.src)
 
-class WhileTag(BlockTag):
+class WhileBlock(BlockTag):
     """
     The while loop tag. {% while ... %}
     """
@@ -247,10 +247,10 @@ class WhileTag(BlockTag):
 
     @staticmethod
     def identify(src):
-        return src.strip().startswith(WhileTag.tag_startswith)
+        return src.strip().startswith(WhileBlock.tag_startswith)
 
     def __init__(self, node):
-        super(WhileTag, self).__init__(node.loc)
+        super(WhileBlock, self).__init__(node.loc)
         self.src = node.src.strip()
         self.expr = self.src[len(self.tag_startswith):].strip()
 
@@ -286,7 +286,7 @@ class WhileTag(BlockTag):
 
         return output
 
-class CaptureTag(BlockTag):
+class CaptureBlock(BlockTag):
     """
     Capture all content within this tag, and bind it to a variable.
     """
@@ -294,16 +294,16 @@ class CaptureTag(BlockTag):
 
     @staticmethod
     def identify(src):
-        return src.strip().startswith(CaptureTag.tag_startswith)
+        return src.strip().startswith(CaptureBlock.tag_startswith)
 
     def __init__(self, node):
-        super(CaptureTag, self).__init__(node.loc)
+        super(CaptureBlock, self).__init__(node.loc)
         self.src = node.src.strip()
 
         self.varname = self.src[len(self.tag_startswith):].strip()
 
         if not isidentifier(self.varname):
-            raise PypageSyntaxError("Incorrect CaptureTag: '%s' is not a valid Python identifier." % self.varname)
+            raise PypageSyntaxError("Incorrect CaptureBlock: '%s' is not a valid Python identifier." % self.varname)
 
     def __repr__(self):
         return "{%% %s %%}:\n" % self.src + indent('\n'.join(repr(child) for child in self.children))
@@ -313,7 +313,7 @@ class CaptureTag(BlockTag):
         pe.env[self.varname] = capture_output
         return ""
 
-class CommentBlockTag(BlockTag):
+class CommentBlock(BlockTag):
     """
     The comment tag. All content within this tag is ignored.
     """
@@ -321,10 +321,10 @@ class CommentBlockTag(BlockTag):
 
     @staticmethod
     def identify(src):
-        return src.strip().startswith(CommentBlockTag.tag_startswith)
+        return src.strip().startswith(CommentBlock.tag_startswith)
 
     def __init__(self, node):
-        super(CommentBlockTag, self).__init__(node.loc)
+        super(CommentBlock, self).__init__(node.loc)
         self.src = node.src.strip()
 
     def __repr__(self):
@@ -333,9 +333,9 @@ class CommentBlockTag(BlockTag):
     def run(self, pe):
         return ""
 
-class CloseTag(BlockTag):
+class EndBlockTag(BlockTag):
     """
-    Signifies a closing tag. A CloseTag has a whitespace-only body, i.e.: {%    %}
+    Signifies a closing tag. A EndBlockTag has a whitespace-only body, i.e.: {%    %}
     """
     @staticmethod
     def identify(src):
@@ -343,10 +343,10 @@ class CloseTag(BlockTag):
         return not src.strip()
 
     def __init__(self, node):
-        super(CloseTag, self).__init__(node.loc)
+        super(EndBlockTag, self).__init__(node.loc)
 
     def __repr__(self):
-        return 'CloseTag.\n'
+        return 'EndBlockTag.\n'
 
 class PypageSyntaxError(Exception):
     def __init__(self, description='undefined'):
@@ -364,7 +364,7 @@ class MultiLineTag(PypageSyntaxError):
         self.description = "The tag starting at line %d, column %d, spans multiple lines. This is not permitted. \
 All tags ('%s ... %s') must be on one line." % (node.loc[0], node.loc[1], node.open_delim, node.close_delim)
 
-class UnboundCloseTag(PypageSyntaxError):
+class UnboundEndBlockTag(PypageSyntaxError):
     def __init__(self, node):
         self.description = "Unbound closing tag '%s%s%s' at line %d, column %d." % (
            node.open_delim, node.src, node.close_delim, node.loc[0], node.loc[1])
@@ -436,7 +436,7 @@ def last_occurrence(text, c):
 def lex(src):
     tagNodeTypes = [CodeTag, CommentTag, BlockTag]
     open_delims = { t.open_delim : t for t in tagNodeTypes }
-    blockTagTypes = [ForTag, WhileTag, ConditionalTag, CaptureTag, CommentBlockTag, CloseTag]
+    blockTagTypes = [ConditionalBlock, ForBlock, WhileBlock, CaptureBlock, CommentBlock, EndBlockTag]
 
     tokens = list()
     node = None
@@ -569,23 +569,23 @@ def build_tree(node, tokens_iterator):
         while True:
             tok = next(tokens_iterator)
 
-            if isinstance(tok, ConditionalTag):
-                if tok.tag_startswith == ConditionalTag.tag_elif or tok.tag_startswith == ConditionalTag.tag_else:
-                    if node.tag_startswith == ConditionalTag.tag_if or node.tag_startswith == ConditionalTag.tag_elif:
+            if isinstance(tok, ConditionalBlock):
+                if tok.tag_startswith == ConditionalBlock.tag_elif or tok.tag_startswith == ConditionalBlock.tag_else:
+                    if node.tag_startswith == ConditionalBlock.tag_if or node.tag_startswith == ConditionalBlock.tag_elif:
                         node.continuation = tok
                         build_tree(tok, tokens_iterator)
                         return
                     else:
                         raise ElifOrElseWithoutIf(tok)
 
-                elif tok.tag_startswith == ConditionalTag.tag_else:
+                elif tok.tag_startswith == ConditionalBlock.tag_else:
                     return
 
-            if isinstance(tok, CloseTag):
+            if isinstance(tok, EndBlockTag):
                 if isinstance(node, BlockTag):
                     return
                 else:
-                    raise UnboundCloseTag(tok)
+                    raise UnboundEndBlockTag(tok)
 
             node.children.append(tok)
 
