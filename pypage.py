@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 # Copyright (C) 2014 Arjun G. Menon
 
@@ -512,7 +513,7 @@ def lex(src):
 
     return tokens
 
-def prune_tokens(tokens):
+def remove_whitespace_from_tokens(tokens):
     """
     Strip away the leading and trailing whitespace surrounding a tag.
     """
@@ -554,7 +555,10 @@ def prune_tokens(tokens):
                         if '\n' not in tokens[i-1].src and all(c in string.whitespace for c in tokens[i-1].src):
                             tokens[i-1].src = ''
 
-            stripped_prev = should_strip
+            stripped_prev = should_strip  
+
+def prune_tokens(tokens):
+    remove_whitespace_from_tokens(tokens)
 
     # Discard empty TextNodes and CommentTags
     new_tokens = list()
