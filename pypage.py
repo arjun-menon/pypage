@@ -677,14 +677,13 @@ The expected minimum indentation is: %r (%d characters)." %
 
             return self.output
         else:
-            if ';' in code:
-                exec code in self.env
-                return self.output
+            result = eval(code, self.env)
+
+            if result:
+                return str(result)
             else:
-                result = eval(code, self.env)
-                # The condition below takes care of a {{ write(...) }}
-                if not(result == None and self.output):
-                    self.output += str(eval(code, self.env))
+                # self.output will most likely be an empty string, 
+                # unless, write(...) was invoked within the {{...}}
                 return self.output
 
     def raw_eval(self, code):
