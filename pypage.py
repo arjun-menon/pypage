@@ -176,7 +176,7 @@ class ForBlock(BlockTag):
             if len(self.targets) == 1:
                 return { self.targets[0] : result }
             else:
-                return { k : v for k, v in zip( self.targets, result ) }
+                return dict( zip( self.targets, result ) )
 
         while True:
             try:
