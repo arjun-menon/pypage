@@ -50,6 +50,8 @@ class TagNode(object):
         open_delim:  string containig the opening delimiter
         close_delim: string containig the closing delimiter
     """
+    escape_delims = {'\{':'{', '\}':'}'}
+
     def __init__(self, loc):
         self.src = str()
         self.loc = loc
@@ -489,9 +491,9 @@ def lex(src):
             i += 2
             continue
 
-        # Skipe escaped braces
-        if c2 == '\{' or c2 == '\}':
-            node.src += c2[1]
+        # Skip escaped characters
+        if c2 in TagNode.escape_delims:
+            node.src += TagNode.escape_delims[c2]
             i += 2
             continue
 
