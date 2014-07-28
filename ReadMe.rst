@@ -23,12 +23,12 @@ For example, ``for`` loops in ``pypage`` get converted into Pythons's generator 
 its regular ``for`` loop. This means that pypage ``for`` loops are richer and more expressive 
 than you'd otherwise expect, while the learning curve is nearly non-existent.
 
-The primary disadvantage of using pypage instead of a templating engine like Liquid_ is that pypage 
-does not operate on a restricted subset of programming languages, as Liquid_ for instance does. 
-Liquid_ allows untrusted users to write and upload their own templates, because the expressives of 
-Liquid_ is limited such that there is an implicit guarantee that the template will be processed in 
+The primary disadvantage of using pypage instead of a templating engine like Liquid is that pypage 
+does not operate on a restricted subset of programming languages, as Liquid for instance does. 
+Liquid allows untrusted users to write and upload their own templates, because the expressives of 
+Liquid is limited such that there is an implicit guarantee that the template will be processed in 
 a reasonable (probably linear) amount of time using a reasonable amount of system resources. As 
-such, Liquid_'s templting language is rather limited -- it offers a limited number of pre-defined 
+such, Liquid's templting language is rather limited -- it offers a limited number of pre-defined 
 functions/filters, and the overall flexibility of the language has been constrained in order to 
 guarantee termination in a reasonable amount of time.
 
@@ -45,8 +45,9 @@ template you can focus solely on how to transform these input variables into the
 page you're building.
 
 A pleasant aspect of pypage, in comparison to other templating languages is that you don't have to 
-learn much new syntax. It's probably the easiest and most *flexible* templating language out there. 
-Most flexible because of the plethora of nice and easy-to-use constructs available in pypage.
+learn much new syntax. It's probably the easiest tolearn and most *flexible* templating language 
+out there. It is highly flexible because of the plethora of easy-to-use powerful constructs that 
+pypage offers.
 
 .. _reStructuredText: http://docutils.sourceforge.net/docs/user/rst/quickref.html
 .. _Jinja: http://jinja.pocoo.org/docs/
@@ -138,6 +139,7 @@ For Loops
 
 
 Unlike Python, Jekyll doesn't leak loop variables.
+Loop variables are stored pesudo-*locally*.
 
 
 Conditional if/elif/else Blocks
@@ -173,14 +175,22 @@ two ways
 Todos
 -----
 
+- Raw tag
+
 - Include tag
 
 - Optional close tag in the form of "endtag"
 
 - Loop controls (continue & break)
 
-- Disallow ';' in single-line code tags -- for consistency, and to avoid quoted semicolon problems.
-- support '=' single equals in {{ ... }} single line
+- Function tag
+
+- Handle user code errors gracefully with an optional "embed_errors" option
+
+- Raise an error for 2 sec+ while loops.
+
+- Support '=' assignment in single-line code tags
+
 
 - (Maybe) Provide Jinja2-like filter (|) by overloading the bitwise OR operator (if possible).
 
@@ -189,19 +199,9 @@ Todos
 
 - Do not allow (i.e. strip out) invalid chars in for tag target list
 
-- Handle user code errors gracefully with an optional "embed_errors" option
-
-- Raise an error for 2 sec+ while loops.
-
 - Remove the CommentBlockTag (maybe)
 
-- Raw tag
-
-- Centralize strings such as '{{', ('\{' : '{'), '{%', etc
-
-- Function tag
-
-- Store for loop variables *locally*.
+- {# [nope] Centralize strings such as '{{', ('\{' : '{'), '{%', etc #}
 
 - Optionally import itertools
 
