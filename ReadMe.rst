@@ -175,7 +175,7 @@ two ways
 Todos
 -----
 
-- Raw tag
+- [nope] Raw tag
 
 - Include tag
 
@@ -199,9 +199,7 @@ Todos
 
 - Do not allow (i.e. strip out) invalid chars in for tag target list
 
-- Remove the CommentBlockTag (maybe)
-
-- {# [nope] Centralize strings such as '{{', ('\{' : '{'), '{%', etc #}
+- Remove CommentBlock (maybe)
 
 - Optionally import itertools
 
@@ -211,11 +209,12 @@ Todos
 
 - colorful command-line output
 
-pypage-site (maybe?)
+
+pypage-site
 
 - Custom h1/h2/h3/etc level rST extension
 
-- password protection (with node)
+- password protection (with nodejs & SJCL)
 
 - Related Posts rST extension
 
