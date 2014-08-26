@@ -66,7 +66,7 @@ class CodeTag(TagNode):
         super(CodeTag, self).__init__(loc)
 
     def __repr__(self):
-        return 'Code:\n' + indent_filtered(self.src)
+        return 'Code-%s:\n' % ('inline' if '\n' not in self.src else 'block') + indent_filtered(self.src)
 
 class CommentTag(TagNode):
     """
