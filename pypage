@@ -629,7 +629,7 @@ class PypageExec(object):
     def write(self, *args, **kwargs):
         """Writes *args to output.
 
-        Optional keyword arguments: end = ' ', sep = '\n', escape = False
+        Optional keyword arguments: end = '\n', sep = ' ', escape = False
 
         Before writing each element of *args to output, end is appended to 
         it, and all the elemented are joined using sep. If escape is True, 
