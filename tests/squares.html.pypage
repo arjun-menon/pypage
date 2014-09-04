@@ -1,0 +1,22 @@
+{{
+    start = 1
+    end = 10
+}}
+<html>
+    <head>
+        <title>Squares of Numbers</title>
+    </head>
+    <body>
+        <table border="1">
+            <tr>
+                <th colspan="2">Table of Squares</th>
+            </tr>
+            {% for i in range(start, end+1) %}
+            <tr>
+                <td>{{i}}</td>
+                <td>{{i*i}}</td>
+            </tr>
+            {% %}
+        </table>
+    </body>
+</html>
