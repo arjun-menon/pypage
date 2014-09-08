@@ -13,31 +13,23 @@ Embedding Code (Code Tags)
 In order to embed code, you use the ``{{ ... }}`` code tag. 
 Everything wrapped by ``{{`` and ``}}`` is treated as Python code.
 
-There are two kinds of code tags in pyapge: *inline* code tags and *multiline* code tags. 
-Inline code tags occur entirely on the same line, i.e. the closing ``}}`` appears on the same line 
-as the opening ``}}``. In a multi-line code tag, the closing '}}' appears on some subsequent line. 
-While the difference is subtle, they are treated quite differently by pypage. 
-*Note*: pypage persists the ``globals()`` context passed to all code tags throughout the document. 
-(See `Execution Environment`_ for details.)
+There are two kinds of code tags in pyapge: *inline* code tags and *multiline* code tags. Inline code tags occur entirely on the same line, i.e. the closing ``}}`` appears on the same line as the opening ``}}``. In a multi-line code tag, the closing ``}}`` appears on some subsequent line. While the difference is subtle, they are treated quite differently by pypage. (Note: pypage persists the context (global & local variables) throughout all the code tags in the document.)
 
 Inline Code Tags
 ++++++++++++++++
 Here is an example of an inline code tag::
 
-    There are {{ 3 + 2 + 1 + 1 }} days in a week.
+    There are {{ 5 + 2 }} days in a week.
 
-The above, when processed by pypage, yields:
+The above, when processed by pypage, yields::
 
-    There are 52 whole weeks in a year.
+    There are 7 days in a week.
 
-pypage evaluates the code inside the delimiters using the Python ``eval`` statement. As ``eval`` 
-expects an *expression*, the code inside the inline code tag must be an expression. The result 
-of the evaluation of this expression is stringified (with ``str``) and substituted in place of 
-the inline code tag.
+pypage evaluates the code inside the delimiters using the Python ``eval`` statement. As ``eval`` expects an *expression*, the code inside the inline code tag must be an expression. The result of the evaluation of this expression is stringified (with ``str``) and substituted in place of the inline code tag.
 
 Multi-line Code Tags
 ++++++++++++++++++++
-Whenever a code tag spans multiple lines, it is treated as a multi-line code tag. Here's an example::
+A multi-line code tag is a code tag that spans multiple lines. Here's an example::
 
     {{
         import datetime
@@ -51,31 +43,22 @@ Whenever a code tag spans multiple lines, it is treated as a multi-line code tag
         write("Andy is", age, "years old.")
     }}
 
-The code above is executed using the Python ``exec`` function. Python's ``exec`` is similar 
-to ``eval`` except in that it is not restricted to exressions, and allows you to execute arbitary 
-pieces of Python code.
+The code above is executed using the Python ``exec`` function. Python's ``exec`` is similar to ``eval`` except in that it is not restricted to exressions, and allows you to execute arbitary pieces of Python code.
 
-The ``write`` function seen above is a special function provided by pypage that can be used to 
-inject output into the document in place of the code tag. This ``write`` function is modeled after 
-the Python 3.x ``print`` function. More on it later.
+The ``write`` function seen above is a special function provided by pypage that can be used to inject output into the document in place of the code tag. This ``write`` function is modeled after the Python 3.x ``print`` function. More on it later.
 
-The sole distinguishing characteristic between an inline and multi-line code tag is the 
-presence of a newline character in the code.
+The sole distinguishing characteristic between an inline and multi-line code tag is the presence of a newline character in the code.
 
 Why do we have a separate inline tag?
 ``````````````````````````````````````
-It is easier to write ``{{x}}`` than to write ``{{ write(x) }}``, and in many cases we need to is 
-inject the contents of a variable into various parts of textual document. The separate treatment of 
-inline code tags makes a pypage template look cleaner. In addition, other templating engines use 
-very similar or exactly the same syntax.
+It is easier to write ``{{x}}`` than to write ``{{ write(x) }}``, and in many cases we need to is inject the contents of a variable into various parts of textual document. The separate treatment of inline code tags makes a pypage template look cleaner. In addition, other templating engines use very similar or exactly the same syntax.
 
 .. _`Execution Environment`:
 
 The Execution Environment
 +++++++++++++++++++++++++
 
-The environment (global & local variables) 
-is always persisted throughout the document, both while invoking ``exec`` and ``eval``.
+The environment (global & local variables) is always persisted throughout the document, both while invoking ``exec`` and ``eval``.
 
 injections by ``for``
 
@@ -86,8 +69,7 @@ The ``write`` function
 The ``write`` function is modeled after Python 3's ``print`` function.
 
 
-*Note:* If ``write`` is called from a single-line code tag, the information passed to ``write`` is 
-written to the document, and the result of the expression evaluation (a ``None``) is discarded.
+*Note:* If ``write`` is called from a single-line code tag, the information passed to ``write`` is written to the document, and the result of the expression evaluation (a ``None``) is discarded.
 
 
 Automatic Indentation
@@ -95,18 +77,14 @@ Automatic Indentation
 
 
 
-The second line of code determines indentation.
-All lines of code after the second must match its indentation or be empty.
-The output is indented based on the second line's indentation.
+The second line of code determines indentation.All lines of code after the second must match its indentation or be empty. The output is indented based on the second line's indentation.
 
 
 Whitespace Removal
 ++++++++++++++++++
 
 
-If a block tag is on a line by itself, surrounded only by whitespace, then that whitespace is 
-automatically excluded from the output. This allows you indent your block tags without 
-worrying about any excess whitespace floating around.
+If a block tag is on a line by itself, surrounded only by whitespace, then that whitespace is automatically excluded from the output. This allows you indent your block tags without worrying about any excess whitespace floating around.
 
 
 
@@ -120,8 +98,7 @@ Block tags look like this::
       The square of {{i}} is {{i*i}}.
   {% %}
 
-A block tag begins with ``{% tag_name ... %}`` and ends with ``{% %}``. Optionally, the end 
-``{% %}`` can be of the form ``{% endtag_name %}``, which in the above example would be ``{% endfor %}``).
+A block tag begins with ``{% tag_name ... %}`` and ends with ``{% %}``. Optionally, the end ``{% %}`` can be of the form ``{% endtag_name %}``, which in the above example would be ``{% endfor %}``).
 
 The next sections will describe in detail the code tag, and each type of block tag.
 
@@ -216,51 +193,21 @@ wrong: escaping is off by default, because docutils or python-markdown will take
 Why another templating language?
 --------------------------------
 
-pypage is a Python-based document templating engie, that lets you construct powerful  
-programmatically-generated documents by embedding Python code in an elegant and flexible manner. 
-Its syntax is similar to and partially inspired by other templating languages Jinja_ and Liquid_.
+pypage is a Python-based document templating engie, that lets you construct powerful  programmatically-generated documents by embedding Python code in an elegant and flexible manner. Its syntax is similar to and partially inspired by other templating languages Jinja_ and Liquid_.
 
-pypage is a text-based templating engine, that lets you embed Python code easily and 
-flexibly in textual documents (such as HTML, reStructuredText_, plain text, etc). Its syntax 
-is similar to and partially inspired by the templating languages Jinja_ and Liquid_.
+pypage is a text-based templating engine, that lets you embed Python code easily and flexibly in textual documents (such as HTML, reStructuredText_, plain text, etc). Its syntax is similar to and partially inspired by the templating languages Jinja_ and Liquid_.
 
-While there are many templating engines out there, the primarily advantage of pypage is the fact 
-that its syntax is very close to Python's, and therefore the learning curve is very short for 
-Python programmers.
+While there are many templating engines out there, the primarily advantage of pypage is the fact that its syntax is very close to Python's, and therefore the learning curve is very short for Python programmers.
 
-Rather than create a new mini domain-specifc language for constructs such as ``for`` and ``if``, 
-pypage does a teeny tiny bit of obvious string manipulation, and passes your logical directives 
-unaltered to the Python interpreter. As such, pypage inherits Python's syntax for the most part. 
-For example, ``for`` loops in ``pypage`` get converted into Pythons's generator expressions. The 
-``for`` loop in a Python generator expression (or list comprehension) is far more powerful than 
-its regular ``for`` loop. This means that pypage ``for`` loops are richer and more expressive 
-than you'd otherwise expect, while the learning curve is nearly non-existent.
+Rather than create a new mini domain-specifc language for constructs such as ``for`` and ``if`, pypage does a teeny tiny bit of obvious string manipulation, and passes your logical directives unaltered to the Python interpreter. As such, pypage inherits Python's syntax for the most part. For example, ``for`` loops in ``pypage`` get converted into Pythons's generator expressions. The ``for`` loop in a Python generator expression (or list comprehension) is far more powerful than its regular ``for`` loop. This means that pypage ``for`` loops are richer and more expressive than you'd otherwise expect, while the learning curve is nearly non-existent.
 
-The primary disadvantage of using pypage instead of a templating engine like Liquid is that pypage 
-does not operate on a restricted subset of programming languages, as Liquid for instance does. 
-Liquid allows untrusted users to write and upload their own templates, because the expressives of 
-Liquid is limited such that there is an implicit guarantee that the template will be processed in 
-a reasonable (probably linear) amount of time using a reasonable amount of system resources. As 
-such, Liquid's templting language is rather limited -- it offers a limited number of pre-defined 
-functions/filters, and the overall flexibility of the language has been constrained in order to 
-guarantee termination in a reasonable amount of time.
+The primary disadvantage of using pypage instead of a templating engine like Liquid is that pypage does not operate on a restricted subset of programming languages, as Liquid for instance does. Liquid allows untrusted users to write and upload their own templates, because the expressives of Liquid is limited such that there is an implicit guarantee that the template will be processed in a reasonable (probably linear) amount of time using a reasonable amount of system resources. As such, Liquid's templting language is rather limited -- it offers a limited number of pre-defined functions/filters, and the overall flexibility of the language has been constrained in order to guarantee termination in a reasonable amount of time.
 
-pypage, on the other hand gives the template writer full unfettered access to the Python 
-interpreter. As such, pypage is meant only for internal use, and in some ways it's similar to 
-PHP in that a you're mixing a full-blown programming language (Python) and text that could be HTML.
+pypage, on the other hand gives the template writer full unfettered access to the Python interpreter. As such, pypage is meant only for internal use, and in some ways it's similar to PHP in that a you're mixing a full-blown programming language (Python) and text that could be HTML.
 
-This brings us to another topic: mixing code and UI. It is generally frowned upon to mix logic/code 
-and the UI (or "view"). So it is good practise to not do any intelligent processing within your 
-pypage template. Instead, you can do it in a separate program, and pass an *environment* containing 
-the results, to pypage. An environment is a dictionary of variables that is passed to Python's 
-``exec``, and is theferoe accessible from all of the code in the pypage template. From within your 
-template you can focus solely on how to transform these input variables into the HTML/rST/other 
-page you're building.
+This brings us to another topic: mixing code and UI. It is generally frowned upon to mix logic/code and the UI (or "view"). So it is good practise to not do any intelligent processing within your pypage template. Instead, you can do it in a separate program, and pass an *environment* containing the results, to pypage. An environment is a dictionary of variables that is passed to Python's ``exec``, and is theferoe accessible from all of the code in the pypage template. From within your template you can focus solely on how to transform these input variables into the HTML/rST/other page you're building.
 
-A pleasant aspect of pypage, in comparison to other templating languages is that you don't have to 
-learn much new syntax. It's probably the easiest tolearn and most *flexible* templating language 
-out there. It is highly flexible because of the plethora of easy-to-use powerful constructs that 
-pypage offers.
+A pleasant aspect of pypage, in comparison to other templating languages is that you don't have to learn much new syntax. It's probably the easiest tolearn and most *flexible* templating language out there. It is highly flexible because of the plethora of easy-to-use powerful constructs that pypage offers.
 
 .. _reStructuredText: http://docutils.sourceforge.net/docs/user/rst/quickref.html
 .. _Jinja: http://jinja.pocoo.org/docs/
