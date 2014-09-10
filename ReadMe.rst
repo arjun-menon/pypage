@@ -12,13 +12,13 @@ pypage is a document templating engine for Python programmers with a short learn
 
 .. code-block:: html
 
-<ul id="users">
-  {% for user in users %}
-    <li>
-      <a href="mailto: {{ to_html_ascii( user.email ) }}">{{ user.name }}</a>
-    </li>
-  {% endfor %}
-</ul>
+    <ul id="users">
+      {% for user in users %}
+        <li>
+          <a href="mailto: {{ to_html_ascii( user.email ) }}">{{ user.name }}</a>
+        </li>
+      {% endfor %}
+    </ul>
 
 User Guide
 ----------
