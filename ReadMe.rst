@@ -8,14 +8,14 @@ pypage is a document templating engine for Python programmers with a short learn
 - Easy to pick up. Syntax similar to Python's.
 - You need an eval-based temaplting engine.
 
-**What does it look like?**:
+**What does it look like?**
 
 .. code-block:: html
 
     <ul id="users">
       {% for user in users %}
         <li>
-          <a href="mailto: {{ to_html_ascii( user.email ) }}">{{ user.name }}</a>
+          <a href="mailto: {{ html_ascii( user.email ) }}">{{ user.name }}</a>
         </li>
       {% endfor %}
     </ul>
@@ -158,6 +158,7 @@ Todos
 
 - Support '=' assignment in single-line code tags
 
+- while loops: 2 sec+ loops should just issue a warning
 
 - (Maybe) Provide Jinja2-like filter (|) by overloading the bitwise OR operator (if possible).
 

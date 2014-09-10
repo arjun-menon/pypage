@@ -292,9 +292,9 @@ class WhileBlock(BlockTag):
         while pe.raw_eval(self.expr):
             output += exec_tree(self, pe)
 
-            if not self.slow and time.time() - loop_start_time > 2.0:
+            if not self.slow and time.time() - loop_start_time > loop_time_limit:
                 # TODO: more elegant handling
-                print "Loop '%s' terminated." % self.expr
+                print >> sys.stderr "Loop '%s' terminated." % self.expr
                 break
 
         return output
@@ -345,7 +345,14 @@ class CommentBlock(BlockTag):
 
 class EndBlockTag(BlockTag):
     """
-    Signifies a closing tag. A EndBlockTag has a whitespace-only body, i.e.: {%    %}
+    Signifies a closing tag.
+
+    An EndBlockTag that has a whitespace-only body (e.g. {%    %}) can 
+    close any kind of block. On the other hand, an EndBlockTag that 
+    specifies the name of a type of block, using the 'end'+block_type_name 
+    format (e.g. {% endif %}, {% endfor %}) can only close that kind of block. 
+    If the block type name does not match the block it is trying to close, 
+    a MismatchingEndBlockTag exception will be thrown.
     """
     @staticmethod
     def identify(src):
@@ -800,7 +807,7 @@ def main():
         output = exec_tree(tree, pe)
 
     except PypageSyntaxError as error:
-        print error
+        print >> sys.stderr error
         sys.exit(1)
 
     output_file = args.output_file[0] if args.output_file else None
