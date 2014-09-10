@@ -141,7 +141,7 @@ class ConditionalBlock(BlockTag):
         self.continuation = None
 
     def __repr__(self):
-        return "{%% %s %%}:\n" % (self.src) + indent(
+        return "%s %s %s:\n" % (self.open_delim, self.src, self.close_delim) + indent(
             '\n'.join(repr(child) for child in self.children)) + (
             '\n' + indent(repr(self.continuation)) if self.continuation else '')
 

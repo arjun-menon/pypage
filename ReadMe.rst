@@ -8,7 +8,7 @@ pypage is a document templating engine for Python programmers with a short learn
 - Easy to pick up. Syntax similar to Python's.
 - You need an eval-based temaplting engine.
 
-**What does it look like?**
+**What does it look like?**:
 
 .. code-block:: html
 
