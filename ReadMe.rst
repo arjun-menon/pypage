@@ -1,23 +1,35 @@
 ======
 pypage
 ======
-pypage is a document templating engine for Python programmers with a short learning curve. 
+pypage is a document templating engine for Python programmers with a short learning curve.
+
+**Why use pypage?**
+
+- Easy to pick up. Syntax similar to Python's.
+- You need an eval-based temaplting engine.
+
+**What does it look like?**
+
+.. code-block:: html
+
+<ul id="users">
+  {% for user in users %}
+    <li>
+      <a href="mailto: {{ to_html_ascii( user.email ) }}">{{ user.name }}</a>
+    </li>
+  {% endfor %}
+</ul>
 
 User Guide
 ----------
 
-.. _`Embedding Code`:
-
-Embedding Code (Code Tags)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-In order to embed code, you use the ``{{ ... }}`` code tag. 
-Everything wrapped by ``{{`` and ``}}`` is treated as Python code.
-
-There are two kinds of code tags in pyapge: *inline* code tags and *multiline* code tags. Inline code tags occur entirely on the same line, i.e. the closing ``}}`` appears on the same line as the opening ``}}``. In a multi-line code tag, the closing ``}}`` appears on some subsequent line. While the difference is subtle, they are treated quite differently by pypage. (Note: pypage persists the context (global & local variables) throughout all the code tags in the document.)
+Embedding Code
+~~~~~~~~~~~~~~
+In order to embed codein a document, you wrap Python code with ``{{`` and ``}}``. The ``{{ ... }}`` constructs are called **code tags**. There are two kinds of code tags: *inline* and *multiline*.
 
 Inline Code Tags
 ++++++++++++++++
-Here is an example of an inline code tag::
+Inline code tags occur entirely on the same line, i.e. the closing ``}}`` appears on the same line as the opening ``{{``. Here is an example of an inline code tag::
 
     There are {{ 5 + 2 }} days in a week.
 
@@ -29,39 +41,24 @@ pypage evaluates the code inside the delimiters using the Python ``eval`` statem
 
 Multi-line Code Tags
 ++++++++++++++++++++
-A multi-line code tag is a code tag that spans multiple lines. Here's an example::
+A multi-line code tag is a code tag that spans multiple lines. The sole distinguishing characteristic is the presence of a newline character in the code. Here's an example:
+
+.. code-block:: python
 
     {{
-        import datetime
+        x = 5
+        y = 2
 
-        name = "Andy"
-        job = "musician"
-        yob = 1990 # year of birth
-
-        age = datetime.date.today().year - yob
-
-        write("Andy is", age, "years old.")
+        write("There are", x + y, "days in a week.")
     }}
 
 The code above is executed using the Python ``exec`` function. Python's ``exec`` is similar to ``eval`` except in that it is not restricted to exressions, and allows you to execute arbitary pieces of Python code.
 
 The ``write`` function seen above is a special function provided by pypage that can be used to inject output into the document in place of the code tag. This ``write`` function is modeled after the Python 3.x ``print`` function. More on it later.
 
-The sole distinguishing characteristic between an inline and multi-line code tag is the presence of a newline character in the code.
-
-Why do we have a separate inline tag?
-``````````````````````````````````````
+Why is there a separate inline tag?
+```````````````````````````````````
 It is easier to write ``{{x}}`` than to write ``{{ write(x) }}``, and in many cases we need to is inject the contents of a variable into various parts of textual document. The separate treatment of inline code tags makes a pypage template look cleaner. In addition, other templating engines use very similar or exactly the same syntax.
-
-.. _`Execution Environment`:
-
-The Execution Environment
-+++++++++++++++++++++++++
-
-The environment (global & local variables) is always persisted throughout the document, both while invoking ``exec`` and ``eval``.
-
-injections by ``for``
-
 
 The ``write`` function
 ++++++++++++++++++++++
@@ -76,7 +73,6 @@ Automatic Indentation
 +++++++++++++++++++++
 
 
-
 The second line of code determines indentation.All lines of code after the second must match its indentation or be empty. The output is indented based on the second line's indentation.
 
 
@@ -87,6 +83,12 @@ Whitespace Removal
 If a block tag is on a line by itself, surrounded only by whitespace, then that whitespace is automatically excluded from the output. This allows you indent your block tags without worrying about any excess whitespace floating around.
 
 
+The Execution Environment
++++++++++++++++++++++++++
+
+The environment (global & local variables) is persisted throughout the document, both while invoking ``exec`` and ``eval``.
+
+injections by ``for``
 
 
 Block Tags
@@ -138,13 +140,13 @@ two ways
 Todos
 -----
 
-- nested comments
-
-- [nope] Raw tag
-
 - Include tag
 
-- Optional close tag in the form of "endtag"
+- fix whitespace reduction bug (see if-2.txt)
+
+- Raw tag (similar to the {# ... #} comment tags)
+
+- an option within the embedded code to suppress/override (or select) automatic indentation
 
 - Loop controls (continue & break)
 

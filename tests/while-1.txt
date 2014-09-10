@@ -3,6 +3,12 @@
     j = 20
 }}
 Numbers from {{i}} to {{j}}:
-{% while i <= j %}{{write(str(i)); i += 1}}{%%}
-{% while dofirst False %}That's all, folks!
+{% while i <= j %}
+{{
+    write(str(i))
+    i += 1
+}}
+{%%}
+{% while dofirst False %}
+That's all, folks!
 {%%}

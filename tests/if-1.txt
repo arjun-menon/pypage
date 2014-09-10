@@ -4,6 +4,9 @@ Hi,
     # Randomly pick a greeting
     greeting = random.randint(1,4)
 }}
+{#
+hello  {# see #} {# #} {# {# #} #}
+#}
 {% if greeting == 1 %}
 Wazzup
 {% elif greeting == 2 %}
