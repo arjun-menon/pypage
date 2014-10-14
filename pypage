@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import print_function
 import string, itertools, sys, time, os, cgi
 
 class RootNode(object):
@@ -294,7 +295,7 @@ class WhileBlock(BlockTag):
 
             if not self.slow and time.time() - loop_start_time > loop_time_limit:
                 # TODO: more elegant handling
-                print >> sys.stderr "Loop '%s' terminated." % self.expr
+                print("Loop '%s' terminated." % self.expr, file=sys.stderr)
                 break
 
         return output
@@ -789,7 +790,7 @@ def main():
     args = parser.parse_args()
 
     if not os.path.exists(args.source_file):
-        print >> sys.stderr, "File %s does not exist." % repr(args.source_file)
+        print("File %s does not exist." % repr(args.source_file), file=sys.stderr)
         sys.exit(1)
 
     with open(args.source_file, 'r') as source_file:
@@ -799,7 +800,7 @@ def main():
         tree = parse(source)
 
         if args.tree:
-            print tree
+            print(tree)
             sys.exit(0)
 
         pe = PypageExec()
@@ -807,7 +808,7 @@ def main():
         output = exec_tree(tree, pe)
 
     except PypageSyntaxError as error:
-        print >> sys.stderr error
+        print(error, file=sys.stderr)
         sys.exit(1)
 
     output_file = args.output_file[0] if args.output_file else None
