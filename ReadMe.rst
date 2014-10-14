@@ -180,37 +180,16 @@ Todos
 
 pypage-site
 
+- you're doing: txt -- (docutils.rST) --> html_body -- (pypage) --> html_page
+
 - Custom h1/h2/h3/etc level rST extension
 
 - password protection (with nodejs & SJCL)
 
 - Related Posts rST extension
 
-wrong: escaping is off by default, because docutils or python-markdown will take care of it.
-  so you might need to have escaping enabled by default...
-    you're doing: txt -- (docutils.rST) --> html_body -- (pypage) --> html_page
+- you don't need escape write(...) calls because docutils or python-markdown will take care of it. (?)
 
-
-
-
-Why another templating language?
---------------------------------
-
-pypage is a Python-based document templating engie, that lets you construct powerful  programmatically-generated documents by embedding Python code in an elegant and flexible manner. Its syntax is similar to and partially inspired by other templating languages Jinja_ and Liquid_.
-
-pypage is a text-based templating engine, that lets you embed Python code easily and flexibly in textual documents (such as HTML, reStructuredText_, plain text, etc). Its syntax is similar to and partially inspired by the templating languages Jinja_ and Liquid_.
-
-While there are many templating engines out there, the primarily advantage of pypage is the fact that its syntax is very close to Python's, and therefore the learning curve is very short for Python programmers.
-
-Rather than create a new mini domain-specifc language for constructs such as ``for`` and ``if`, pypage does a teeny tiny bit of obvious string manipulation, and passes your logical directives unaltered to the Python interpreter. As such, pypage inherits Python's syntax for the most part. For example, ``for`` loops in ``pypage`` get converted into Pythons's generator expressions. The ``for`` loop in a Python generator expression (or list comprehension) is far more powerful than its regular ``for`` loop. This means that pypage ``for`` loops are richer and more expressive than you'd otherwise expect, while the learning curve is nearly non-existent.
-
-The primary disadvantage of using pypage instead of a templating engine like Liquid is that pypage does not operate on a restricted subset of programming languages, as Liquid for instance does. Liquid allows untrusted users to write and upload their own templates, because the expressives of Liquid is limited such that there is an implicit guarantee that the template will be processed in a reasonable (probably linear) amount of time using a reasonable amount of system resources. As such, Liquid's templting language is rather limited -- it offers a limited number of pre-defined functions/filters, and the overall flexibility of the language has been constrained in order to guarantee termination in a reasonable amount of time.
-
-pypage, on the other hand gives the template writer full unfettered access to the Python interpreter. As such, pypage is meant only for internal use, and in some ways it's similar to PHP in that a you're mixing a full-blown programming language (Python) and text that could be HTML.
-
-This brings us to another topic: mixing code and UI. It is generally frowned upon to mix logic/code and the UI (or "view"). So it is good practise to not do any intelligent processing within your pypage template. Instead, you can do it in a separate program, and pass an *environment* containing the results, to pypage. An environment is a dictionary of variables that is passed to Python's ``exec``, and is theferoe accessible from all of the code in the pypage template. From within your template you can focus solely on how to transform these input variables into the HTML/rST/other page you're building.
-
-A pleasant aspect of pypage, in comparison to other templating languages is that you don't have to learn much new syntax. It's probably the easiest tolearn and most *flexible* templating language out there. It is highly flexible because of the plethora of easy-to-use powerful constructs that pypage offers.
 
 .. _reStructuredText: http://docutils.sourceforge.net/docs/user/rst/quickref.html
 .. _Jinja: http://jinja.pocoo.org/docs/
