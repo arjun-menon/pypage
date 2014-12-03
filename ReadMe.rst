@@ -6,7 +6,7 @@ pypage is a document templating engine for Python programmers with a short learn
 **Why use pypage?**
 
 - Easy to pick up. Syntax similar to Python's.
-- You need an eval-based temaplting engine.
+- You need an eval-based templating engine.
 
 **What does it look like?**
 
@@ -25,7 +25,7 @@ User Guide
 
 Embedding Code
 ~~~~~~~~~~~~~~
-In order to embed codein a document, you wrap Python code with ``{{`` and ``}}``. The ``{{ ... }}`` constructs are called **code tags**. There are two kinds of code tags: *inline* and *multiline*.
+In order to embed code in a document, you wrap Python code with ``{{`` and ``}}``. The ``{{ ... }}`` constructs are called **code tags**. There are two kinds of code tags: *inline* and *multiline*.
 
 Inline Code Tags
 ++++++++++++++++
@@ -37,11 +37,13 @@ The above, when processed by pypage, yields::
 
     There are 7 days in a week.
 
-pypage evaluates the code inside the delimiters using the Python ``eval`` statement. As ``eval`` expects an *expression*, the code inside the inline code tag must be an expression. The result of the evaluation of this expression is stringified (with ``str``) and substituted in place of the inline code tag.
+The Python ``eval`` statement is used to execute the code between the delimiters. The result of the expression evaluation is converted into a string (with ``str``) and the code tag is replaced with it.
 
 Multi-line Code Tags
 ++++++++++++++++++++
-A multi-line code tag is a code tag that spans multiple lines. The sole distinguishing characteristic is the presence of a newline character in the code. Here's an example:
+Multi-line code tags, as their name suggests, span multiple lines. The sole distinguishing characteristic between it and an inline code tag is the presence of one or more newline (``\n``) characters between the ``{{`` and ``}}``. 
+
+Here's an example of a multi-line code tag:
 
 .. code-block:: python
 
@@ -52,44 +54,30 @@ A multi-line code tag is a code tag that spans multiple lines. The sole distingu
         write("There are", x + y, "days in a week.")
     }}
 
-The code above is executed using the Python ``exec`` function. Python's ``exec`` is similar to ``eval`` except in that it is not restricted to exressions, and allows you to execute arbitary pieces of Python code.
+The Python ``exec`` function is used to execute this multi-line snippet of code. A ``write`` function, similar to the Python 3 ``print`` function, is used to inject text into document in place of the multi-line code tag.
 
-The ``write`` function seen above is a special function provided by pypage that can be used to inject output into the document in place of the code tag. This ``write`` function is modeled after the Python 3.x ``print`` function. More on it later.
-
-Why is there a separate inline tag?
-```````````````````````````````````
-It is easier to write ``{{x}}`` than to write ``{{ write(x) }}``, and in many cases we need to is inject the contents of a variable into various parts of textual document. The separate treatment of inline code tags makes a pypage template look cleaner. In addition, other templating engines use very similar or exactly the same syntax.
+Execution Environment
+^^^^^^^^^^^^^^^^^^^^^
+All code tags share a common environment for local and global environments. As such, a variable instantiated in a code tag at the beginning of the document, will be available to all other code tags in the document. When pypage is invoked as library, an initial seed environment consisting of a Python dictionary mapping variable names to values, can be provided.
 
 The ``write`` function
-++++++++++++++++++++++
-
-The ``write`` function is modeled after Python 3's ``print`` function.
-
+^^^^^^^^^^^^^^^^^^^^^
+``write`` is modeled after the Python 3 ``print`` function.
 
 *Note:* If ``write`` is called from a single-line code tag, the information passed to ``write`` is written to the document, and the result of the expression evaluation (a ``None``) is discarded.
 
-
 Automatic Indentation
-+++++++++++++++++++++
-
-
-The second line of code determines indentation.All lines of code after the second must match its indentation or be empty. The output is indented based on the second line's indentation.
-
+^^^^^^^^^^^^^^^^^^^^^
+The second line of code determines indentation. All lines of code after the second must match its indentation or be empty. The output is indented based on the second line's indentation.
 
 Whitespace Removal
-++++++++++++++++++
-
-
+^^^^^^^^^^^^^^^^^^
 If a block tag is on a line by itself, surrounded only by whitespace, then that whitespace is automatically excluded from the output. This allows you indent your block tags without worrying about any excess whitespace floating around.
 
-
-The Execution Environment
-+++++++++++++++++++++++++
-
-The environment (global & local variables) is persisted throughout the document, both while invoking ``exec`` and ``eval``.
-
-injections by ``for``
-
+Why have distinct inline code tags?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+It's easier to write ``{{x}}`` than to write ``{{ write(x) }}``. Many a time, all we need to do is inject the value of a 
+variable at a specific location in the document. A simple ``{{ x }}`` is clean, and the standard with multiple other templating engines.
 
 Block Tags
 ~~~~~~~~~~
@@ -104,37 +92,20 @@ A block tag begins with ``{% tag_name ... %}`` and ends with ``{% %}``. Optional
 
 The next sections will describe in detail the code tag, and each type of block tag.
 
-
 Conditional Blocks (``if``, ``elif``, ``else``)
-+++++++++++++++++++++++++++++++++++++++++++++++
-
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For Loops
-+++++++++
-
-
+^^^^^^^^^
 Unlike Python, Jekyll doesn't leak loop variables.
-Loop variables are stored pesudo-*locally*.
 
-
-
+Loop variables effectively override variables with the same name(s) for the duration of the loop. pypage backs up identically-named variables, and from within the loop, only the loop variables are accessible.
 
 
 While Loops
-+++++++++++
-
-
+^^^^^^^^^^^
   - dofirst option
   - slow option
-
-
-
-Comments
-~~~~~~~~
-two ways
-{# #} (Jinja)
-{% comment %} {% %} (Liquid)
-
 
 
 Todos
@@ -171,27 +142,12 @@ Todos
 
 - Optionally import itertools
 
+- Some other templating languages: Jinja, Liquid, Smarty, Django, Mustache, Handlebars, 
+
 - investiage: MarkupSafe (Jinja dependency)
 
-- Other templating languages: Jinja, Liquid, Smarty, Django, Mustache, Handlebars, 
-
 - colorful command-line output
-
-
-pypage-site
-
-- you're doing: txt -- (docutils.rST) --> html_body -- (pypage) --> html_page
-
-- Custom h1/h2/h3/etc level rST extension
-
-- password protection (with nodejs & SJCL)
-
-- Related Posts rST extension
-
-- you don't need escape write(...) calls because docutils or python-markdown will take care of it. (?)
-
 
 .. _reStructuredText: http://docutils.sourceforge.net/docs/user/rst/quickref.html
 .. _Jinja: http://jinja.pocoo.org/docs/
 .. _Liquid: https://github.com/Shopify/liquid/wiki/Liquid-for-Designers
-
