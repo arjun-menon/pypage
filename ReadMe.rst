@@ -92,20 +92,13 @@ A block tag begins with ``{% tag_name ... %}`` and ends with ``{% %}``. Optional
 
 The next sections will describe in detail the code tag, and each type of block tag.
 
-Conditional Blocks (``if``, ``elif``, ``else``)
-+++++++++++++++++++++++++++++++++++++++++++++++
-
 For Loops
 ++++++++++
-Unlike Python, Jekyll doesn't leak loop variables.
-
 Loop variables effectively override variables with the same name(s) for the duration of the loop. pypage backs up identically-named variables, and from within the loop, only the loop variables are accessible.
 
 
-While Loops
-+++++++++++
-  - dofirst option
-  - slow option
+Conditional Blocks (``if``, ``elif``, ``else``)
++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 Todos
