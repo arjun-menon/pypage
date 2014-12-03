@@ -293,7 +293,7 @@ class WhileBlock(BlockTag):
         while pe.raw_eval(self.expr):
             output += exec_tree(self, pe)
 
-            if not self.slow and time.time() - loop_start_time > loop_time_limit:
+            if not self.slow and time.time() - loop_start_time > WhileBlock.loop_time_limit:
                 # TODO: more elegant handling
                 print("Loop '%s' terminated." % self.expr, file=sys.stderr)
                 break
