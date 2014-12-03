@@ -62,22 +62,26 @@ All code tags share a common environment for local and global environments. As s
 
 The ``write`` function
 ^^^^^^^^^^^^^^^^^^^^^
-``write`` is modeled after the Python 3 ``print`` function.
+**write**(``[object, ...], *, sep=' ', end='\n'``)
 
-*Note:* If ``write`` is called from a single-line code tag, the information passed to ``write`` is written to the document, and the result of the expression evaluation (a ``None``) is discarded.
+The ``write`` function works similarly to the Python 3 ``print`` function. The objects passed to it are stringified with ``str``, concatenated together with ``sep``, and appended with ``end``.
+
+If there are multiple calls to ``write`` in a code tag, their outputs are concatenated together. The resulting final output is substituted in place of the code block in the generated document.
+
+If ``write`` is called from an inline code tag, the information passed to ``write`` is used, and the result of the expression (``None``) is discarded.
 
 Automatic Indentation
 ^^^^^^^^^^^^^^^^^^^^^
-The second line of code determines indentation. All lines of code after the second must match its indentation or be empty. The output is indented based on the second line's indentation.
+pypage automatically intends the output of a multi-line tag to match the indentation level of the code tag. The number of whitespace characters at the beginning of the second line of the code block determines the indentation level for the whole block. All lines of code following the second line must at least have the same level of indentation as the second line (or else, a PypageSyntaxError exception will be thrown).
 
 Whitespace Removal
 ^^^^^^^^^^^^^^^^^^
-If a block tag is on a line by itself, surrounded only by whitespace, then that whitespace is automatically excluded from the output. This allows you indent your block tags without worrying about any excess whitespace floating around.
+If a block tag is on a line by itself, surrounded only by whitespace, then that whitespace is automatically excluded from the output. This allows you indent your block tags without worrying about excess whitespace in the generated document.
 
 Why have distinct inline code tags?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 It's easier to write ``{{x}}`` than to write ``{{ write(x) }}``. Many a time, all we need to do is inject the value of a 
-variable at a specific location in the document. A simple ``{{ x }}`` is clean, and the standard with multiple other templating engines.
+variable at a specific location in the document.
 
 Block Tags
 ~~~~~~~~~~
@@ -97,8 +101,8 @@ For Loops
 Loop variables effectively override variables with the same name(s) for the duration of the loop. pypage backs up identically-named variables, and from within the loop, only the loop variables are accessible.
 
 
-Conditional Blocks (``if``, ``elif``, ``else``)
-+++++++++++++++++++++++++++++++++++++++++++++++
+Conditional Blocks
+++++++++++++++++++
 
 
 Todos
@@ -140,7 +144,3 @@ Todos
 - investiage: MarkupSafe (Jinja dependency)
 
 - colorful command-line output
-
-.. _reStructuredText: http://docutils.sourceforge.net/docs/user/rst/quickref.html
-.. _Jinja: http://jinja.pocoo.org/docs/
-.. _Liquid: https://github.com/Shopify/liquid/wiki/Liquid-for-Designers
