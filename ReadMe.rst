@@ -60,9 +60,9 @@ Execution Environment
 ^^^^^^^^^^^^^^^^^^^^^
 All code tags share a common environment for local and global environments. As such, a variable instantiated in a code tag at the beginning of the document, will be available to all other code tags in the document. When pypage is invoked as library, an initial seed environment consisting of a Python dictionary mapping variable names to values, can be provided.
 
-The ``write`` function
+The write function
 ^^^^^^^^^^^^^^^^^^^^^
-**write**(``[object, ...], *, sep=' ', end='\n'``)
+``write([object, ...], *, sep=' ', end='\n')``
 
 The ``write`` function works similarly to the Python 3 ``print`` function. The objects passed to it are stringified with ``str``, concatenated together with ``sep``, and appended with ``end``.
 
