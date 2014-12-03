@@ -679,13 +679,15 @@ class PypageExec(object):
     """
     Execute or evaluate code, while persisting the environment.
     """
-    def __init__(self, env=dict(), name='pypage_transient'):
+    def __init__(self, seed_env):
         import __builtin__
-        self.env = env
+        self.env = dict()
         self.env['__builtins__'] = __builtin__
         self.env['__package__'] = None
-        self.env['__name__'] = name
+        self.env['__name__'] = 'pypage_code'
         self.env['__doc__'] = None
+
+        self.env.update(seed_env)
 
         self.env['write'] = self.write
         self.env['escape'] = cgi.escape
@@ -772,13 +774,13 @@ def exec_tree(parent_node, pe):
 
     return output
 
-def pypage(source):
+def pypage(source, seed_env=dict()):
     """pypage(source) -> output
 
     Takes source, transforms it and returns it.
     """
     tree = parse(source)
-    pe = PypageExec()
+    pe = PypageExec(seed_env)
     return exec_tree(tree, pe)
 
 def main():
@@ -803,7 +805,7 @@ def main():
             print(tree)
             sys.exit(0)
 
-        pe = PypageExec()
+        pe = PypageExec(dict())
 
         output = exec_tree(tree, pe)
 
