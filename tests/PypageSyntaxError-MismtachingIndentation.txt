@@ -1,0 +1,11 @@
+    <p>
+      Lorem ipsum dolor sit amet
+        <ul>
+          {{
+            def foo():
+           write("Hello!")
+            foo()
+          }}
+        </ul>
+      consectetur adipisicing elit
+    </p>
