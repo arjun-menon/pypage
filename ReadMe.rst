@@ -64,14 +64,46 @@ The write function
 ^^^^^^^^^^^^^^^^^^^^^
 ``write([object, ...], *, sep=' ', end='\n')``
 
-The ``write`` function works similarly to the Python 3 ``print`` function. The objects passed to it are stringified with ``str``, concatenated together with ``sep``, and appended with ``end``.
+A ``write`` function similar to the Python 3 ``print`` function is accessible from both code tags. The objects passed to it are stringified with ``str``, concatenated together with ``sep``, and terminated with ``end``. The outputs of multiple calls to ``write`` in a code tag are concatenated together, and the resulting final output is injected in place of the code tag.
 
-If there are multiple calls to ``write`` in a code tag, their outputs are concatenated together. The resulting final output is substituted in place of the code block in the generated document.
-
-If ``write`` is called from an inline code tag, the information passed to ``write`` is used, and the result of the expression (``None``) is discarded.
+If ``write`` is called from an inline code tag, the result of the expression (a ``None``) is discarded, and the output of the ``write`` call is used instead.
 
 Automatic Indentation
 ^^^^^^^^^^^^^^^^^^^^^
+pypage smartly handles indentation for you. In a multi-line code tag, if you consistently indent your Python code with a specific amount of whitespace, that indentation will be stripped off before executing the code block (as Python is indentation-sensitive), and the resulting output of that code block will be re-indented with same whitespace that the initial code block was.
+
+The whitespace preceding the second line of code determines the peripheral indentation for the entiee block. All subsequent lines (after second) must begin with exact same whitespace that preceded the second line, or be an empty line. 
+
+For example:
+
+.. code-block:: html
+
+    <p>
+      Lorem ipsum dolor sit amet
+        <ul>
+          {{
+            def foo():
+              write("Hello!")
+            foo()
+          }}
+        </ul>
+      consectetur adipisicing elit
+    </p>
+
+would produce the following output:
+
+.. code-block:: html
+
+    <p>
+      Lorem ipsum dolor sit amet
+        <ul>
+            Hello!
+        </ul>
+      consectetur adipisicing elit
+    </p>
+
+Note that the ``Hello!`` was indented with same whitespace that the code in the code block was. 
+
 pypage automatically intends the output of a multi-line tag to match the indentation level of the code tag. The number of whitespace characters at the beginning of the second line of the code block determines the indentation level for the whole block. All lines of code following the second line must at least have the same level of indentation as the second line (or else, a PypageSyntaxError exception will be thrown).
 
 Whitespace Removal
@@ -103,6 +135,7 @@ Loop variables effectively override variables with the same name(s) for the dura
 
 Conditional Blocks
 ++++++++++++++++++
+...
 
 
 Todos
@@ -110,7 +143,7 @@ Todos
 
 - Include tag
 
-- fix whitespace reduction bug (see if-2.txt)
+- Fix whitespace reduction bug (see if-2.txt)
 
 - Raw tag (similar to the {# ... #} comment tags)
 
@@ -122,11 +155,9 @@ Todos
 
 - Handle user code errors gracefully with an optional "embed_errors" option
 
-- Raise an error for 2 sec+ while loops.
+- Raise an exception for 2 sec+ while loops, or make the time limit optional
 
-- Support '=' assignment in single-line code tags
-
-- while loops: 2 sec+ loops should just issue a warning
+- Support '=' assignment in single-line code tags (probably not)
 
 - (Maybe) Provide Jinja2-like filter (|) by overloading the bitwise OR operator (if possible).
 
@@ -135,12 +166,8 @@ Todos
 
 - Do not allow (i.e. strip out) invalid chars in for tag target list
 
-- Remove CommentBlock (maybe)
-
-- Optionally import itertools
-
-- Some other templating languages: Jinja, Liquid, Smarty, Django, Mustache, Handlebars, 
-
 - investiage: MarkupSafe (Jinja dependency)
 
 - colorful command-line output
+
+- Other templating languages: Jinja, Liquid, Smarty, Django, Mustache, Handlebars, etc.
