@@ -25,11 +25,13 @@ User Guide
 
 Embedding Code
 ~~~~~~~~~~~~~~
-In order to embed code in a document, you wrap Python code with ``{{`` and ``}}``. The ``{{ ... }}`` constructs are called **code tags**. There are two kinds of code tags: *inline* and *multiline*.
+In order to embed code in a document, you wrap Python code with ``{{`` and ``}}``. The ``{{ ... }}`` constructs 
+are called **code tags**. There are two kinds of code tags: *inline* and *multiline*.
 
 Inline Code Tags
 ++++++++++++++++
-Inline code tags occur entirely on the same line, i.e. the closing ``}}`` appears on the same line as the opening ``{{``. Here is an example of an inline code tag::
+Inline code tags occur entirely on the same line, i.e. the closing ``}}`` appears on the same line as the 
+opening ``{{``. Here is an example of an inline code tag::
 
     There are {{ 5 + 2 }} days in a week.
 
@@ -37,11 +39,13 @@ The above, when processed by pypage, yields::
 
     There are 7 days in a week.
 
-The Python ``eval`` statement is used to execute the code between the delimiters. The result of the expression evaluation is converted into a string (with ``str``) and the code tag is replaced with it.
+The Python ``eval`` statement is used to execute the code between the delimiters. The result of the 
+expression evaluation is converted into a string (with ``str``) and the code tag is replaced with it.
 
 Multi-line Code Tags
 ++++++++++++++++++++
-Multi-line code tags, as their name suggests, span multiple lines. The sole distinguishing characteristic between it and an inline code tag is the presence of one or more newline (``\n``) characters between the ``{{`` and ``}}``. 
+Multi-line code tags, as their name suggests, span multiple lines. The sole distinguishing characteristic between 
+it and an inline code tag is the presence of one or more newline (``\n``) characters between the ``{{`` and ``}}``. 
 
 Here's an example of a multi-line code tag:
 
@@ -54,25 +58,38 @@ Here's an example of a multi-line code tag:
         write("There are", x + y, "days in a week.")
     }}
 
-The Python ``exec`` function is used to execute this multi-line snippet of code. A ``write`` function, similar to the Python 3 ``print`` function, is used to inject text into document in place of the multi-line code tag.
+The Python ``exec`` function is used to execute this multi-line snippet of code. A ``write`` function, similar 
+to the Python 3 ``print`` function, is used to inject text into document in place of the multi-line code tag.
 
 Execution Environment
 ^^^^^^^^^^^^^^^^^^^^^
-All code tags share a common environment for local and global environments. As such, a variable instantiated in a code tag at the beginning of the document, will be available to all other code tags in the document. When pypage is invoked as library, an initial seed environment consisting of a Python dictionary mapping variable names to values, can be provided.
+All code tags share a common environment for local and global environments. As such, a variable instantiated in a 
+code tag at the beginning of the document, will be available to all other code tags in the document. When pypage 
+is invoked as library, an initial seed environment consisting of a Python dictionary mapping variable names to 
+values, can be provided.
 
 The write function
 ^^^^^^^^^^^^^^^^^^^^^
 ``write([object, ...], *, sep=' ', end='\n')``
 
-A ``write`` function similar to the Python 3 ``print`` function is accessible from both code tags. The objects passed to it are stringified with ``str``, concatenated together with ``sep``, and terminated with ``end``. The outputs of multiple calls to ``write`` in a code tag are concatenated together, and the resulting final output is injected in place of the code tag.
+A ``write`` function similar to the Python 3 ``print`` function is accessible from both code tags. The 
+objects passed to it are stringified with ``str``, concatenated together with ``sep``, and terminated 
+with ``end``. The outputs of multiple calls to ``write`` in a code tag are concatenated together, and 
+the resulting final output is injected in place of the code tag.
 
-If ``write`` is called from an inline code tag, the result of the expression (a ``None``) is discarded, and the output of the ``write`` call is used instead.
+If ``write`` is called from an inline code tag, the result of the expression (a ``None``) is discarded, 
+and the output of the ``write`` call is used instead.
 
 Automatic Indentation
 ^^^^^^^^^^^^^^^^^^^^^
-pypage smartly handles indentation for you. In a multi-line code tag, if you consistently indent your Python code with a specific amount of whitespace, that indentation will be stripped off before executing the code block (as Python is indentation-sensitive), and the resulting output of that code block will be re-indented with same whitespace that the initial code block was.
+pypage smartly handles indentation for you. In a multi-line code tag, if you consistently indent your Python 
+code with a specific amount of whitespace, that indentation will be stripped off before executing the code block 
+(as Python is indentation-sensitive), and the resulting output of that code block will be re-indented with same 
+whitespace that the initial code block was.
 
-The whitespace preceding the second line of code determines the peripheral indentation for the entiee block. All subsequent lines (after second) must begin with exact same whitespace that preceded the second line, or be an empty line. 
+The whitespace preceding the second line of code determines the peripheral indentation for the entiee block. 
+All subsequent lines (after second) must begin with exact same whitespace that preceded the second line, or 
+be an empty line. 
 
 For example:
 
@@ -104,16 +121,21 @@ would produce the following output:
 
 Note that the ``Hello!`` was indented with same whitespace that the code in the code block was. 
 
-pypage automatically intends the output of a multi-line tag to match the indentation level of the code tag. The number of whitespace characters at the beginning of the second line of the code block determines the indentation level for the whole block. All lines of code following the second line must at least have the same level of indentation as the second line (or else, a PypageSyntaxError exception will be thrown).
+pypage automatically intends the output of a multi-line tag to match the indentation level of the code tag. 
+The number of whitespace characters at the beginning of the second line of the code block determines the 
+indentation level for the whole block. All lines of code following the second line must at least have the 
+same level of indentation as the second line (or else, a PypageSyntaxError exception will be thrown).
 
 Whitespace Removal
 ^^^^^^^^^^^^^^^^^^
-If a block tag is on a line by itself, surrounded only by whitespace, then that whitespace is automatically excluded from the output. This allows you indent your block tags without worrying about excess whitespace in the generated document.
+If a block tag is on a line by itself, surrounded only by whitespace, then that whitespace is automatically 
+excluded from the output. This allows you indent your block tags without worrying about excess whitespace 
+in the generated document.
 
 Why have distinct inline code tags?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-It's easier to write ``{{x}}`` than to write ``{{ write(x) }}``. Many a time, all we need to do is inject the value of a 
-variable at a specific location in the document.
+It's easier to write ``{{x}}`` than to write ``{{ write(x) }}``. Many a time, all we need to do is inject 
+the value of a variable at a specific location in the document.
 
 Block Tags
 ~~~~~~~~~~
@@ -124,13 +146,15 @@ Block tags look like this::
       The square of {{i}} is {{i*i}}.
   {% %}
 
-A block tag begins with ``{% tag_name ... %}`` and ends with ``{% %}``. Optionally, the end ``{% %}`` can be of the form ``{% endtag_name %}``, which in the above example would be ``{% endfor %}``).
+A block tag begins with ``{% tag_name ... %}`` and ends with ``{% %}``. Optionally, the end ``{% %}`` can be of 
+the form ``{% endtag_name %}``, which in the above example would be ``{% endfor %}``).
 
 The next sections will describe in detail the code tag, and each type of block tag.
 
 For Loops
 ++++++++++
-Loop variables effectively override variables with the same name(s) for the duration of the loop. pypage backs up identically-named variables, and from within the loop, only the loop variables are accessible.
+Loop variables effectively override variables with the same name(s) for the duration of the loop. pypage backs 
+up identically-named variables, and from within the loop, only the loop variables are accessible.
 
 
 Conditional Blocks
