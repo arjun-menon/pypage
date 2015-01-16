@@ -16,7 +16,7 @@
 # limitations under the License.
 
 from __future__ import print_function
-import string, itertools, sys, time, os, cgi
+import string, itertools, sys, time, os, cgi, json
 
 class RootNode(object):
     """
@@ -790,6 +790,7 @@ def main():
     parser = argparse.ArgumentParser(description="Light-weight Python templating engine.")
     parser.add_argument('source_file', type=str, help="Source file name. Use - to read from stdin.")
     parser.add_argument('-o', '--output_file', nargs=1, type=str, default=None, help='output file name; default: stdout')
+    parser.add_argument('-d', '--data', nargs=1, type=str, default=None, help='additional data to pass to the environment')
     parser.add_argument('--tree', action='store_true', help='print the abstract syntax tree and exit')
     args = parser.parse_args()
 
@@ -810,7 +811,10 @@ def main():
             print(tree)
             sys.exit(0)
 
-        pe = PypageExec(dict())
+        data = dict()
+        if args.data:
+            data = json.loads(args.data[0])
+        pe = PypageExec(data)
 
         output = exec_tree(tree, pe)
 
