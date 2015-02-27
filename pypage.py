@@ -473,6 +473,8 @@ def last_occurrence(text, c):
             return i
 
 def lex(src):
+    assert isinstance(src, str)
+
     tagNodeTypes = [CodeTag, CommentTag, BlockTag]
     open_delims = { t.open_delim : t for t in tagNodeTypes }
     comment_tag_depth = 0
@@ -786,17 +788,20 @@ def pypage(source, seed_env=dict()):
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="Light-weight Python templating engine.")
-    parser.add_argument('source_file', type=str, help="Source file name")
+    parser.add_argument('source_file', type=str, help="Source file name. Use - to read from stdin.")
     parser.add_argument('-o', '--output_file', nargs=1, type=str, default=None, help='output file name; default: stdout')
     parser.add_argument('--tree', action='store_true', help='print the abstract syntax tree and exit')
     args = parser.parse_args()
 
-    if not os.path.exists(args.source_file):
-        print("File %s does not exist." % repr(args.source_file), file=sys.stderr)
-        sys.exit(1)
-
-    with open(args.source_file, 'r') as source_file:
-        source = source_file.read()
+    if args.source_file == '-':
+        source = sys.stdin.read()
+    else:
+        if os.path.exists(args.source_file):
+            with open(args.source_file, 'r') as source_file:
+                source = source_file.read()
+        else:
+            print("File %s does not exist." % repr(args.source_file), file=sys.stderr)
+            sys.exit(1)
 
     try:
         tree = parse(source)
