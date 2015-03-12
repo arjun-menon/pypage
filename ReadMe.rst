@@ -213,21 +213,22 @@ The above loop would result in::
 
 Internally, pypage morphs the expression ``for x in [1,2,3] for y in ['a','b','c']`` into 
 ``(x, y) for x in [1,2,3] for y in ['a','b','c']``, captures the variables ``x`` and ``y`` and exposes them to you 
-for direct access by injecting them into your namespace.
+for direct reference by injecting them into your namespace.
 
 Injected loop variables override variables with the same name for the duration of the loop. 
-pypage backs up identically-named variables, and restores them after the loop has finished. 
-In the case of identically-named variables, from within the loop, only injected loop variables will be visible.
+pypage backs up identically-named variables, and restores them after the loop has finished. In the case 
+of identically-named variables, only injected loop variables will be accessible from within the loop.
 
 While Loops
-+++++++++
++++++++++++
 
 While loop are pretty simple::
 
-  {{n = 5 
+  {{
+    n = 5
   }}
-  Countdown... {% while n > 0 %}{{
-  write(n, end=' ')
+  Countdown...{% while n > 0 %} {{
+  write(n, end='')
   n -= 1
   }}
   {% %}
@@ -237,10 +238,24 @@ Running above would yield: ``Countdown... 5 4 3 2 1 ``.
 The expression following the ``while`` is evaluated like any other Python expression and its result determines the 
 continuation of the loop.
 
+Capture Tag
++++++++++++
+
+You can capture the output of part of your page using the ``capture`` tag::
+
+  {% capture x %}
+    hello {{"bob"}}
+  {% %}
+
+The above tag will not yield any output, but rather a new variable ``x`` will be created that captures the output 
+of everything enclosed by it (which in this case is ``"hello bob"``).
+
 Todos
 -----
 
 - Include tag
+
+- Fix trailing whitespace bug
 
 - Fix whitespace reduction bug (see if-2.txt)
 
@@ -260,10 +275,9 @@ Todos
 
 - (Maybe) Provide Jinja2-like filter (|) by overloading the bitwise OR operator (if possible).
 
-- it might be a good idea to port to python 3 for better unicode handling  (& upd. the shebang)
-  see https://docs.python.org/dev/howto/unicode.html  & research how unicode works in py 2.x
+- get it work seamlessly in both py3 and py2
 
-- Do not allow (i.e. strip out) invalid chars in for tag target list
+- do not allow (i.e. strip out) invalid chars in for tag target list
 
 - investiage: MarkupSafe (Jinja dependency)
 
