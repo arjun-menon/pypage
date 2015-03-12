@@ -1,4 +1,4 @@
-Hi,
+Hey,
 {{
     import random
     # Randomly pick a greeting
@@ -8,14 +8,13 @@ Hi,
 hello  {# see #} {# #} {# {# #} #}
 #}
 {% if greeting == 1 %}
-Wazzup
+Howdy?
 {% elif greeting == 2 %}
-How you crackin' ?
+How are you?
 {% elif greeting == 3 %}
-Howdy
+Any news?
 {% else %}
 What's up?
 {% %}
-
-Good luck,
-Mindy
+Cheers,
+Rogers

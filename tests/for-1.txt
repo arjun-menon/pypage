@@ -20,5 +20,8 @@ And here's an ode to you:
         write(vowel*5)
 }}
 
+That is: {% for vowel in ['a', 'e', 'i', 'o', 'u'] %}
+  {{vowel}}{% %}
+
 Best,
 Alice
