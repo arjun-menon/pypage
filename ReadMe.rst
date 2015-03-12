@@ -178,26 +178,26 @@ It's best to explain this with an example::
   {% %}
 
 When the above template is run, the resulting page will contain a randomly chosen greeting. As is evident, 
-pypage syntax for if/elif/else conditions closely mirrors that of Python's. The terminal ``{% %}`` can be 
-replaced with an ``{% endif %}`` with no change in meaning (as with any block tag).
+pypage syntax for if/elif/else conditions closely mirrors Python's. The terminal ``{% %}`` can be replaced 
+with an ``{% endif %}`` with no change in meaning (as with any block tag).
 
 For Loops
 +++++++++
 To start, here's a simple example::
 
-  {% for vowel in ['a', 'e', 'i', 'o', 'u'] %} {{vowel}} {% %}
+  {% for vowel in ['a', 'e', 'i', 'o', 'u'] %}{{vowel}}{% %}
 
-The above will yield the result: `` a  e  i  o  u ``.
+The above will yield: ``aeiou``.
 
-Now that's an ordinary for loop. pypage for loops are actually slightly more powerful than Python for loops because 
-they are actually treated as *generator expressions* under the hood, and are as such allow richer forms of loops than 
-regular Python for loops.
+Now that is just an ordinary for loop.
+pypage ``for`` loops are actually slightly more powerful than Python for loops because they are treated 
+as *generator expressions* under the hood, and as such are more expressive than regular Python for loops.
 
 Here's an example of something that would be impossible to do in Python (with a regular for loop)::
 
-{% for x in [1,2,3] for y in ['a','b','c'] %}
-    {{x}} -> {{y}}
-{%%}
+  {% for x in [1,2,3] for y in ['a','b','c'] %}
+      {{x}} -> {{y}}
+  {%%}
 
 The above loop would result in::
 
@@ -217,8 +217,25 @@ for direct access by injecting them into your namespace.
 
 Injected loop variables override variables with the same name for the duration of the loop. 
 pypage backs up identically-named variables, and restores them after the loop has finished. 
-In case of identically-named variables, from within the loop, only injected loop variables will be visible.
+In the case of identically-named variables, from within the loop, only injected loop variables will be visible.
 
+While Loops
++++++++++
+
+While loop are pretty simple::
+
+  {{n = 5 
+  }}
+  Countdown... {% while n > 0 %}{{
+  write(n, end=' ')
+  n -= 1
+  }}
+  {% %}
+
+Running above would yield: ``Countdown... 5 4 3 2 1 ``.
+
+The expression following the ``while`` is evaluated like any other Python expression and its result determines the 
+continuation of the loop.
 
 Todos
 -----
