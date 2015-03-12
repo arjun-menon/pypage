@@ -137,29 +137,87 @@ Why have distinct inline code tags?
 It's easier to write ``{{x}}`` than to write ``{{ write(x) }}``. Many a time, all we need to do is inject 
 the value of a variable at a specific location in the document.
 
+Comment Tags
+++++++++++++
+If you need to *comment out* part of your page, use the comment tag. Anything bounded by ``{#`` and ``#}`` will 
+be omitted from the output.
+
 Block Tags
 ~~~~~~~~~~
+Block tags simplify certain tasks that would otherwise be cumbersome and ugly if done exclusively with code tags. One 
+of the things it lets you do is wrap part of your page in an `if/else conditional <http://en.wikipedia.org/wiki/Conditional_(computer_programming)>`_, or a `for/while loop <http://en.wikipedia.org/wiki/Control_flow#Loops>`_.
 
-Block tags look like this::
+Here's an example of the ``for`` block tag::
 
   {% for i in range(10) %}
       The square of {{i}} is {{i*i}}.
   {% %}
 
-A block tag begins with ``{% tag_name ... %}`` and ends with ``{% %}``. Optionally, the end ``{% %}`` can be of 
-the form ``{% endtag_name %}``, which in the above example would be ``{% endfor %}``).
-
-The next sections will describe in detail the code tag, and each type of block tag.
-
-For Loops
-++++++++++
-Loop variables effectively override variables with the same name(s) for the duration of the loop. pypage backs 
-up identically-named variables, and from within the loop, only the loop variables are accessible.
-
+A block tag begins with ``{% tag_name ... %}`` and ends with ``{% %}``. Optionally, the end ``{% %}`` can be 
+of the form ``{% endtag_name %}`` (i.e. prepend the ``tag_name`` with ``end``), which in the above example 
+would be ``{% endfor %}``).
 
 Conditional Blocks
 ++++++++++++++++++
-...
+It's best to explain this with an example::
+
+  Hey,
+  {{
+      import random
+      # Randomly pick a greeting
+      greeting = random.randint(1,4)
+  }}
+  {% if greeting == 1 %}
+  Howdy?
+  {% elif greeting == 2 %}
+  How are you?
+  {% elif greeting == 3 %}
+  Any news?
+  {% else %}
+  What's up?
+  {% %}
+
+When the above template is run, the resulting page will contain a randomly chosen greeting. As is evident, 
+pypage syntax for if/elif/else conditions closely mirrors that of Python's. The terminal ``{% %}`` can be 
+replaced with an ``{% endif %}`` with no change in meaning (as with any block tag).
+
+For Loops
++++++++++
+To start, here's a simple example::
+
+  {% for vowel in ['a', 'e', 'i', 'o', 'u'] %} {{vowel}} {% %}
+
+The above will yield the result: `` a  e  i  o  u ``.
+
+Now that's an ordinary for loop. pypage for loops are actually slightly more powerful than Python for loops because 
+they are actually treated as *generator expressions* under the hood, and are as such allow richer forms of loops than 
+regular Python for loops.
+
+Here's an example of something that would be impossible to do in Python (with a regular for loop)::
+
+{% for x in [1,2,3] for y in ['a','b','c'] %}
+    {{x}} -> {{y}}
+{%%}
+
+The above loop would result in::
+
+    1 -> a
+    1 -> b
+    1 -> c
+    2 -> a
+    2 -> b
+    2 -> c
+    3 -> a
+    3 -> b
+    3 -> c
+
+Internally, pypage morphs the expression ``for x in [1,2,3] for y in ['a','b','c']`` into 
+``(x, y) for x in [1,2,3] for y in ['a','b','c']``, captures the variables ``x`` and ``y`` and exposes them to you 
+for direct access by injecting them into your namespace.
+
+Injected loop variables override variables with the same name for the duration of the loop. 
+pypage backs up identically-named variables, and restores them after the loop has finished. 
+In case of identically-named variables, from within the loop, only injected loop variables will be visible.
 
 
 Todos
