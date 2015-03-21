@@ -1,9 +1,40 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+#
+# an stdin -> stdout based testing tool
+#
+# This tool looks for files with that follow this naming pattern:
+#
+#   test-A.in.ext  ->  test-A.out.ext
+#   test-B.in.ext  ->  test-B.out.ext
+#   test-C.in.ext  ->  test-C.out.ext
+#
+# Files following the above pattern are paired up, and the 
+# *.in.* file's content is piped into the command via STDIN, 
+# and the command's output is compared against the corresponding 
+# *.out* file's content. A perfect match is a successful test.
+#
+#
+
+# Copyright (C) 2014 Arjun G. Menon
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#    http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 from json import loads
 from collections import OrderedDict
 from subprocess import Popen, PIPE, STDOUT
-from os import path
+from os import path, listdir
 
 def test_input_output(input_text, output_text):
     process = Popen(["../pypage.py", "-"], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
@@ -11,45 +42,62 @@ def test_input_output(input_text, output_text):
     process.wait()
     return process_output == output_text
 
-def get_output_file_name(input_file_name):
+def get_content(file_name):
+    with open(file_name) as f:
+        content = f.read().decode()
+    return content
+
+def is_input_file(name):
+    name, first_ext = path.splitext(name)
+    name, second_ext = path.splitext(name)
+
+    if second_ext == '.in':
+        return True
+    return False
+
+def construct_output_file_name(input_file_name):
     input_file_root, file_ext = path.splitext(input_file_name)
     file_root, in_ext = path.splitext(input_file_root)
+    assert in_ext == '.in'
 
-    assert in_ext == ".in"
-    return file_root + ".out" + file_ext
+    return file_root + '.out' + file_ext
 
-def get_test_data(input_file_name):
-    output_file_name = get_output_file_name(input_file_name)
+def construct_test_name(input_file_name):
+    input_file_root, file_ext = path.splitext(input_file_name)
+    file_root, in_ext = path.splitext(input_file_root)
+    assert in_ext == '.in'
 
-    with open(input_file_name) as input_file:
-        input_text = input_file.read().decode()
+    return file_root.replace('-', ' ')
 
-    with open(output_file_name) as output_file:
-        output_text = output_file.read().decode()
-
-    return input_text, output_text
+def get_test_cases(directory, file_list):
+    input_files = filter(lambda name: is_input_file(name), file_list)
+    return [ (construct_test_name(name), path.join(directory, name), path.join(directory, construct_output_file_name(name))) for 
+            name in input_files if path.isfile(path.join(directory, construct_output_file_name(name))) ]
 
 def run_all():
-    with open("tests.json") as tests_json:
-        tests = loads(tests_json.read(), object_pairs_hook=OrderedDict)
+    tests_dir = '.'
 
-    print "Running %i tests..." % len(tests)
+    all_files = listdir(tests_dir)
+    test_cases = [ (name, get_content(input_file), get_content(output_file)) for 
+        name, input_file, output_file in get_test_cases(tests_dir, all_files) ]
+
+    print "Running %i tests..." % len(test_cases)
 
     passed = 0
-    for name, input_file_name in tests.items():
+    for name, input_text, output_text in test_cases:
         print name + "...", 
 
-        input_text, output_text  = get_test_data(input_file_name)
+        #input_text, output_text  = get_test_data(input_file_name)
         success = test_input_output(input_text, output_text)
 
         print "Success" if success else "Failure"
         if success:
             passed += 1
 
-    if passed == len(tests):
+    if passed == len(test_cases):
         print "All tests passed."
     else:
         print "%d tests passed, %d tests failed." % (passed, len(tests) - passed)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     run_all()
