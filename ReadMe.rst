@@ -31,7 +31,9 @@ are called **code tags**. There are two kinds of code tags: *inline* and *multil
 Inline Code Tags
 ++++++++++++++++
 Inline code tags occur entirely on the same line, i.e. the closing ``}}`` appears on the same line as the 
-opening ``{{``. Here is an example of an inline code tag::
+opening ``{{``. Here is an example of an inline code tag:
+
+.. code-block:: liquid
 
     There are {{ 5 + 2 }} days in a week.
 
@@ -70,7 +72,9 @@ values, can be provided.
 
 The write function
 ^^^^^^^^^^^^^^^^^^^^^
-``write([object, ...], *, sep=' ', end='\n')``
+.. code-block:: python
+
+    write([object, ...], *, sep=' ', end='\n')
 
 A ``write`` function similar to the Python 3 ``print`` function is accessible from both code tags. The 
 objects passed to it are stringified with ``str``, concatenated together with ``sep``, and terminated 
@@ -147,7 +151,9 @@ Block Tags
 Block tags simplify certain tasks that would otherwise be cumbersome and ugly if done exclusively with code tags. One 
 of the things it lets you do is wrap part of your page in an `if/else conditional <http://en.wikipedia.org/wiki/Conditional_(computer_programming)>`_, or a `for/while loop <http://en.wikipedia.org/wiki/Control_flow#Loops>`_.
 
-Here's an example of the ``for`` block tag::
+Here's an example of the ``for`` block tag:
+
+.. code-block:: liquid
 
   {% for i in range(10) %}
       The square of {{i}} is {{i*i}}.
@@ -159,7 +165,9 @@ would be ``{% endfor %}``).
 
 Conditional Blocks
 ++++++++++++++++++
-It's best to explain this with an example::
+It's best to explain this with an example:
+
+.. code-block:: liquid
 
   Hey,
   {{
@@ -183,7 +191,9 @@ with an ``{% endif %}`` with no change in meaning (as with any block tag).
 
 For Loops
 +++++++++
-To start, here's a simple example::
+To start, here's a simple example:
+
+.. code-block:: liquid
 
   {% for vowel in ['a', 'e', 'i', 'o', 'u'] %}{{vowel}}{% %}
 
@@ -193,7 +203,9 @@ Now that is just an ordinary for loop.
 pypage ``for`` loops are actually slightly more powerful than Python for loops because they are treated 
 as *generator expressions* under the hood, and as such are more expressive than regular Python for loops.
 
-Here's an example of something that would be impossible to do in Python (with a regular for loop)::
+Here's an example of something that would be impossible to do in Python (with a regular for loop):
+
+.. code-block:: liquid
 
   {% for x in [1,2,3] for y in ['a','b','c'] %}
       {{x}} -> {{y}}
@@ -222,7 +234,9 @@ of identically-named variables, only injected loop variables will be accessible 
 While Loops
 +++++++++++
 
-While loop are pretty simple::
+While loop are pretty simple:
+
+.. code-block:: liquid
 
   {{
     n = 5
@@ -241,7 +255,9 @@ continuation of the loop.
 Capture Tag
 +++++++++++
 
-You can capture the output of part of your page using the ``capture`` tag::
+You can capture the output of part of your page using the ``capture`` tag:
+
+.. code-block:: liquid
 
   {% capture x %}
     hello {{"bob"}}
