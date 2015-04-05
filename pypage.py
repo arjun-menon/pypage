@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Arjun G. Menon
+# Copyright (C) Arjun G. Menon
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
