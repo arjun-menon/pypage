@@ -191,17 +191,16 @@ with an ``{% endif %}`` with no change in meaning (as with any block tag).
 
 For Loops
 +++++++++
-To start, here's a simple example:
+Let's start with a simple example:
 
 .. code-block:: liquid
 
-  {% for vowel in ['a', 'e', 'i', 'o', 'u'] %}{{vowel}}{% %}
+  {% for vowel in ['a', 'e', 'i', 'o', 'u'] %}{{vowel}} {% %}
 
-The above will yield: ``aeiou``.
+This will print out the vowels with a space after every character.
 
-Now that is just an ordinary for loop.
-pypage ``for`` loops are actually slightly more powerful than Python for loops because they are treated 
-as *generator expressions* under the hood, and as such are more expressive than regular Python for loops.
+Now that is just an ordinary for loop. pypage permits ``for`` loops that are more expressive than 
+traditional Python for loops, by leveraging Python's *generator expressions*.
 
 Here's an example of something that would be impossible to do in Python (with a regular for loop):
 
@@ -223,13 +222,12 @@ The above loop would result in::
     3 -> b
     3 -> c
 
-Internally, pypage morphs the expression ``for x in [1,2,3] for y in ['a','b','c']`` into 
-``(x, y) for x in [1,2,3] for y in ['a','b','c']``, captures the variables ``x`` and ``y`` and exposes them to you 
-for direct reference by injecting them into your namespace.
+*Internally*, pypage morphs the expression ``for x in [1,2,3] for y in ['a','b','c']`` into the 
+generator expression ``(x, y) for x in [1,2,3] for y in ['a','b','c']``. It exposes the the 
+loop variables ``x`` and ``y`` by injecting them into your namespace.
 
-Injected loop variables override variables with the same name for the duration of the loop. 
-pypage backs up identically-named variables, and restores them after the loop has finished. In the case 
-of identically-named variables, only injected loop variables will be accessible from within the loop.
+*Note:* Injected loop variables replace variables with the same name for the duration of the loop. 
+After the loop, the old variables with the identical names are restored (pypage backs them up).
 
 While Loops
 +++++++++++
