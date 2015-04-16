@@ -42,16 +42,51 @@ from subprocess import Popen, PIPE, STDOUT
 from os import path, listdir
 from sys import exit
 
-def test_input_output(cmd, input_text, output_text):
-    process = Popen([cmd, '-'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-    process_output = process.communicate(input=input_text)[0]
-    process.wait()
-    return process_output == output_text
+class TestCase(object):
+    def __init__(self, cmd, tests_dir, input_file_name):
+        self.cmd = cmd
+        self.tests_dir = tests_dir
 
-def get_content(file_name):
-    with open(file_name) as f:
-        content = f.read().decode()
-    return content
+        self.name = self.construct_test_name(input_file_name)
+        self.input_file = path.join(tests_dir, input_file_name)
+        self.output_file = path.join(tests_dir, self.construct_output_file_name(input_file_name))
+
+    @staticmethod
+    def construct_test_name(input_file_name):
+        input_file_root, file_ext = path.splitext(input_file_name)
+        file_root, in_ext = path.splitext(input_file_root)
+        assert in_ext == '.in'
+
+        return file_root.replace('-', ' ')
+
+    @staticmethod
+    def construct_output_file_name(input_file_name):
+        input_file_root, file_ext = path.splitext(input_file_name)
+        file_root, in_ext = path.splitext(input_file_root)
+        assert in_ext == '.in'
+
+        return file_root + '.out' + file_ext
+
+    @staticmethod
+    def read_file(file_name):
+        with open(file_name) as f:
+            content = f.read().decode()
+        return content
+
+    @staticmethod
+    def run_cmd(cmd, input_text):
+        process = Popen([cmd, '-'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+        process_output = process.communicate(input=input_text)[0]
+        process.wait()
+        return process_output
+
+    def test(self):
+        test_input = self.read_file(self.input_file)
+        expected_output = self.read_file(self.output_file)
+
+        actual_output = self.run_cmd(self.cmd, test_input)
+        return expected_output == actual_output
+
 
 def is_input_file(name):
     name, first_ext = path.splitext(name)
@@ -61,48 +96,29 @@ def is_input_file(name):
         return True
     return False
 
-def construct_output_file_name(input_file_name):
-    input_file_root, file_ext = path.splitext(input_file_name)
-    file_root, in_ext = path.splitext(input_file_root)
-    assert in_ext == '.in'
-
-    return file_root + '.out' + file_ext
-
-def construct_test_name(input_file_name):
-    input_file_root, file_ext = path.splitext(input_file_name)
-    file_root, in_ext = path.splitext(input_file_root)
-    assert in_ext == '.in'
-
-    return file_root.replace('-', ' ')
-
-def get_test_cases(directory, file_list):
+def get_test_cases(cmd, tests_dir):
+    file_list = listdir(tests_dir)
     input_files = filter(lambda name: is_input_file(name), file_list)
 
     test_cases = list()
-    for name in input_files:
-        if not path.isfile(path.join(directory, construct_output_file_name(name))):
-            print "The following input file has no output file: " + name
+    for input_file_name in input_files:
+        if not path.isfile(path.join(tests_dir, TestCase.construct_output_file_name(input_file_name))):
+            print "The following input file has no output file: " + input_file_name
         else:
-            test_cases.append( (
-                construct_test_name(name), 
-                path.join(directory, name), 
-                path.join(directory, construct_output_file_name(name))
-            ) )
+            test_cases.append(TestCase(cmd, tests_dir, input_file_name))
+
     return test_cases
 
-def test(cmd, tests_dir):
-    all_files = listdir(tests_dir)
-    test_cases = [ (name, get_content(input_file), get_content(output_file)) for 
-        name, input_file, output_file in get_test_cases(tests_dir, all_files) ]
+def test_cmd(cmd, tests_dir):
+    test_cases = get_test_cases(cmd, tests_dir)
 
     print "Running %i tests..." % len(test_cases)
 
     passed = 0
-    for name, input_text, output_text in test_cases:
-        print name + "...", 
+    for test_case in test_cases:
+        print test_case.name + "...", 
 
-        #input_text, output_text  = get_test_data(input_file_name)
-        success = test_input_output(cmd, input_text, output_text)
+        success = test_case.test()
 
         print "Success" if success else "Failure"
         if success:
@@ -130,7 +146,7 @@ def main():
         print "The directory '%s' does not exist." % args.cmd
         exit(1)
 
-    exit(0 if test(args.cmd, args.tests_dir) else 1)
+    exit(0 if test_cmd(args.cmd, args.tests_dir) else 1)
 
 if __name__ == '__main__':
     main()
