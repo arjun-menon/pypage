@@ -110,8 +110,10 @@ def test(cmd, tests_dir):
 
     if passed == len(test_cases):
         print "All tests passed."
+        return True
     else:
-        print "%d tests passed, %d tests failed." % (passed, len(tests) - passed)
+        print "%d tests passed, %d tests failed." % (passed, len(test_cases) - passed)
+        return False
 
 def main():
     import argparse
@@ -128,7 +130,7 @@ def main():
         print "The directory '%s' does not exist." % args.cmd
         exit(1)
 
-    test(args.cmd, args.tests_dir)
+    exit(0 if test(args.cmd, args.tests_dir) else 1)
 
 if __name__ == '__main__':
     main()
