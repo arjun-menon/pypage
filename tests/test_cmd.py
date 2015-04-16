@@ -77,8 +77,18 @@ def construct_test_name(input_file_name):
 
 def get_test_cases(directory, file_list):
     input_files = filter(lambda name: is_input_file(name), file_list)
-    return [ (construct_test_name(name), path.join(directory, name), path.join(directory, construct_output_file_name(name))) for 
-            name in input_files if path.isfile(path.join(directory, construct_output_file_name(name))) ]
+
+    test_cases = list()
+    for name in input_files:
+        if not path.isfile(path.join(directory, construct_output_file_name(name))):
+            print "The following input file has no output file: " + name
+        else:
+            test_cases.append( (
+                construct_test_name(name), 
+                path.join(directory, name), 
+                path.join(directory, construct_output_file_name(name))
+            ) )
+    return test_cases
 
 def test(cmd, tests_dir):
     all_files = listdir(tests_dir)
