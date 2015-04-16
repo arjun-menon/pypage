@@ -40,9 +40,10 @@ from json import loads
 from collections import OrderedDict
 from subprocess import Popen, PIPE, STDOUT
 from os import path, listdir
+from sys import exit
 
-def test_input_output(input_text, output_text):
-    process = Popen(["../pypage.py", "-"], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+def test_input_output(cmd, input_text, output_text):
+    process = Popen([cmd, '-'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
     process_output = process.communicate(input=input_text)[0]
     process.wait()
     return process_output == output_text
@@ -79,9 +80,7 @@ def get_test_cases(directory, file_list):
     return [ (construct_test_name(name), path.join(directory, name), path.join(directory, construct_output_file_name(name))) for 
             name in input_files if path.isfile(path.join(directory, construct_output_file_name(name))) ]
 
-def run_all():
-    tests_dir = '.'
-
+def test(cmd, tests_dir):
     all_files = listdir(tests_dir)
     test_cases = [ (name, get_content(input_file), get_content(output_file)) for 
         name, input_file, output_file in get_test_cases(tests_dir, all_files) ]
@@ -93,7 +92,7 @@ def run_all():
         print name + "...", 
 
         #input_text, output_text  = get_test_data(input_file_name)
-        success = test_input_output(input_text, output_text)
+        success = test_input_output(cmd, input_text, output_text)
 
         print "Success" if success else "Failure"
         if success:
@@ -104,5 +103,22 @@ def run_all():
     else:
         print "%d tests passed, %d tests failed." % (passed, len(tests) - passed)
 
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Light-weight Python templating engine.")
+    parser.add_argument('cmd', type=str, help='path to the command to test')
+    parser.add_argument('tests_dir', type=str, help='directory containing test cases')
+    args = parser.parse_args()
+
+    if not path.isfile(args.cmd):
+        print "The command '%s' does not exist." % args.cmd
+        exit(1)
+
+    if not path.isdir(args.tests_dir):
+        print "The directory '%s' does not exist." % args.cmd
+        exit(1)
+
+    test(args.cmd, args.tests_dir)
+
 if __name__ == '__main__':
-    run_all()
+    main()
