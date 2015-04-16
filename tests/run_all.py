@@ -2,34 +2,39 @@
 # -*- coding: utf-8 -*-
 
 #
-# an stdin -> stdout based testing tool
+# Command-line Testing Tool
 #
-# This tool looks for files with that follow this naming pattern:
+# This is a good tool for testing function-like command-line tools.
+# Test cases are input-output pairs; and if the tool being tested can 
+# produce the output from the input, the test case passes.
+#
+# The tool looks for files that follow this naming pattern:
 #
 #   test-A.in.ext  ->  test-A.out.ext
 #   test-B.in.ext  ->  test-B.out.ext
 #   test-C.in.ext  ->  test-C.out.ext
 #
-# Files following the above pattern are paired up, and the 
-# *.in.* file's content is piped into the command via STDIN, 
-# and the command's output is compared against the corresponding 
-# *.out* file's content. A perfect match is a successful test.
-#
+# The extension ('ext' here) can be anything. 
+# The content of a *.in.* file  is piped to the tool being tested, 
+# and the output is compared against the *.out* file. 
+# A match means the test passed.
 #
 
+#
 # Copyright (C) 2014 Arjun G. Menon
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
 from json import loads
 from collections import OrderedDict
