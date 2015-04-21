@@ -4,9 +4,10 @@
 #
 # Command-line Testing Tool
 #
-# This is a good tool for testing function-like command-line tools.
-# Test cases are input-output pairs; and if the tool being tested can 
-# produce the output from the input, the test case passes.
+# This is a tool for testing function-like Python scripts.
+# Right now, it's a bit specific to pypage, but it can be generalized.
+# Test cases are input-output pairs; and if the tool being tested 
+# can produce the output from the input, the test passes.
 #
 # The tool looks for files that follow this naming pattern:
 #
@@ -15,7 +16,7 @@
 #   test-C.in.ext  ->  test-C.out.ext
 #
 # The extension ('ext' here) can be anything. 
-# The content of a *.in.* file  is piped to the tool being tested, 
+# The content of a *.in.* file is piped to the tool being tested, 
 # and the output is compared against the *.out* file. 
 # A match means the test passed.
 #
@@ -36,16 +37,18 @@
 # limitations under the License.
 #
 
-from json import loads
+from json import dumps, loads
 from collections import OrderedDict
 from subprocess import Popen, PIPE, STDOUT
+# from subprocess import check_output
 from os import path, listdir
 from sys import exit
 
 class TestCase(object):
-    def __init__(self, cmd, tests_dir, input_file_name):
+    def __init__(self, cmd, tests_dir, input_file_name, data={}):
         self.cmd = cmd
         self.tests_dir = tests_dir
+        self.data = data
 
         self.name = self.construct_test_name(input_file_name)
         self.input_file = path.join(tests_dir, input_file_name)
@@ -73,20 +76,52 @@ class TestCase(object):
             content = f.read().decode()
         return content
 
-    @staticmethod
-    def run_cmd(cmd, input_text):
-        process = Popen([cmd, '-'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-        process_output = process.communicate(input=input_text)[0]
-        process.wait()
-        return process_output
+    # def run_cmd(self, cmd, input_text):
+    #     process = Popen([cmd, '-d', dumps(self.data), '-'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+    #     process_output = process.communicate(input=input_text)[0]
+    #     process.wait()
+    #     return process_output
+
+    def run_test(self, input_text, data):
+        from pypage import pypage
+        input_text = str(input_text) # TODO: pypage should accept unicode
+        return pypage(input_text, data)
 
     def test(self):
         test_input = self.read_file(self.input_file)
         expected_output = self.read_file(self.output_file)
 
-        actual_output = self.run_cmd(self.cmd, test_input)
-        return expected_output == actual_output
+        actual_output = self.run_test(test_input, self.data)
+        result = expected_output == actual_output
 
+        return result
+
+
+def _decode_list(data): # http://stackoverflow.com/a/6633651/908430
+    rv = []
+    for item in data:
+        if isinstance(item, unicode):
+            item = item.encode('utf-8')
+        elif isinstance(item, list):
+            item = _decode_list(item)
+        elif isinstance(item, dict):
+            item = _decode_dict(item)
+        rv.append(item)
+    return rv
+
+def _decode_dict(data): # http://stackoverflow.com/a/6633651/908430
+    rv = {}
+    for key, value in data.iteritems():
+        if isinstance(key, unicode):
+            key = key.encode('utf-8')
+        if isinstance(value, unicode):
+            value = value.encode('utf-8')
+        elif isinstance(value, list):
+            value = _decode_list(value)
+        elif isinstance(value, dict):
+            value = _decode_dict(value)
+        rv[key] = value
+    return rv
 
 def is_input_file(name):
     name, first_ext = path.splitext(name)
@@ -96,16 +131,39 @@ def is_input_file(name):
         return True
     return False
 
+def override_with_json(case, override):
+    if 'data' in override:
+        case.data = override['data']
+
+def override_with_tests_json(tests_dir, test_cases):
+    tests_json_file = path.join(tests_dir, "tests.json")
+    with open(tests_json_file) as f:
+        tests_json = loads(f.read(), object_hook=_decode_dict)
+
+    for name, override in tests_json.iteritems():
+        if name in test_cases.iterkeys():
+            case = test_cases[name]
+
+            if isinstance(case, TestCase):
+                override_with_json(case, override)
+
 def get_test_cases(cmd, tests_dir):
     file_list = listdir(tests_dir)
-    input_files = filter(lambda name: is_input_file(name), file_list)
+    file_names = filter(lambda name: is_input_file(name), file_list)
 
-    test_cases = list()
-    for input_file_name in input_files:
-        if not path.isfile(path.join(tests_dir, TestCase.construct_output_file_name(input_file_name))):
-            print "The following input file has no output file: " + input_file_name
+    test_cases = OrderedDict()
+
+    for file_name in file_names:
+        input_file = path.join(tests_dir, TestCase.construct_output_file_name(file_name))
+
+        if path.isfile(input_file):
+            test_case = TestCase(cmd, tests_dir, file_name)
+            test_cases[test_case.name] = test_case
         else:
-            test_cases.append(TestCase(cmd, tests_dir, input_file_name))
+            name = TestCase.construct_test_name(file_name)
+            test_cases[name] = None
+
+    override_with_tests_json(tests_dir, test_cases)
 
     return test_cases
 
@@ -114,21 +172,31 @@ def test_cmd(cmd, tests_dir):
 
     print "Running %i tests..." % len(test_cases)
 
+    total = len(test_cases)
     passed = 0
-    for test_case in test_cases:
-        print test_case.name + "...", 
+    for name, case in test_cases.iteritems():
+        print name + "...", 
 
-        success = test_case.test()
+        result = None
+        if case == None:
+            print "No output file"
+            total -= 1
+        else:
+            result = case.test()
 
-        print "Success" if success else "Failure"
-        if success:
+        if result == True:
+            print "Success"
+        elif result == False:
+            print "Failure"
+
+        if result == True:
             passed += 1
 
-    if passed == len(test_cases):
+    if passed == total:
         print "All tests passed."
         return True
     else:
-        print "%d tests passed, %d tests failed." % (passed, len(test_cases) - passed)
+        print "%d tests passed, %d tests failed." % (passed, total - passed)
         return False
 
 def main():
@@ -150,3 +218,8 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# TODOs
+# 1. Switch to unicode.
+# 2. Generalize, and use processes instead of 'import'
+# 3. Map *.in.txt -> *.error.txt ; and compare against STDERR

@@ -1,0 +1,33 @@
+Hi,
+
+How are you, Alice?
+
+I heard you went snowboarding.
+
+Here is a nice pattern:
+    1 -> a
+    1 -> b
+    1 -> c
+    2 -> a
+    2 -> b
+    2 -> c
+    3 -> a
+    3 -> b
+    3 -> c
+
+And here's an ode to you:
+
+    aaaaa
+    eeeee
+    iiiii
+    ooooo
+    uuuuu
+
+That is: 
+  a
+  e
+  i
+  o
+  u
+Best,
+Alice

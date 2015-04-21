@@ -1,4 +1,8 @@
 {
-	"For Loop Test 1 (colors.html)" : "colors.in.html",
-	"For Loop Test 2 (squares.html)" : "squares.in.html"
+	"For Loop Test 4 Letter Template" : {
+		"data" : {
+			"name": "Alice",
+			"activity": "snowboarding"
+		}
+	}
 }
