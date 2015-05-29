@@ -266,7 +266,9 @@ of everything enclosed by it (which in this case is ``"hello bob"``).
 
 Todos
 -----
-[![Build Status](https://travis-ci.org/arjungmenon/pypage.svg?branch=master)](https://travis-ci.org/arjungmenon/pypage)
+.. image:: https://travis-ci.org/arjungmenon/pypage.svg?branch=master
+:target: https://travis-ci.org/arjungmenon/pypage
+:alt: Travis CI Build Status (Functional Tests)
 
 - Include tag
 - Fix trailing whitespace bug
