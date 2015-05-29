@@ -266,9 +266,7 @@ of everything enclosed by it (which in this case is ``"hello bob"``).
 
 Todos
 -----
-.. image:: https://travis-ci.org/arjungmenon/pypage.svg?branch=master
-:target: https://travis-ci.org/arjungmenon/pypage
-:alt: Travis CI Build Status (Functional Tests)
+|travis|
 
 - Include tag
 - Fix trailing whitespace bug
@@ -286,3 +284,7 @@ Todos
 - investiage: MarkupSafe (Jinja dependency)
 - colorful command-line output
 - Investigate other templating languages: Jinja, Liquid, Smarty, Django, Mustache, Handlebars, etc.
+
+.. |travis| image:: https://travis-ci.org/arjungmenon/pypage.svg?branch=master
+    :target: https://travis-ci.org/arjungmenon/pypage
+    :alt: Travis CI Build Status (Functional Tests)
