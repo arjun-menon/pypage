@@ -199,7 +199,7 @@ Let's start with a simple example:
 
 This will print out the vowels with a space after every character.
 
-Now that is just an ordinary for loop. pypage permits ``for`` loops that are more expressive than 
+Now that's an ordinary for loop. pypage permits for loops that are more expressive than 
 traditional Python for loops, by leveraging Python's *generator expressions*.
 
 Here's an example of something that would be impossible to do in Python (with a regular for loop):
@@ -245,7 +245,7 @@ While loop are pretty simple:
   }}
   {% %}
 
-Running above would yield: ``Countdown... 5 4 3 2 1 ``.
+Running above would yield: ``Countdown... 5 4 3 2 1``.
 
 The expression following the ``while`` is evaluated like any other Python expression and its result determines the 
 continuation of the loop.
