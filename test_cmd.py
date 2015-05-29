@@ -2,32 +2,34 @@
 # -*- coding: utf-8 -*-
 
 #
-# Command-line Testing Tool
+#  Command-line Testing Tool
+#  =========================
+#  This is a simple tool for testing command-line tools.
+#  Test cases are input-output pairs; and if the command being 
+#  tested can produce the output from the input, the test passes.
 #
-# This is a simple tool for testing command-line tools.
-# Test cases are input-output pairs; and if the command being 
-# tested can produce the output from the input, the test passes.
+#  This tool looks for files that follow this naming pattern:
 #
-# This tool looks for files that follow this naming pattern:
+#    test-A.in.ext  ->  test-A.out.ext
+#    test-B.in.ext  ->  test-B.out.ext
+#    test-C.in.ext  ->  test-C.out.ext
 #
-#   test-A.in.ext  ->  test-A.out.ext
-#   test-B.in.ext  ->  test-B.out.ext
-#   test-C.in.ext  ->  test-C.out.ext
+#  The extension ('ext' here) can be anything. The content 
+#  of a *.in.* file is piped to the command being tested, 
+#  and its STDOUT is compared against the *.out* file. 
+#  A match means the test passed.
 #
-# The extension ('ext' here) can be anything. The content 
-# of a *.in.* file is piped to the command being tested, 
-# and its STDOUT is compared against the *.out* file. 
-# A match means the test passed.
+#  Usage
+#  -----
+#  This tool requires two command-line arguments:
+#    1. The path to the command being tested.
+#    2. The directory containing test cases.
 #
-# Usage
-# -----
-# You invoke this tool take two required arguments:
-#   1. path to the command being tested
-#   2. directory containing test cases
-#
-# You can specify command-line arguments for your test cases
-# by creating a special file named 'tests.json', and placing 
-# it in the directory containing your test cases.
+#  You can specify command-line arguments for your test cases
+#  by creating a special file named 'tests.json', and placing 
+#  it in the directory containing your test cases. As a perk, 
+#  if an arguments maps to a non-string value, that value is 
+#  passed in as JSON.
 #
 
 #
