@@ -4,21 +4,30 @@
 #
 # Command-line Testing Tool
 #
-# This is a tool for testing function-like Python scripts.
-# Right now, it's a bit specific to pypage, but it can be generalized.
-# Test cases are input-output pairs; and if the tool being tested 
-# can produce the output from the input, the test passes.
+# This is a simple tool for testing command-line tools.
+# Test cases are input-output pairs; and if the command being 
+# tested can produce the output from the input, the test passes.
 #
-# The tool looks for files that follow this naming pattern:
+# This tool looks for files that follow this naming pattern:
 #
 #   test-A.in.ext  ->  test-A.out.ext
 #   test-B.in.ext  ->  test-B.out.ext
 #   test-C.in.ext  ->  test-C.out.ext
 #
-# The extension ('ext' here) can be anything. 
-# The content of a *.in.* file is piped to the tool being tested, 
-# and the output is compared against the *.out* file. 
+# The extension ('ext' here) can be anything. The content 
+# of a *.in.* file is piped to the command being tested, 
+# and its STDOUT is compared against the *.out* file. 
 # A match means the test passed.
+#
+# Usage
+# -----
+# You invoke this tool take two required arguments:
+#   1. path to the command being tested
+#   2. directory containing test cases
+#
+# You can specify command-line arguments for your test cases
+# by creating a special file named 'tests.json', and placing 
+# it in the directory containing your test cases.
 #
 
 #
@@ -76,22 +85,17 @@ class TestCase(object):
             content = f.read().decode()
         return content
 
-    # def run_cmd(self, cmd, input_text):
-    #     process = Popen([cmd, '-d', dumps(self.data), '-'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-    #     process_output = process.communicate(input=input_text)[0]
-    #     process.wait()
-    #     return process_output
-
-    def run_test(self, input_text, data):
-        from pypage import pypage
-        input_text = str(input_text) # TODO: pypage should accept unicode
-        return pypage(input_text, data)
+    def run_cmd(self, cmd, input_text):
+        process = Popen([cmd, '-d', dumps(self.data), '-'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate(input=input_text)
+        return stdout
 
     def test(self):
         test_input = self.read_file(self.input_file)
         expected_output = self.read_file(self.output_file)
 
-        actual_output = self.run_test(test_input, self.data)
+        #actual_output = self.run_test(test_input, self.data)
+        actual_output = self.run_cmd(self.cmd, test_input)
         result = expected_output == actual_output
 
         return result
@@ -167,6 +171,19 @@ def get_test_cases(cmd, tests_dir):
 
     return test_cases
 
+class Color(object):
+    # values from: https://github.com/ilovecode1/pyfancy/blob/master/pyfancy.py
+    END = '\033[0m'
+    BOLD = '\033[1m'
+    RED = '\033[91m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    UNDERLINE = '\033[4m'
+
+def color(text, color):
+    return '%s%s%s' % (color, text, Color.END)
+
 def test_cmd(cmd, tests_dir):
     test_cases = get_test_cases(cmd, tests_dir)
 
@@ -179,15 +196,15 @@ def test_cmd(cmd, tests_dir):
 
         result = None
         if case == None:
-            print "No output file"
+            print color('No output file', Color.YELLOW)
             total -= 1
         else:
             result = case.test()
 
         if result == True:
-            print "Success"
+            print color("Success", Color.GREEN)
         elif result == False:
-            print "Failure"
+            print color("Failure", Color.RED)
 
         if result == True:
             passed += 1
@@ -220,6 +237,5 @@ if __name__ == '__main__':
     main()
 
 # TODOs
-# 1. Switch to unicode.
-# 2. Generalize, and use processes instead of 'import'
-# 3. Map *.in.txt -> *.error.txt ; and compare against STDERR
+# 1. Allow passing of any cmd-line args (not just 'data').
+# 2. Map *.in.txt -> *.err.txt ; and compare against STDERR
