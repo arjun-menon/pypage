@@ -1,6 +1,8 @@
 ======
 pypage
 ======
+|travis|
+
 pypage is a document templating engine for Python programmers with a short learning curve.
 
 **Why use pypage?**
@@ -263,6 +265,10 @@ You can capture the output of part of your page using the ``capture`` tag:
 
 The above tag will not yield any output, but rather a new variable ``x`` will be created that captures the output 
 of everything enclosed by it (which in this case is ``"hello bob"``).
+
+.. |travis| image:: https://travis-ci.org/arjungmenon/pypage.svg?branch=master
+    :target: https://travis-ci.org/arjungmenon/pypage
+    :alt: Travis CI Build Status (Functional Tests)
 
 License
 -------
