@@ -1,5 +1,5 @@
 {% for x in range(5) %}
-{% comment %} this presence of this line should not change the output, i.e. no newline should be inserted here {% endcomment %}
+{# the presence of this line should not change the output, i.e. no newline should be inserted here #}
     {% if x == 1 %}  
     One.
     {% elif x == 2 %}  
