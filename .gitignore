@@ -33,3 +33,7 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# JetBrains IDEs (PyCharm, in this case)
+.idea/workspace.xml
+.idea/tasks.xml
