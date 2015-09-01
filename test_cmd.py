@@ -63,7 +63,8 @@ class TestCase(object):
 
         self.name = self.construct_test_name(input_file_name)
         self.input_file = path.join(tests_dir, input_file_name)
-        self.output_file = path.join(tests_dir, self.construct_output_file_name(input_file_name))
+        self.stdout_file = path.join(tests_dir, self.construct_stdout_file_name(input_file_name))
+        self.stderr_file = path.join(tests_dir, self.construct_stderr_file_name(input_file_name))
 
     @staticmethod
     def construct_test_name(input_file_name):
@@ -74,12 +75,21 @@ class TestCase(object):
         return file_root.replace('-', ' ')
 
     @staticmethod
-    def construct_output_file_name(input_file_name):
+    def get_file_root_and_ext(input_file_name):
         input_file_root, file_ext = path.splitext(input_file_name)
         file_root, in_ext = path.splitext(input_file_root)
         assert in_ext == '.in'
+        return file_root, file_ext
 
+    @staticmethod
+    def construct_stdout_file_name(input_file_name):
+        file_root, file_ext = TestCase.get_file_root_and_ext(input_file_name)
         return file_root + '.out' + file_ext
+
+    @staticmethod
+    def construct_stderr_file_name(input_file_name):
+        file_root, file_ext = TestCase.get_file_root_and_ext(input_file_name)
+        return file_root + '.err' + file_ext
 
     @staticmethod
     def read_file(file_name):
@@ -90,15 +100,21 @@ class TestCase(object):
     def run_cmd(self, cmd, input_text):
         process = Popen([cmd, '-d', dumps(self.data), '-'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate(input=input_text)
-        return stdout
+        return stdout, stderr
 
     def test(self):
         test_input = self.read_file(self.input_file)
-        expected_output = self.read_file(self.output_file)
+        stdout, stderr = self.run_cmd(self.cmd, test_input)
 
-        #actual_output = self.run_test(test_input, self.data)
-        actual_output = self.run_cmd(self.cmd, test_input)
-        result = expected_output == actual_output
+        result = False
+
+        if path.isfile(self.stdout_file):
+            expected_stdout = self.read_file(self.stdout_file)
+            result = expected_stdout == stdout
+
+        if path.isfile(self.stderr_file):
+            expected_stderr = self.read_file(self.stderr_file)
+            result = expected_stderr == stderr
 
         return result
 
@@ -160,14 +176,15 @@ def get_test_cases(cmd, tests_dir):
     test_cases = OrderedDict()
 
     for file_name in file_names:
-        input_file = path.join(tests_dir, TestCase.construct_output_file_name(file_name))
+        out_file = path.join(tests_dir, TestCase.construct_stdout_file_name(file_name))
+        err_file = path.join(tests_dir, TestCase.construct_stderr_file_name(file_name))
 
-        if path.isfile(input_file):
+        if path.isfile(out_file) or path.isfile(err_file):
             test_case = TestCase(cmd, tests_dir, file_name)
             test_cases[test_case.name] = test_case
         else:
             name = TestCase.construct_test_name(file_name)
-            test_cases[name] = None
+            test_cases[name] = None # missing stdout/stderr file
 
     override_with_tests_json(tests_dir, test_cases)
 
@@ -246,4 +263,3 @@ if __name__ == '__main__':
 
 # TODOs
 # 1. Allow passing of any cmd-line args (not just 'data').
-# 2. Map *.in.txt -> *.err.txt ; and compare against STDERR
