@@ -193,6 +193,7 @@ def test_cmd(cmd, tests_dir):
 
     total = len(test_cases)
     passed = 0
+    missing_output_files = 0
     for name, case in test_cases.iteritems():
         print name + "...", 
 
@@ -200,6 +201,7 @@ def test_cmd(cmd, tests_dir):
         if case == None:
             print color('No output file', Color.YELLOW)
             total -= 1
+            missing_output_files += 1
         else:
             result = case.test()
 
@@ -213,7 +215,11 @@ def test_cmd(cmd, tests_dir):
 
     if passed == total:
         print "All tests passed."
-        return True
+        if missing_output_files <= 0:
+            return True
+        else:
+            print "%d tests are missing corresponding output files." % missing_output_files
+            return False
     else:
         print "%d tests passed, %d tests failed." % (passed, total - passed)
         return False
