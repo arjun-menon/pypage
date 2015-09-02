@@ -96,6 +96,7 @@ class TestCase(object):
         return content
 
     def run_cmd(self, cmd, input_text):
+        print "Running:", ' '.join(cmd)
         process = Popen(self.cmd, stdout=PIPE, stdin=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate(input=input_text)
         return stdout, stderr
@@ -108,11 +109,27 @@ class TestCase(object):
 
         if path.isfile(self.stdout_file):
             expected_stdout = self.read_file(self.stdout_file)
-            result = expected_stdout == stdout
+            if expected_stdout != stdout:
+                print("Expected STDOUT:")
+                print expected_stdout
+                print("Received STDOUT:")
+                print stdout
+                if len(stderr):
+                    print("Received STDERR:")
+                    print(stderr)
+            else:
+                result = True
 
         if path.isfile(self.stderr_file):
             expected_stderr = self.read_file(self.stderr_file)
-            result = expected_stderr == stderr
+            if expected_stderr != stderr:
+                result = False
+                print("Expected STDERR:")
+                print expected_stderr
+                print("Received STDERR:")
+                print stderr
+            else:
+                result = True
 
         return result
 
@@ -227,13 +244,13 @@ def color(text, color):
 def test_cmd(cmd, tests_dir):
     test_cases = get_test_cases(cmd, tests_dir)
 
-    print "Running %i tests..." % len(test_cases)
+    print "Running %i tests...\n" % len(test_cases)
 
     total = len(test_cases)
     passed = 0
     missing_output_files = 0
     for name, case in test_cases.iteritems():
-        print name + "...", 
+        print name + "..."
 
         result = None
         if case == None:
@@ -247,6 +264,7 @@ def test_cmd(cmd, tests_dir):
             print color("Success", Color.GREEN)
         elif result == False:
             print color("Failure", Color.RED)
+        print
 
         if result == True:
             passed += 1
