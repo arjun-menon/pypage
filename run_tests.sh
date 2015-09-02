@@ -1,2 +1,2 @@
-./test_cmd.py ./pypage.py tests
+./test_cmd.py tests `which python` pypage.py @ -
 exit $?
