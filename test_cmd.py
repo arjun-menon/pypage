@@ -51,15 +51,13 @@
 from json import dumps, loads
 from collections import OrderedDict
 from subprocess import Popen, PIPE, STDOUT
-# from subprocess import check_output
 from os import path, listdir
 from sys import exit
 
 class TestCase(object):
-    def __init__(self, cmd, tests_dir, input_file_name, data={}):
+    def __init__(self, cmd, tests_dir, input_file_name):
         self.cmd = cmd
         self.tests_dir = tests_dir
-        self.data = data
 
         self.name = self.construct_test_name(input_file_name)
         self.input_file = path.join(tests_dir, input_file_name)
@@ -98,7 +96,7 @@ class TestCase(object):
         return content
 
     def run_cmd(self, cmd, input_text):
-        process = Popen([cmd, '-d', dumps(self.data), '-'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+        process = Popen(self.cmd, stdout=PIPE, stdin=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate(input=input_text)
         return stdout, stderr
 
@@ -153,21 +151,43 @@ def is_input_file(name):
         return True
     return False
 
-def override_with_json(case, override):
-    if 'data' in override:
-        case.data = override['data']
+def parse_cmdline_args_json(cmdline_args_json):
+    cmdline_args = list()
 
-def override_with_tests_json(tests_dir, test_cases):
+    for arg, val in cmdline_args_json.iteritems():
+        cmdline_args.append(arg)
+        cmdline_args.append(dumps(val))
+
+    return cmdline_args
+
+def replace_at_sign_with_cmdline_args(case, cmdline_args):
+    updated_cmd = list()
+    for cmd_segment in case.cmd:
+        if cmd_segment == '@':
+            updated_cmd.extend(cmdline_args)
+        else:
+            updated_cmd.append(cmd_segment)
+    case.cmd = updated_cmd
+
+def set_cmdline_args_from_tests_json(tests_dir, test_cases):
     tests_json_file = path.join(tests_dir, "tests.json")
     with open(tests_json_file) as f:
         tests_json = loads(f.read(), object_hook=_decode_dict)
 
-    for name, override in tests_json.iteritems():
+    for name, cmdline_args_json in tests_json.iteritems():
         if name in test_cases.iterkeys():
             case = test_cases[name]
 
             if isinstance(case, TestCase):
-                override_with_json(case, override)
+                cmdline_args = parse_cmdline_args_json(cmdline_args_json)
+                replace_at_sign_with_cmdline_args(case, cmdline_args)
+
+def clear_at_sign_from_cmd(test_cases):
+    for case in test_cases.itervalues():
+        try:
+            case.cmd.remove('@')
+        except ValueError:
+            pass
 
 def get_test_cases(cmd, tests_dir):
     file_list = listdir(tests_dir)
@@ -186,7 +206,8 @@ def get_test_cases(cmd, tests_dir):
             name = TestCase.construct_test_name(file_name)
             test_cases[name] = None # missing stdout/stderr file
 
-    override_with_tests_json(tests_dir, test_cases)
+    set_cmdline_args_from_tests_json(tests_dir, test_cases)
+    clear_at_sign_from_cmd(test_cases)
 
     return test_cases
 
@@ -241,25 +262,37 @@ def test_cmd(cmd, tests_dir):
         print "%d tests passed, %d tests failed." % (passed, total - passed)
         return False
 
-def main():
-    import argparse
-    parser = argparse.ArgumentParser(description="Light-weight Python templating engine.")
-    parser.add_argument('cmd', type=str, help='path to the command to test')
-    parser.add_argument('tests_dir', type=str, help='directory containing test cases')
-    args = parser.parse_args()
-
-    if not path.isfile(args.cmd):
-        print "The command '%s' does not exist." % args.cmd
-        exit(1)
-
+def validate_cmdline_args(args):
     if not path.isdir(args.tests_dir):
         print "The directory '%s' does not exist." % args.cmd
         exit(1)
 
-    exit(0 if test_cmd(args.cmd, args.tests_dir) else 1)
+    if not path.isfile(args.cmd[0]):
+        print "The command '%s' does not exist." % args.cmd
+        exit(1)
+
+    at_sign_seen = False
+    for cmd_segment in args.cmd:
+        if cmd_segment == '@':
+            if at_sign_seen:
+                print "Only one '@' command-line args substituion marker allowed."
+                exit(1)
+            at_sign_seen = True
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Light-weight Python templating engine.")
+    parser.add_argument('tests_dir', type=str, help='The directory containing test cases')
+    parser.add_argument('cmd', type=str, help='The command to test with any and all command-line\
+arguments, and with an @ denoting where args from test.json should be injected', nargs=argparse.REMAINDER)
+    args = parser.parse_args()
+
+    validate_cmdline_args(args)
+
+    if test_cmd(args.cmd, args.tests_dir):
+        exit(0)
+    else:
+        exit(1)
 
 if __name__ == '__main__':
     main()
-
-# TODOs
-# 1. Allow passing of any cmd-line args (not just 'data').

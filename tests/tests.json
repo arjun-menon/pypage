@@ -1,6 +1,6 @@
 {
 	"For Loop Test 4 Letter Template" : {
-		"data" : {
+		"-d" : {
 			"name": "Alice",
 			"activity": "snowboarding"
 		}
