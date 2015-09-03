@@ -16,7 +16,7 @@
 # limitations under the License.
 
 from __future__ import print_function
-import string, itertools, sys, time, os, cgi, json
+import string, sys, time, os, cgi, json
 
 class RootNode(object):
     """
@@ -238,7 +238,7 @@ class ForBlock(BlockTag):
             tokens = tokens[in_index+1:]
 
             target_list = [''.join(c for c in s if c.isalnum() or c=='_') for s in target_list_str.split(',')]
-            target_set = set( itertools.ifilter(lambda s: isidentifier(s), target_list) )
+            target_set = set( filter(lambda s: isidentifier(s), target_list) )
             targets |= target_set
         
         if not targets:
@@ -458,7 +458,8 @@ def first_true(function, sequence):
 
 def isidentifier(s):
     # As per: https://docs.python.org/2/reference/lexical_analysis.html#identifiers
-    return all( [bool(s) and (s[0].isalpha() or s[0]=='_')] + map(lambda c: c.isalnum() or c=='_', s) )
+    return all( [bool(s) and (s[0].isalpha() or s[0]=='_')] + 
+        list(map(lambda c: c.isalnum() or c=='_', s)) )
 
 def first_occurrence(text, c):
     "Position of the first occurence of character ``c`` in ``text``."
@@ -682,9 +683,7 @@ class PypageExec(object):
     Execute or evaluate code, while persisting the environment.
     """
     def __init__(self, seed_env):
-        import __builtin__
         self.env = dict()
-        self.env['__builtins__'] = __builtin__
         self.env['__package__'] = None
         self.env['__name__'] = 'pypage_code'
         self.env['__doc__'] = None
@@ -738,7 +737,7 @@ The expected minimum indentation is: %r (%d characters)." %
                 code_lines[i] = code_lines[i][indentation_len:]
 
             code = '\n'.join(code_lines)
-            exec code in self.env
+            exec(code, self.env)
 
             # Add the base indentation to the output
             self.output = '\n'.join(
