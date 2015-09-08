@@ -48,11 +48,12 @@
 # limitations under the License.
 #
 
+from __future__ import print_function
 from json import dumps, loads
 from collections import OrderedDict
 from subprocess import Popen, PIPE, STDOUT
+from sys import exit, version_info
 from os import path, listdir
-from sys import exit
 
 class TestCase(object):
     def __init__(self, cmd, tests_dir, input_file_name):
@@ -92,11 +93,15 @@ class TestCase(object):
     @staticmethod
     def read_file(file_name):
         with open(file_name) as f:
-            content = f.read().decode()
+            content = f.read()
+            if version_info.major == 2 and isinstance(content, unicode):
+                content = content.decode()
+        if version_info.major >= 3:
+            content = bytes(content, 'utf-8')
         return content
 
     def run_cmd(self, cmd, input_text):
-        print "Running:", ' '.join(cmd)
+        print("Running:", ' '.join(cmd))
         process = Popen(self.cmd, stdout=PIPE, stdin=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate(input=input_text)
         return stdout, stderr
@@ -111,9 +116,9 @@ class TestCase(object):
             expected_stdout = self.read_file(self.stdout_file)
             if expected_stdout != stdout:
                 print("Expected STDOUT:")
-                print expected_stdout
+                print(expected_stdout)
                 print("Received STDOUT:")
-                print stdout
+                print(stdout)
                 if len(stderr):
                     print("Received STDERR:")
                     print(stderr)
@@ -125,9 +130,9 @@ class TestCase(object):
             if expected_stderr != stderr:
                 result = False
                 print("Expected STDERR:")
-                print expected_stderr
+                print(expected_stderr)
                 print("Received STDERR:")
-                print stderr
+                print(stderr)
             else:
                 result = True
 
@@ -148,10 +153,10 @@ def _decode_list(data): # http://stackoverflow.com/a/6633651/908430
 
 def _decode_dict(data): # http://stackoverflow.com/a/6633651/908430
     rv = {}
-    for key, value in data.iteritems():
-        if isinstance(key, unicode):
+    for key, value in data.items():
+        if version_info.major == 2 and isinstance(key, unicode):
             key = key.encode('utf-8')
-        if isinstance(value, unicode):
+        if version_info.major == 2 and isinstance(value, unicode):
             value = value.encode('utf-8')
         elif isinstance(value, list):
             value = _decode_list(value)
@@ -171,7 +176,7 @@ def is_input_file(name):
 def parse_cmdline_args_json(cmdline_args_json):
     cmdline_args = list()
 
-    for arg, val in cmdline_args_json.iteritems():
+    for arg, val in cmdline_args_json.items():
         cmdline_args.append(arg)
         cmdline_args.append(dumps(val))
 
@@ -191,8 +196,8 @@ def set_cmdline_args_from_tests_json(tests_dir, test_cases):
     with open(tests_json_file) as f:
         tests_json = loads(f.read(), object_hook=_decode_dict)
 
-    for name, cmdline_args_json in tests_json.iteritems():
-        if name in test_cases.iterkeys():
+    for name, cmdline_args_json in tests_json.items():
+        if name in test_cases.keys():
             case = test_cases[name]
 
             if isinstance(case, TestCase):
@@ -200,7 +205,7 @@ def set_cmdline_args_from_tests_json(tests_dir, test_cases):
                 replace_at_sign_with_cmdline_args(case, cmdline_args)
 
 def clear_at_sign_from_cmd(test_cases):
-    for case in test_cases.itervalues():
+    for case in test_cases.values():
         try:
             case.cmd.remove('@')
         except ValueError:
@@ -244,56 +249,56 @@ def color(text, color):
 def test_cmd(cmd, tests_dir):
     test_cases = get_test_cases(cmd, tests_dir)
 
-    print "Running %i tests...\n" % len(test_cases)
+    print("Running %i tests...\n" % len(test_cases))
 
     total = len(test_cases)
     passed = 0
     missing_output_files = 0
-    for name, case in test_cases.iteritems():
-        print name + "..."
+    for name, case in test_cases.items():
+        print(name + "...")
 
         result = None
         if case == None:
-            print color('No output file', Color.YELLOW)
+            print(color('No output file', Color.YELLOW))
             total -= 1
             missing_output_files += 1
         else:
             result = case.test()
 
         if result == True:
-            print color("Success", Color.GREEN)
+            print(color("Success", Color.GREEN))
         elif result == False:
-            print color("Failure", Color.RED)
-        print
+            print(color("Failure", Color.RED))
+        print()
 
         if result == True:
             passed += 1
 
     if passed == total:
-        print "All tests passed."
+        print("All tests passed.")
         if missing_output_files <= 0:
             return True
         else:
-            print "%d tests are missing corresponding output files." % missing_output_files
+            print("%d tests are missing corresponding output files." % missing_output_files)
             return False
     else:
-        print "%d tests passed, %d tests failed." % (passed, total - passed)
+        print("%d tests passed, %d tests failed." % (passed, total - passed))
         return False
 
 def validate_cmdline_args(args):
     if not path.isdir(args.tests_dir):
-        print "The directory '%s' does not exist." % args.cmd
+        print("The directory '%s' does not exist." % args.cmd)
         exit(1)
 
     if not path.isfile(args.cmd[0]):
-        print "The command '%s' does not exist." % args.cmd
+        print("The command '%s' does not exist." % args.cmd)
         exit(1)
 
     at_sign_seen = False
     for cmd_segment in args.cmd:
         if cmd_segment == '@':
             if at_sign_seen:
-                print "Only one '@' command-line args substituion marker allowed."
+                print("Only one '@' command-line args substituion marker allowed.")
                 exit(1)
             at_sign_seen = True
 
