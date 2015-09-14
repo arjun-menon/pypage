@@ -43,15 +43,13 @@ The above, when processed by pypage, yields::
 
     There are 7 days in a week.
 
-The Python ``eval`` statement is used to execute the code between the delimiters. The result of the 
+The Python ``eval`` statement is used to execute the code in an inline code tag. The result of the 
 expression evaluation is converted into a string (with ``str``) and the code tag is replaced with it.
 
-Multi-line Code Tags
+Multiline Code Tags
 ++++++++++++++++++++
-Multi-line code tags, as their name suggests, span multiple lines. The sole distinguishing characteristic between 
-it and an inline code tag is the presence of one or more newline (``\n``) characters between the ``{{`` and ``}}``. 
-
-Here's an example of a multi-line code tag:
+Multiline code tags span multiple lines. The presence of one or more newline (``\n``) characters between 
+the ``{{`` and ``}}`` distinguishes it from an inline code tag. Here's an example:
 
 .. code-block:: python
 
@@ -62,8 +60,26 @@ Here's an example of a multi-line code tag:
         write("There are", x + y, "days in a week.")
     }}
 
-The Python ``exec`` function is used to execute this multi-line snippet of code. A ``write`` function, similar 
-to the Python 3 ``print`` function, is used to inject text into document in place of the multi-line code tag.
+Python's ``exec`` function is used to execute the code in a multiline code tag.
+
+Why have distinct inline code tags? It's easier to write ``{{x}}`` than to write ``{{ write(x) }}``. 
+Many a time, all we need to do is inject the value of a variable at a specific location in the document.
+
+The write function
+^^^^^^^^^^^^^^^^^^^^^
+The ``write`` function used above is similar to the Python 3's ``print`` function, and is accessible 
+from both kinds of code tags. It injects text into the document in place of the code tag it's used in.
+
+.. code-block:: python
+
+    write([object, ...], *, sep=' ', end='\n')
+
+Objects passed to it are stringified with ``str``, concatenated together with ``sep``, and terminated 
+with ``end``. The outputs of multiple calls to ``write`` in a code tag are concatenated together, and 
+the resulting final output is injected in place of the code tag.
+
+If ``write`` is called from an inline code tag, the result of evaluating the expression (a ``None``, since 
+``write`` will return a ``None``) is ignored, and the output of the ``write`` call is used instead.
 
 Execution Environment
 ^^^^^^^^^^^^^^^^^^^^^
@@ -72,19 +88,127 @@ code tag at the beginning of the document, will be available to all other code t
 is invoked as library, an initial seed environment consisting of a Python dictionary mapping variable names to 
 values, can be provided.
 
-The write function
-^^^^^^^^^^^^^^^^^^^^^
-.. code-block:: python
+Block Tags
+~~~~~~~~~~
+Block tags simplify certain tasks that would otherwise be cumbersome and ugly if done exclusively with code tags. One 
+of the things it lets you do is wrap part of your page in an `if/else conditional <http://en.wikipedia.org/wiki/Conditional_(computer_programming)>`_, or a `for/while loop <http://en.wikipedia.org/wiki/Control_flow#Loops>`_.
 
-    write([object, ...], *, sep=' ', end='\n')
+Here's an example of the ``for`` block tag:
 
-A ``write`` function similar to the Python 3 ``print`` function is accessible from both code tags. The 
-objects passed to it are stringified with ``str``, concatenated together with ``sep``, and terminated 
-with ``end``. The outputs of multiple calls to ``write`` in a code tag are concatenated together, and 
-the resulting final output is injected in place of the code tag.
+.. code-block:: liquid
 
-If ``write`` is called from an inline code tag, the result of the expression (a ``None``) is discarded, 
-and the output of the ``write`` call is used instead.
+  {% for i in range(10) %}
+      The square of {{i}} is {{i*i}}.
+  {% %}
+
+A block tag begins with ``{% tag_name ... %}`` and ends with ``{% %}``. Optionally, the end ``{% %}`` can be 
+of the form ``{% endtag_name %}`` (i.e. prepend the ``tag_name`` with ``end``), which in the above example 
+would be ``{% endfor %}``).
+
+Conditional Blocks
+++++++++++++++++++
+It's best to explain this with an example:
+
+.. code-block:: liquid
+
+  Hey,
+  {{
+    import random
+    # Randomly pick a greeting
+    greeting = random.randint(1,4)
+  }}
+  {% if greeting == 1 %}
+    Howdy?
+  {% elif greeting == 2 %}
+    How are you?
+  {% elif greeting == 3 %}
+    Any news?
+  {% else %}
+    What's up?
+  {% %}
+
+When the above template is run, the resulting page will contain a randomly chosen greeting. As is evident, 
+pypage syntax for if/elif/else conditions closely mirrors Python's. The terminal ``{% %}`` can be replaced 
+with an ``{% endif %}`` with no change in meaning (as with any block tag).
+
+For Loops
++++++++++
+Let's start with a simple example:
+
+.. code-block:: liquid
+
+  {% for vowel in ['a', 'e', 'i', 'o', 'u'] %}{{vowel}} {% %}
+
+This will print out the vowels with a space after every character.
+
+Now that's an ordinary for loop. pypage permits for loops that are more expressive than 
+traditional Python for loops, by leveraging Python's *generator expressions*.
+
+Here's an example of something that would be impossible to do in Python (with a regular for loop):
+
+.. code-block:: liquid
+
+  {% for x in [1,2,3] for y in ['a','b','c'] %}
+      {{x}} -> {{y}}
+  {%%}
+
+The above loop would result in::
+
+    1 -> a
+    1 -> b
+    1 -> c
+    2 -> a
+    2 -> b
+    2 -> c
+    3 -> a
+    3 -> b
+    3 -> c
+
+*Internally*, pypage morphs the expression ``for x in [1,2,3] for y in ['a','b','c']`` into the 
+generator expression ``(x, y) for x in [1,2,3] for y in ['a','b','c']``. It exposes the the 
+loop variables ``x`` and ``y`` by injecting them into your namespace.
+
+*Note:* Injected loop variables replace variables with the same name for the duration of the loop. 
+After the loop, the old variables with the identical names are restored (pypage backs them up).
+
+While Loops
++++++++++++
+While loop are pretty simple:
+
+.. code-block:: liquid
+
+  {{
+    n = 5
+  }}
+  Countdown...{% while n > 0 %} {{
+  write(n, end='')
+  n -= 1
+  }}
+  {% %}
+
+Running above would yield: ``Countdown... 5 4 3 2 1``.
+
+The expression following the ``while`` is evaluated like any other Python expression and its result determines the 
+continuation of the loop.
+
+Capture Tag
++++++++++++
+You can capture the output of part of your page using the ``capture`` tag:
+
+.. code-block:: liquid
+
+  {% capture x %}
+    hello {{"bob"}}
+  {% %}
+
+The above tag will not yield any output, but rather a new variable ``x`` will be created that captures the output 
+of everything enclosed by it (which in this case is ``"hello bob"``).
+
+Finer Details
+~~~~~~~~~~~~~
+
+Indentation & Whitespace
+++++++++++++++++++++++++
 
 Automatic Indentation
 ^^^^^^^^^^^^^^^^^^^^^
@@ -138,133 +262,41 @@ If a block tag is on a line by itself, surrounded only by whitespace, then that 
 excluded from the output. This allows you indent your block tags without worrying about excess whitespace 
 in the generated document.
 
-Why have distinct inline code tags?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-It's easier to write ``{{x}}`` than to write ``{{ write(x) }}``. Many a time, all we need to do is inject 
-the value of a variable at a specific location in the document.
+Commenting
+++++++++++
 
-Comment Tags
-++++++++++++
-If you need to *comment out* part of your page, use the comment tag. Anything bounded by ``{#`` and ``#}`` will 
-be omitted from the output.
+The Comment Tag
+~~~~~~~~~~~~~~~
+Anything bounded by ``{#`` and ``#}`` will be omitted from the output. For example:
 
-Block Tags
-~~~~~~~~~~
-Block tags simplify certain tasks that would otherwise be cumbersome and ugly if done exclusively with code tags. One 
-of the things it lets you do is wrap part of your page in an `if/else conditional <http://en.wikipedia.org/wiki/Conditional_(computer_programming)>`_, or a `for/while loop <http://en.wikipedia.org/wiki/Control_flow#Loops>`_.
+.. code-block:: html
 
-Here's an example of the ``for`` block tag:
+    <p>
+      Lorem ipsum dolor sit amet
+      {#
+        <ul>
+            Non sequitur
+        </ul>
+      #}
+      consectetur adipisicing elit
+    </p>
 
-.. code-block:: liquid
+Commenting a Block
+~~~~~~~~~~~~~~~~~~
+You can comment an existing block easily, be placing the word
 
-  {% for i in range(10) %}
-      The square of {{i}} is {{i*i}}.
-  {% %}
+.. code-block:: html
 
-A block tag begins with ``{% tag_name ... %}`` and ends with ``{% %}``. Optionally, the end ``{% %}`` can be 
-of the form ``{% endtag_name %}`` (i.e. prepend the ``tag_name`` with ``end``), which in the above example 
-would be ``{% endfor %}``).
+    <p>
+      Lorem ipsum dolor sit amet
+        {% comment for i in range(10) %}
+            N = {{i}}
+        {% %}
+      consectetur adipisicing elit
+    </p>
 
-Conditional Blocks
-++++++++++++++++++
-It's best to explain this with an example:
-
-.. code-block:: liquid
-
-  Hey,
-  {{
-      import random
-      # Randomly pick a greeting
-      greeting = random.randint(1,4)
-  }}
-  {% if greeting == 1 %}
-  Howdy?
-  {% elif greeting == 2 %}
-  How are you?
-  {% elif greeting == 3 %}
-  Any news?
-  {% else %}
-  What's up?
-  {% %}
-
-When the above template is run, the resulting page will contain a randomly chosen greeting. As is evident, 
-pypage syntax for if/elif/else conditions closely mirrors Python's. The terminal ``{% %}`` can be replaced 
-with an ``{% endif %}`` with no change in meaning (as with any block tag).
-
-For Loops
-+++++++++
-Let's start with a simple example:
-
-.. code-block:: liquid
-
-  {% for vowel in ['a', 'e', 'i', 'o', 'u'] %}{{vowel}} {% %}
-
-This will print out the vowels with a space after every character.
-
-Now that's an ordinary for loop. pypage permits for loops that are more expressive than 
-traditional Python for loops, by leveraging Python's *generator expressions*.
-
-Here's an example of something that would be impossible to do in Python (with a regular for loop):
-
-.. code-block:: liquid
-
-  {% for x in [1,2,3] for y in ['a','b','c'] %}
-      {{x}} -> {{y}}
-  {%%}
-
-The above loop would result in::
-
-    1 -> a
-    1 -> b
-    1 -> c
-    2 -> a
-    2 -> b
-    2 -> c
-    3 -> a
-    3 -> b
-    3 -> c
-
-*Internally*, pypage morphs the expression ``for x in [1,2,3] for y in ['a','b','c']`` into the 
-generator expression ``(x, y) for x in [1,2,3] for y in ['a','b','c']``. It exposes the the 
-loop variables ``x`` and ``y`` by injecting them into your namespace.
-
-*Note:* Injected loop variables replace variables with the same name for the duration of the loop. 
-After the loop, the old variables with the identical names are restored (pypage backs them up).
-
-While Loops
-+++++++++++
-
-While loop are pretty simple:
-
-.. code-block:: liquid
-
-  {{
-    n = 5
-  }}
-  Countdown...{% while n > 0 %} {{
-  write(n, end='')
-  n -= 1
-  }}
-  {% %}
-
-Running above would yield: ``Countdown... 5 4 3 2 1``.
-
-The expression following the ``while`` is evaluated like any other Python expression and its result determines the 
-continuation of the loop.
-
-Capture Tag
-+++++++++++
-
-You can capture the output of part of your page using the ``capture`` tag:
-
-.. code-block:: liquid
-
-  {% capture x %}
-    hello {{"bob"}}
-  {% %}
-
-The above tag will not yield any output, but rather a new variable ``x`` will be created that captures the output 
-of everything enclosed by it (which in this case is ``"hello bob"``).
+The ``comment`` keyword before the ``for`` results in the 
+entire block being commented out and omitted from the output.
 
 .. |travis| image:: https://travis-ci.org/arjungmenon/pypage.svg?branch=master
     :target: https://travis-ci.org/arjungmenon/pypage
