@@ -33,7 +33,7 @@ In order to embed code in a document, you wrap Python code with `{{` and `}}`. T
 
 Inline code tags occur entirely on the same line, i.e. the closing `}}` appears on the same line as the opening `{{`. Here is an example of an inline code tag:
 
-```html
+```python
 There are {{ 5 + 2 }} days in a week.
 ```
 
@@ -47,7 +47,7 @@ The Python `eval` statement is used to execute the code in an inline code tag. T
 
 Multiline code tags span multiple lines. The presence of one or more newline (`\n`) characters between the `{{` and `}}` distinguishes it from an inline code tag. Here's an example:
 
-```liquid
+```python
 {{
     x = 5
     y = 2
@@ -169,7 +169,7 @@ Numbers from {{i}} to {{j}}:
 ```
 This would simply list the numbers from 10 to 20.
 
-##### 'dofirst' While Loops
+##### While 'dofirst' Loops
 
 ```python
 {% while dofirst False %}
@@ -180,7 +180,7 @@ That's all, folks!
 Adding a ``dofirst`` right after the ``while`` and before the expression ensures that the loop is 
 run *at least once*, before the condition is evaluated.
 
-###### Long Running While Loops
+##### Long Running While Loops
 If a loop runs for more than 2 seconds, pypage stops executing it, and writes an error message to 
 ``stdout`` saying that the loop had been terminated. As pypage is mostly intended to be used as a 
 templatig language, it is unlikely for loops to be running for more than 2 seconds, and this was 
