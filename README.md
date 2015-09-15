@@ -151,23 +151,42 @@ The above loop would result in:
 *Note:* Injected loop variables replace variables with the same name for the duration of the loop. After the loop, the old variables with the identical names are restored (pypage backs them up).
 
 #### While Loops
-
-While loop are pretty simple:
+A while loops looks like ``{{% while condition %}} ... {{% %}``, where ``condition`` can be any Python expression. 
+Here's an example:
 
 ```python
 {{
-  n = 5
+    i = 10
+    j = 20
 }}
-Countdown...{% while n > 0 %} {{
-write(n, end='')
-n -= 1
+Numbers from {{i}} to {{j}}:
+{% while i <= j %}
+{{
+    write(str(i))
+    i += 1
 }}
-{% %}
+{%%}
+```
+This would simply list the numbers from 10 to 20.
+
+##### 'dofirst' While Loops
+
+```python
+{% while dofirst False %}
+That's all, folks!
+{%%}
 ```
 
-Running above would yield: `Countdown... 5 4 3 2 1`.
+Adding a ``dofirst`` right after the ``while`` and before the expression ensures that the loop is 
+run *at least once*, before the condition is evaluated.
 
-The expression following the `while` is evaluated like any other Python expression and its result determines the continuation of the loop.
+###### Long Running While Loops
+If a loop runs for more than 2 seconds, pypage stops executing it, and writes an error message to 
+``stdout`` saying that the loop had been terminated. As pypage is mostly intended to be used as a 
+templatig language, it is unlikely for loops to be running for more than 2 seconds, and this was 
+added in to make it easier to catch accidental infinite loops. If you do wish for the loop to run 
+for longer than 2 seoncds, you can add ``slow`` right after the expressions (``{{% while condition slow %%}}``), 
+and that would suppress this 2-second timeout.
 
 #### Capture Tag
 
