@@ -317,7 +317,7 @@ class CaptureBlock(BlockTag):
         self.varname = self.src[len(self.tag_startswith):].strip()
 
         if not isidentifier(self.varname):
-            raise PypageSyntaxError("Incorrect CaptureBlock: '%s' is not a valid Python identifier." % self.varname)
+            raise InvalidCaptureBlockVariableName(self.varname)
 
     def run(self, pe):
         capture_output = exec_tree(self, pe)
@@ -408,6 +408,13 @@ class MismatchingEndBlockTag(PypageSyntaxError):
             end_tag.open_delim, block_tag.tag_startswith.strip(), end_tag.close_delim,
             block_tag.open_delim, block_tag.src, block_tag.close_delim, block_tag.loc[0], block_tag.loc[1])
 
+class MismatchingIndentation(PypageSyntaxError):
+    def __init__(self, mismatching_line_num, mismatching_line_code, second_line_num, indentation_chars):
+        self.description = "Mismtaching indentation in line %d: %r. \
+Indentation must match the second line of code in the tag (i.e. line %d). \
+The expected minimum indentation is: %r (%d characters)." % (
+    mismatching_line_num, mismatching_line_code, second_line_num, indentation_chars, len(indentation_chars))
+
 class UnclosedTag(PypageSyntaxError):
     def __init__(self, node):
         self.description = "Missing closing '%s %s' tag for opening '%s%s%s' at line %d, column %d." % (
@@ -428,6 +435,10 @@ class ElifOrElseWithoutIf(PypageSyntaxError):
 class IncorrectForTag(PypageSyntaxError):
     def __init__(self, node):
         self.description = "Incorrect `for` tag syntax: '%s'" % node.src
+
+class InvalidCaptureBlockVariableName(PypageSyntaxError):
+    def __init__(self, varname):
+        self.description = "Incorrect CaptureBlock: '%s' is not a valid Python variable name." % self.varname
 
 class UnknownTag(PypageSyntaxError):
     def __init__(self, node):
@@ -728,10 +739,7 @@ class PypageExec(object):
             for i in range(1, len(code_lines)):
                 # Ensure all code lines have the same base indentation:
                 if code_lines[i][:indentation_len] != indentation_chars and code_lines[i].strip():
-                    raise PypageSyntaxError("Mismtaching indentation in line %d: %r. \
-Indentation must match the second line of code in the tag (i.e. line %d). \
-The expected minimum indentation is: %r (%d characters)." % 
-(loc[0] + i, code_lines[i], loc[0] +1, indentation_chars, len(indentation_chars)))
+                    raise MismatchingIndentation(loc[0] + i, code_lines[i], loc[0] +1, indentation_chars)
 
                 # Strip away the base indentation:
                 code_lines[i] = code_lines[i][indentation_len:]
