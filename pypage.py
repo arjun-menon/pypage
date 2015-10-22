@@ -438,7 +438,7 @@ class IncorrectForTag(PypageSyntaxError):
 
 class InvalidCaptureBlockVariableName(PypageSyntaxError):
     def __init__(self, varname):
-        self.description = "Incorrect CaptureBlock: '%s' is not a valid Python variable name." % self.varname
+        self.description = "Incorrect CaptureBlock: '%s' is not a valid Python variable name." % varname
 
 class UnknownTag(PypageSyntaxError):
     def __init__(self, node):
