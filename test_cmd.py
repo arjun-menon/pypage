@@ -2,22 +2,6 @@
 # -*- coding: utf-8 -*-
 
 #
-# Copyright (C) 2014 Arjun G. Menon
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-
-#
 #  Command-line Testing Tool
 #  =========================
 #  This is a simple tool for testing command-line tools.
@@ -46,6 +30,22 @@
 #  it in the directory containing your test cases. As a perk, 
 #  if an arguments maps to a non-string value, that value is 
 #  passed in as JSON.
+#
+
+#
+# Copyright (C) Arjun G. Menon
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 
 from __future__ import print_function
@@ -101,7 +101,7 @@ class TestCase(object):
         return content
 
     def run_cmd(self, cmd, input_text):
-        print("Running:", ' '.join(cmd))
+        print(color("Running:", Color.BOLD), ' '.join(cmd))
         process = Popen(self.cmd, stdout=PIPE, stdin=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate(input=input_text)
         return stdout, stderr
@@ -110,33 +110,42 @@ class TestCase(object):
         test_input = self.read_file(self.input_file)
         stdout, stderr = self.run_cmd(self.cmd, test_input)
 
-        result = False
+        stdout_match = False
+        stderr_match = False
 
         if path.isfile(self.stdout_file):
             expected_stdout = self.read_file(self.stdout_file)
-            if expected_stdout != stdout:
-                print("Expected STDOUT:")
-                print(expected_stdout)
-                print("Received STDOUT:")
-                print(stdout)
-                if len(stderr):
-                    print("Received STDERR:")
-                    print(stderr)
+            if expected_stdout == stdout:
+                stdout_match = True
             else:
-                result = True
+                print(color("Received STDOUT:", Color.YELLOW))
+                print(stdout)
+                print(color("Expected STDOUT:", Color.YELLOW))
+                print(expected_stdout)
+        elif len(stdout) > 0:
+            print(color("Received STDOUT:", Color.YELLOW))
+            print(stdout)
+            print(color('Missing STDOUT file: %s' % self.stdout_file, Color.YELLOW))
+        else:
+            stdout_match = True
 
         if path.isfile(self.stderr_file):
             expected_stderr = self.read_file(self.stderr_file)
-            if expected_stderr != stderr:
-                result = False
-                print("Expected STDERR:")
-                print(expected_stderr)
-                print("Received STDERR:")
-                print(stderr)
+            if expected_stderr == stderr:
+                stderr_match = True
             else:
-                result = True
+                print(color("Received STDERR:", Color.YELLOW))
+                print(stderr)
+                print(color("Expected STDERR:", Color.YELLOW))
+                print(expected_stderr)
+        elif len(stderr) > 0:
+            print(color("Received STDERR:", Color.YELLOW))
+            print(stderr)
+            print(color('Missing STDERR file: %s' % self.stderr_file, Color.YELLOW))
+        else:
+            stderr_match = True
 
-        return result
+        return stdout_match and stderr_match
 
 
 def _decode_list(data): # http://stackoverflow.com/a/6633651/908430
@@ -218,15 +227,8 @@ def get_test_cases(cmd, tests_dir):
     test_cases = OrderedDict()
 
     for file_name in file_names:
-        out_file = path.join(tests_dir, TestCase.construct_stdout_file_name(file_name))
-        err_file = path.join(tests_dir, TestCase.construct_stderr_file_name(file_name))
-
-        if path.isfile(out_file) or path.isfile(err_file):
-            test_case = TestCase(cmd, tests_dir, file_name)
-            test_cases[test_case.name] = test_case
-        else:
-            name = TestCase.construct_test_name(file_name)
-            test_cases[name] = None # missing stdout/stderr file
+        test_case = TestCase(cmd, tests_dir, file_name)
+        test_cases[test_case.name] = test_case
 
     set_cmdline_args_from_tests_json(tests_dir, test_cases)
     clear_at_sign_from_cmd(test_cases)
@@ -251,38 +253,22 @@ def test_cmd(cmd, tests_dir):
 
     print("Running %i tests...\n" % len(test_cases))
 
-    total = len(test_cases)
-    passed = 0
-    missing_output_files = 0
+    total, passed = len(test_cases),  0
     for name, case in test_cases.items():
-        print(name + "...")
+        print(color(name, Color.UNDERLINE))
 
-        result = None
-        if case == None:
-            print(color('No output file', Color.YELLOW))
-            total -= 1
-            missing_output_files += 1
-        else:
-            result = case.test()
-
-        if result == True:
+        if case.test():
             print(color("Success", Color.GREEN))
-        elif result == False:
+            passed += 1
+        else:
             print(color("Failure", Color.RED))
         print()
 
-        if result == True:
-            passed += 1
-
     if passed == total:
-        print("All tests passed.")
-        if missing_output_files <= 0:
-            return True
-        else:
-            print("%d tests are missing corresponding output files." % missing_output_files)
-            return False
+        print(color("All %d tests passed." % total, Color.BLUE))
+        return True
     else:
-        print("%d tests passed, %d tests failed." % (passed, total - passed))
+        print(color("%d tests passed, %d tests failed." % (passed, total - passed), Color.BLUE))
         return False
 
 def validate_cmdline_args(args):
