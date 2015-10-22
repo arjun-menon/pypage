@@ -1,0 +1,3 @@
+Lol
+Hmm {% foo %} magic {% %}.
+Yes
