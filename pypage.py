@@ -201,7 +201,8 @@ class ForBlock(BlockTag):
                 break
 
         for target in self.targets:
-            del pe.env[target]
+            if target in pe.env:
+                del pe.env[target]
 
         pe.env.update(backup)
 
