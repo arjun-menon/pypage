@@ -7,4 +7,4 @@ python:
   - "3.5"
   - "nightly"
 
-script: ./run_tests.sh
+script: python test_cmd.py tests `which python` pypage.py @ -
