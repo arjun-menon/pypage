@@ -53,7 +53,7 @@ class TagNode(object):
 
     Members:
         src: the body of the tag (content between delimiters)
-        loc: location of the opening delimiter, in a tuple of 
+        loc: location of the opening delimiter, in a tuple of
              the form: (line_number, column_number)
 
     Subclasses must have:
@@ -92,7 +92,7 @@ class CommentTag(TagNode):
 
 class BlockTag(TagNode):
     """
-    A block tag contains sepcial directives and subsumes 
+    A block tag contains sepcial directives and subsumes
     a part of the document into `self.children`.
 
     Members:
@@ -219,7 +219,7 @@ class ForBlock(BlockTag):
             comp_if       ::=  "if" expression_nocond [comp_iter]
             target_list   ::=  target ("," target)* [","]
 
-        The grammar we are permitting here will be a subset of the full Python grammar. 
+        The grammar we are permitting here will be a subset of the full Python grammar.
         We will expect a comma-separated list of identifiers between 'for' and 'in'.
 
         All target lists will be combined into the `targets` set, and returned.
@@ -241,7 +241,7 @@ class ForBlock(BlockTag):
             target_list = [''.join(c for c in s if c.isalnum() or c=='_') for s in target_list_str.split(',')]
             target_set = set( filter(lambda s: isidentifier(s), target_list) )
             targets |= target_set
-        
+
         if not targets:
             raise IncorrectForTag
 
@@ -349,11 +349,11 @@ class EndBlockTag(BlockTag):
     """
     Signifies a closing tag.
 
-    An EndBlockTag that has a whitespace-only body (e.g. {%    %}) can 
-    close any kind of block. On the other hand, an EndBlockTag that 
-    specifies the name of a type of block, using the 'end'+block_type_name 
-    format (e.g. {% endif %}, {% endfor %}) can only close that kind of block. 
-    If the block type name does not match the block it is trying to close, 
+    An EndBlockTag that has a whitespace-only body (e.g. {%    %}) can
+    close any kind of block. On the other hand, an EndBlockTag that
+    specifies the name of a type of block, using the 'end'+block_type_name
+    format (e.g. {% endif %}, {% endfor %}) can only close that kind of block.
+    If the block type name does not match the block it is trying to close,
     a MismatchingEndBlockTag exception will be thrown.
     """
     @staticmethod
@@ -389,7 +389,7 @@ class PypageSyntaxError(Exception):
 
 class IncompleteTagNode(PypageSyntaxError):
     def __init__(self, node):
-        self.description = "Missing closing '%s' for opening '%s' at line %d, column %d." % ( 
+        self.description = "Missing closing '%s' for opening '%s' at line %d, column %d." % (
             node.close_delim, node.open_delim, node.loc[0], node.loc[1])
 
 class MultiLineBlockTag(PypageSyntaxError):
@@ -460,7 +460,7 @@ def indent_filtered(text, level=1, width=4):
 
 def first_true(function, sequence):
     """
-    Return the first element of sequence for which 
+    Return the first element of sequence for which
     the result of applying function is True.
     Returns None if no element returns True.
     """
@@ -470,7 +470,7 @@ def first_true(function, sequence):
 
 def isidentifier(s):
     # As per: https://docs.python.org/2/reference/lexical_analysis.html#identifiers
-    return all( [bool(s) and (s[0].isalpha() or s[0]=='_')] + 
+    return all( [bool(s) and (s[0].isalpha() or s[0]=='_')] +
         list(map(lambda c: c.isalnum() or c=='_', s)) )
 
 def first_occurrence(text, c):
@@ -633,7 +633,7 @@ def remove_whitespace_from_tokens(tokens):
                         if '\n' not in tokens[i-1].src and all(c in string.whitespace for c in tokens[i-1].src):
                             tokens[i-1].src = ''
 
-            stripped_prev = should_strip  
+            stripped_prev = should_strip
 
 def prune_tokens(tokens):
     remove_whitespace_from_tokens(tokens)
@@ -676,7 +676,7 @@ def build_tree(node, tokens_iterator):
 
             if isinstance(tok, BlockTag):
                 build_tree(tok, tokens_iterator)
-    
+
     except StopIteration:
         if not isinstance(node, RootNode):
             raise UnclosedTag(node)
@@ -710,8 +710,8 @@ class PypageExec(object):
 
         Optional keyword arguments: end = '\n', sep = ' ', escape = False
 
-        Before writing each element of *args to output, end is appended to 
-        it, and all the elemented are joined using sep. If escape is True, 
+        Before writing each element of *args to output, end is appended to
+        it, and all the elemented are joined using sep. If escape is True,
         then cgi.escape is applied on each element of *args.
         """
 
@@ -750,7 +750,7 @@ class PypageExec(object):
 
             # Add the base indentation to the output
             self.output = '\n'.join(
-                indentation_chars + output_line if output_line.strip() else output_line 
+                indentation_chars + output_line if output_line.strip() else output_line
                     for output_line in self.output.split('\n'))
 
             return self.output
@@ -760,7 +760,7 @@ class PypageExec(object):
             if result:
                 return str(result)
             else:
-                # self.output will most likely be an empty string, 
+                # self.output will most likely be an empty string,
                 # unless, write(...) was invoked within the {{...}}
                 return self.output
 
