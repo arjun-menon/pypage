@@ -7,6 +7,8 @@ python:
   - "3.4"
   - "3.5"
   - "nightly"
+  - "pypy"
+  - "pypy3"
 
 install:
   - pip install git+https://github.com/arjun-menon/test_cmd.git#egg=test_cmd
