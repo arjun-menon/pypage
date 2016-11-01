@@ -1,4 +1,5 @@
 language: python
+
 python:
   - "2.7"
   - "3.2"
@@ -7,4 +8,7 @@ python:
   - "3.5"
   - "nightly"
 
-script: python test_cmd.py tests `which python` pypage.py @ -
+install:
+  - pip install git+https://github.com/arjun-menon/test_cmd.git#egg=test_cmd
+
+script: test_cmd tests `which python` pypage.py @ -
