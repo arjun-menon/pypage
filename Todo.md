@@ -17,3 +17,9 @@ Todo
   - investiage: MarkupSafe (Jinja dependency)
   - colorful command-line output
   - Investigate other templating languages: Jinja, Liquid, Smarty, Django, Mustache, Handlebars, etc.
+  - `invoke` blocks:
+     * {% invoke ...expr... %} {% endinvoke %}
+     * capture output into a variable 'content',
+     * only for the duration of {% invoke ... %},
+     * run expr, its return value is the real output
+     * +/ allow custom tags with above kind of auto-invokation
