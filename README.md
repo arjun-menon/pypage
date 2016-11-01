@@ -1,7 +1,7 @@
 pypage
 ======
 
-[![Travis CI Build Status (Functional Tests)](https://travis-ci.org/arjungmenon/pypage.svg?branch=master)](https://travis-ci.org/arjungmenon/pypage)
+[![Travis CI Build Status (Functional Tests)](https://travis-ci.org/novarc/pypage.svg?branch=master)](https://travis-ci.org/novarc/pypage)
 
 pypage is a document templating engine for Python programmers with a short learning curve.
 

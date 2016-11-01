@@ -1,0 +1,9 @@
+{{
+  things_i_hate = []
+}}
+Here is a list of the things I hate:
+{% for thing in things_i_hate %}
+  - {{thing}}
+{% %}
+
+Well, apparently I like everything !
