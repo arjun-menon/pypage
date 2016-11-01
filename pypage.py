@@ -746,7 +746,7 @@ class PypageExec(object):
                 code_lines[i] = code_lines[i][indentation_len:]
 
             code = '\n'.join(code_lines)
-            exec(code, self.env)
+            self._exec(code)
 
             # Add the base indentation to the output
             self.output = '\n'.join(
@@ -763,6 +763,11 @@ class PypageExec(object):
                 # self.output will most likely be an empty string,
                 # unless, write(...) was invoked within the {{...}}
                 return self.output
+
+    def _exec(self, code):
+        # Workaround for a bug in early versions of Python 2.7 and PyPy2.7
+        # that causes a syntax error: https://bugs.python.org/issue21591
+        exec(code, self.env)
 
     def raw_eval(self, code):
         "Evaluate an expression, and return the result raw (without stringifying it)."
