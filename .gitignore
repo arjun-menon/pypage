@@ -127,7 +127,8 @@ ENV/
 
 ## Plugin-specific files:
 
-# IntelliJ
+# IntelliJ / PyCharm
+.idea
 /out/
 
 # mpeltonen/sbt-idea plugin
