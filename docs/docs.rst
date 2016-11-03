@@ -26,9 +26,6 @@ short learning curve.
       {% endfor %}
     </ul>
 
-Tutorial
-========
-
 Embedding Code
 --------------
 
