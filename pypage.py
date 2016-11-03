@@ -488,11 +488,11 @@ def last_occurrence(text, c):
 def lex(src):
     assert isinstance(src, str)
 
-    tagNodeTypes = [CodeTag, CommentTag, BlockTag]
+    tagNodeTypes = TagNode.__subclasses__()
     open_delims = { t.open_delim : t for t in tagNodeTypes }
     comment_tag_depth = 0
 
-    blockTagTypes = [ConditionalBlock, ForBlock, WhileBlock, CaptureBlock, CommentBlock, EndBlockTag]
+    blockTagTypes = BlockTag.__subclasses__()
 
     tokens = list()
     node = None
