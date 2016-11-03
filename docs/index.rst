@@ -1,5 +1,5 @@
-pypage |build-status| |github-release|
-======================================
+pypage |build-status| |pypi-version|
+====================================
 
 .. toctree::
    :maxdepth: 1
@@ -386,5 +386,5 @@ License
 
 .. |build-status| image:: https://img.shields.io/travis/arjun-menon/pypage/master.svg
    :target: https://travis-ci.org/arjun-menon/pypage
-.. |github-release| image:: https://img.shields.io/github/release/arjun-menon/pypage.svg
-   :target: https://github.com/arjun-menon/pypage/releases
+.. |pypi-version| image:: https://img.shields.io/pypi/v/pypage.svg
+   :target: https://pypi.python.org/pypi/pypage
