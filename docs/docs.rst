@@ -277,8 +277,16 @@ will be created that captures the output of everything enclosed by it
 Finer Details
 ~~~~~~~~~~~~~
 
-Indentation & Whitespace
+Whitespace & Indentation
 ^^^^^^^^^^^^^^^^^^^^^^^^
+
+Whitespace Removal
+''''''''''''''''''
+
+If a block tag is on a line by itself, surrounded only by whitespace,
+then that whitespace is automatically excluded from the output. This
+allows you indent your block tags without worrying about excess
+whitespace in the generated document.
 
 Automatic Indentation
 '''''''''''''''''''''
@@ -332,14 +340,6 @@ at the beginning of the second line of the code block determines the
 indentation level for the whole block. All lines of code following the
 second line must at least have the same level of indentation as the
 second line (or else, a PypageSyntaxError exception will be thrown).
-
-Whitespace Removal
-''''''''''''''''''
-
-If a block tag is on a line by itself, surrounded only by whitespace,
-then that whitespace is automatically excluded from the output. This
-allows you indent your block tags without worrying about excess
-whitespace in the generated document.
 
 Commenting
 ~~~~~~~~~~
