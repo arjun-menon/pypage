@@ -277,6 +277,45 @@ will be created that captures the output of everything enclosed by it
 Finer Details
 ~~~~~~~~~~~~~
 
+Comments
+^^^^^^^^
+
+Comment Tags
+''''''''''''
+
+Anything bounded by ``{#`` and ``#}`` will be omitted from the output.
+For example:
+
+.. code:: html
+
+    <p>
+      Lorem ipsum dolor sit amet
+      {#
+        <ul>
+            Non sequitur
+        </ul>
+      #}
+      consectetur adipisicing elit
+    </p>
+
+Comment Blocks
+''''''''''''''
+
+You can comment an existing block easily, be placing the word
+
+.. code:: html
+
+    <p>
+      Lorem ipsum dolor sit amet
+        {% comment for i in range(10) %}
+            N = {{i}}
+        {% %}
+      consectetur adipisicing elit
+    </p>
+
+The ``comment`` keyword before the ``for`` results in the entire block
+being commented out and omitted from the output.
+
 Whitespace & Indentation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -341,47 +380,8 @@ indentation level for the whole block. All lines of code following the
 second line must at least have the same level of indentation as the
 second line (or else, a PypageSyntaxError exception will be thrown).
 
-Commenting
-~~~~~~~~~~
-
-The Comment Tag
-^^^^^^^^^^^^^^^
-
-Anything bounded by ``{#`` and ``#}`` will be omitted from the output.
-For example:
-
-.. code:: html
-
-    <p>
-      Lorem ipsum dolor sit amet
-      {#
-        <ul>
-            Non sequitur
-        </ul>
-      #}
-      consectetur adipisicing elit
-    </p>
-
-Commenting a Block
-^^^^^^^^^^^^^^^^^^
-
-You can comment an existing block easily, be placing the word
-
-.. code:: html
-
-    <p>
-      Lorem ipsum dolor sit amet
-        {% comment for i in range(10) %}
-            N = {{i}}
-        {% %}
-      consectetur adipisicing elit
-    </p>
-
-The ``comment`` keyword before the ``for`` results in the entire block
-being commented out and omitted from the output.
-
 License
--------
+^^^^^^^
 
 `Apache License Version
 2.0 <https://www.apache.org/licenses/LICENSE-2.0>`__
