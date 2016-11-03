@@ -3,6 +3,9 @@ pypage
 
 |Travis CI Build Status (Functional Tests)|
 
+.. toctree::
+   :maxdepth: 1
+
 pypage is a document templating engine for Python programmers with a
 short learning curve.
 
@@ -86,7 +89,7 @@ text into the document in place of the code tag it's used in.
 
 .. code:: python
 
-    write([object, ...], *, sep=' ', end='\n')
+    write(*object, sep=' ', end='\n')
 
 Objects passed to it are stringified with ``str``, concatenated together
 with ``sep``, and terminated with ``end``. The outputs of multiple calls
