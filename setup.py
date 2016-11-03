@@ -10,10 +10,18 @@ version = version_tag[1:]
 
 download_url = repo_url + '/archive/' + version_tag + '.tar.gz'
 
+def get_long_desc():
+    rst_file_name = 'docs/index.rst'
+    exclude_lines_with_words = ['toctree', 'maxdepth']
+
+    with open(rst_file_name) as f:
+        lines = f.readlines()
+        return ''.join(line for line in lines if not any(word in line for word in exclude_lines_with_words))
+
 setup(name='pypage',
       version=version,
       description=' Light-weight Python Templating Engine',
-      long_description=open('README.rst').read(),
+      long_description=get_long_desc(),
       url=repo_url,
       download_url=download_url,
       author='Arjun G. Menon',
