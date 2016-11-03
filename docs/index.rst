@@ -386,7 +386,5 @@ License
 
 .. |build-status| image:: https://img.shields.io/travis/arjun-menon/pypage/master.svg
    :target: https://travis-ci.org/arjun-menon/pypage
-   :alt: Travis CI Build Status (Functional Tests)
 .. |github-release| image:: https://img.shields.io/github/release/arjun-menon/pypage.svg
    :target: https://github.com/arjun-menon/pypage/releases
-   :alt: GitHub Release
