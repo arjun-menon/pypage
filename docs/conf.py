@@ -43,12 +43,15 @@ source_suffix = '.rst'
 #
 # source_encoding = 'utf-8-sig'
 
+from datetime import datetime
+this_year = datetime.now().year
+
 # The master toctree document.
 master_doc = 'index'
 
 # General information about the project.
 project = u'pypage'
-copyright = u'2016, Arjun G. Menon'
+copyright = u'%d, Arjun G. Menon' % this_year
 author = u'Arjun G. Menon'
 
 # The version info for the project you're documenting, acts as replacement for
