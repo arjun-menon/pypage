@@ -1,1 +1,1 @@
-docs/docs.rst
+docs/index.rst
