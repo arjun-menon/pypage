@@ -1,7 +1,5 @@
-pypage
-======
-
-|build-status| |github-release|
+pypage |build-status| |github-release|
+======================================
 
 .. toctree::
    :maxdepth: 1
