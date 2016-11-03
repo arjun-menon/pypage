@@ -24,6 +24,17 @@ short learning curve.
       {% endfor %}
     </ul>
 
+**Installation**
+
+You can `install <https://docs.python.org/3/installing/>`_ pypage easily with `pip <https://pip.pypa.io/en/stable/>`_:
+
+.. code::
+
+    pip install pypage
+
+Try running ``pypage -h`` afterward.
+
+
 Embedding Code
 --------------
 
