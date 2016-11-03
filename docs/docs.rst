@@ -70,19 +70,32 @@ it from an inline code tag. Here's an example:
         write("There are", x + y, "days in a week.")
     }}
 
-Python's ``exec`` function is used to execute the code in a multiline
+The Python ``exec`` function is used to execute the code in a multiline
 code tag.
 
 Why have distinct inline code tags? It's easier to write ``{{x}}`` than
 to write ``{{ write(x) }}``. Many a time, all we need to do is inject
 the value of a variable at a specific location in the document.
 
+Execution Environment
+^^^^^^^^^^^^^^^^^^^^^
+
+All code is executed in a shared common environment. I.e., the ``locals`` and
+``globals`` passed into ``eval`` and ``exec`` is a single shared dictionary,
+for all code tags in the same file.
+
+As such, a variable instantiated in a code tag at the
+beginning of the document, will be available to all other code tags in
+the document. When pypage is invoked as library, an initial seed
+environment consisting of a Python dictionary mapping variable names to
+values, can be provided.
+
 The write function
 ''''''''''''''''''
 
-The ``write`` function used above is similar to the Python 3's ``print``
-function, and is accessible from both kinds of code tags. It injects
-text into the document in place of the code tag it's used in.
+A ``write`` function similar to the Python 3's ``print`` function
+is accessible from both kinds of code tags. It writes text into
+the document that substitutes/replaces the code tag it's used in.
 
 .. code:: python
 
@@ -96,16 +109,6 @@ final output is injected in place of the code tag.
 If ``write`` is called from an inline code tag, the result of evaluating
 the expression (a ``None``, since ``write`` will return a ``None``) is
 ignored, and the output of the ``write`` call is used instead.
-
-Execution Environment
-'''''''''''''''''''''
-
-All code tags share a common environment for local and global
-environments. As such, a variable instantiated in a code tag at the
-beginning of the document, will be available to all other code tags in
-the document. When pypage is invoked as library, an initial seed
-environment consisting of a Python dictionary mapping variable names to
-values, can be provided.
 
 Block Tags
 ----------
@@ -229,8 +232,8 @@ A while loops looks like ``{{% while condition %}} ... {{% %}``, where
 
 This would simply list the numbers from 10 to 20.
 
-While 'dofirst' Loops
-'''''''''''''''''''''
+dofirst Loops
+'''''''''''''
 
 .. code:: python
 
@@ -242,8 +245,8 @@ Adding a ``dofirst`` right after the ``while`` and before the expression
 ensures that the loop is run *at least once*, before the condition is
 evaluated.
 
-Long Running While Loops
-''''''''''''''''''''''''
+Long Loops
+''''''''''
 
 If a loop runs for more than 2 seconds, pypage stops executing it, and
 writes an error message to ``stdout`` saying that the loop had been
@@ -255,8 +258,8 @@ seoncds, you can add ``slow`` right after the expressions
 (``{{% while condition slow %%}}``), and that would suppress this
 2-second timeout.
 
-Capture Tag
-^^^^^^^^^^^
+Capture Blocks
+^^^^^^^^^^^^^^
 
 You can capture the output of part of your page using the ``capture``
 tag:
