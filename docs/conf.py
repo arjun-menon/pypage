@@ -126,9 +126,17 @@ html_theme = 'alabaster'
 # documentation.
 #
 html_theme_options = {
-    "fixed_sidebar": "true",
-    "show_related": "false",
-    "show_powered_by": "false"
+    'description': 'Light-weight Python Templating Engine',
+    'fixed_sidebar': 'true',
+    'show_related': 'false',
+    'show_powered_by': 'false',
+    'github_user': 'arjun-menon',
+    'github_repo': 'pypage',
+    'github_type': 'star',
+    'github_count': 'true',
+    'github_button': 'true',
+    'github_banner': 'true',
+    'travis_button': 'true'
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -178,7 +186,12 @@ html_static_path = ['_static']
 
 # Custom sidebar templates, maps document names to template names.
 #
-# html_sidebars = {}
+html_sidebars = {
+    '**': [
+        'about.html',
+        'localtoc.html'
+    ]
+}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
@@ -199,11 +212,11 @@ html_static_path = ['_static']
 
 # If true, links to the reST sources are added to the pages.
 #
-# html_show_sourcelink = True
+html_show_sourcelink = False
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
 #
-# html_show_sphinx = True
+html_show_sphinx = False
 
 # If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
 #
