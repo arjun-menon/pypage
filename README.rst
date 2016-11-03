@@ -144,13 +144,13 @@ It's best to explain this with an example:
       greeting = random.randint(1,4)
     }}
     {% if greeting == 1 %}
-      Howdy?
+      Hello
     {% elif greeting == 2 %}
-      How are you?
+      Bonjour
     {% elif greeting == 3 %}
-      Any news?
+      Hey
     {% else %}
-      What's up?
+      Hi
     {% %}
 
 When the above template is run, the resulting page will contain a
@@ -180,22 +180,22 @@ Here's an example of something that would be impossible to do in Python
 .. code:: python
 
     {% for x in [1,2,3] for y in ['a','b','c'] %}
-        {{x}} -> {{y}}
+        {{x}} ~ {{y}}
     {%%}
 
 The above loop would result in:
 
 ::
 
-    1 -> a
-    1 -> b
-    1 -> c
-    2 -> a
-    2 -> b
-    2 -> c
-    3 -> a
-    3 -> b
-    3 -> c
+    1 ~ a
+    1 ~ b
+    1 ~ c
+    2 ~ a
+    2 ~ b
+    2 ~ c
+    3 ~ a
+    3 ~ b
+    3 ~ c
 
 *Internally*, pypage morphs the expression
 ``for x in [1,2,3] for y in ['a','b','c']`` into the generator
