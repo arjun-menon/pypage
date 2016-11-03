@@ -27,10 +27,10 @@ short learning curve.
     </ul>
 
 User Guide
-----------
+==========
 
 Embedding Code
-~~~~~~~~~~~~~~
+--------------
 
 In order to embed code in a document, you wrap Python code with ``{{``
 and ``}}``. The ``{{ ... }}`` constructs are called **code tags**. There
@@ -111,7 +111,7 @@ environment consisting of a Python dictionary mapping variable names to
 values, can be provided.
 
 Block Tags
-~~~~~~~~~~
+----------
 
 Block tags simplify certain tasks that would otherwise be cumbersome and
 ugly if done exclusively with code tags. One of the things it lets you
@@ -275,7 +275,7 @@ will be created that captures the output of everything enclosed by it
 (which in this case is ``"hello bob"``).
 
 Finer Details
-~~~~~~~~~~~~~
+-------------
 
 Comments
 ^^^^^^^^
