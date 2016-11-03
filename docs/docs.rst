@@ -1,7 +1,7 @@
 pypage
 ======
 
-|Travis CI Build Status (Functional Tests)|
+|build-status|
 
 .. toctree::
    :maxdepth: 1
@@ -386,5 +386,6 @@ License
 `Apache License Version
 2.0 <https://www.apache.org/licenses/LICENSE-2.0>`__
 
-.. |Travis CI Build Status (Functional Tests)| image:: https://travis-ci.org/arjun-menon/pypage.svg?branch=master
+.. |build-status| image:: https://img.shields.io/travis/arjun-menon/pypage/master.svg
    :target: https://travis-ci.org/arjun-menon/pypage
+   :alt: Travis CI Build Status (Functional Tests)
