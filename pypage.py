@@ -798,12 +798,17 @@ def pypage(source, seed_env=dict()):
     pe = PypageExec(seed_env)
     return exec_tree(tree, pe)
 
+pypage_version = '2.0.3'
+
+__all__ = ['pypage', 'pypage_version']
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="Light-weight Python templating engine.")
     parser.add_argument('source_file', type=str, help="Source file name. Use - to read from stdin.")
     parser.add_argument('-o', '--output_file', nargs=1, type=str, default=None, help='output file name; default: stdout')
     parser.add_argument('-d', '--data', nargs=1, type=str, default=None, help='additional data to pass to the environment')
+    parser.add_argument('-v', '--version', action='version', version='pypage %s' % pypage_version, help='show the version and exit')
     parser.add_argument('--tree', action='store_true', help='print the abstract syntax tree and exit')
     args = parser.parse_args()
 

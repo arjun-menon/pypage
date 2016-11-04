@@ -2,19 +2,15 @@
 
 from setuptools import setup
 
+from pypage import pypage_version as version
 repo_url = 'https://github.com/arjun-menon/pypage'
-
-version_tag = open('docs/version.txt').read().strip()
-assert version_tag[0] == 'v'
-version = version_tag[1:]
-
-download_url = repo_url + '/archive/' + version_tag + '.tar.gz'
+download_url = '%s/archive/v%s.tar.gz' % (repo_url, version)
 
 def get_long_desc():
-    rst_file_name = 'docs/index.rst'
+    doc_file_name = 'docs/index.rst'
     exclude_lines_with_words = ['toctree', 'maxdepth']
 
-    with open(rst_file_name) as f:
+    with open(doc_file_name) as f:
         lines = f.readlines()
         return ''.join(line for line in lines if not any(word in line for word in exclude_lines_with_words))
 
