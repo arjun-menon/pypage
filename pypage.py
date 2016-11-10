@@ -18,7 +18,7 @@
 from __future__ import print_function
 import string, sys, time, os, cgi, json
 
-pypage_version = '2.0.3'
+pypage_version = '2.0.4'
 
 class RootNode(object):
     """
