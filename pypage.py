@@ -18,6 +18,8 @@
 from __future__ import print_function
 import string, sys, time, os, cgi, json
 
+pypage_version = '2.0.3'
+
 class RootNode(object):
     """
     Root node of the abstract syntax tree.
@@ -797,8 +799,6 @@ def pypage(source, seed_env=dict()):
     tree = parse(source)
     pe = PypageExec(seed_env)
     return exec_tree(tree, pe)
-
-pypage_version = '2.0.3'
 
 __all__ = ['pypage', 'pypage_version']
 
