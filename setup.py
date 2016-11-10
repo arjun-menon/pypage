@@ -7,7 +7,7 @@ repo_url = 'https://github.com/arjun-menon/pypage'
 download_url = '%s/archive/v%s.tar.gz' % (repo_url, version)
 
 def get_long_desc():
-    doc_file_name = 'docs/index.rst'
+    doc_file_name = 'README.rst'
     exclude_lines_with_words = ['toctree', 'maxdepth']
 
     with open(doc_file_name) as f:
