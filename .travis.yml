@@ -14,3 +14,11 @@ install:
   - pip install git+https://github.com/arjun-menon/test_cmd.git#egg=test_cmd
 
 script: test_cmd tests `which python` pypage.py @ -
+
+deploy:
+  provider: pypi
+  user: arjungmenon
+  password:
+    secure: ZWHunVRATwgC76rr5N2GelrKxHU1Y+yagkRCLetVZx9yOEtrXVFlQNLYcdX7EY8BjapJia3azdBijsi7cnHecfgywpfXLvpbt+5giKSmtgpGpVt+MInsxotry4/tmH9BTDNI89DHzoeuagJVvguI6xcm80PumhMvb9gkTE+9obI=
+  on:
+    tags: true
