@@ -34,6 +34,8 @@ You can `install <https://docs.python.org/3/installing/>`_ pypage easily with `p
 
 Try running ``pypage -h`` afterward.
 
+.. contents:: **Table of Contents**
+
 
 Embedding Code
 --------------
