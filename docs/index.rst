@@ -1,5 +1,5 @@
-pypage |build-status| |pypi-version|
-====================================
+pypage |build| |pypi| |docs|
+============================
 
 .. toctree::
    :maxdepth: 1
@@ -397,7 +397,9 @@ License
 `Apache License Version
 2.0 <https://www.apache.org/licenses/LICENSE-2.0>`__
 
-.. |build-status| image:: https://img.shields.io/travis/arjun-menon/pypage/master.svg
+.. |build| image:: https://img.shields.io/travis/arjun-menon/pypage/master.svg
    :target: https://travis-ci.org/arjun-menon/pypage
-.. |pypi-version| image:: https://img.shields.io/pypi/v/pypage.svg
+.. |pypi| image:: https://img.shields.io/pypi/v/pypage.svg
    :target: https://pypi.python.org/pypi/pypage
+.. |docs| image:: https://readthedocs.org/projects/pypage/badge/?version=latest
+   :target: http://pypage.readthedocs.io/en/latest/?badge=latest
