@@ -4,13 +4,13 @@ pypage |build-status| |pypi-version|
 .. toctree::
    :maxdepth: 1
 
-pypage is a document templating engine for Python programmers with a
+pypage is a document template engine for Python programmers with a
 short learning curve.
 
 **Why use pypage?**
 
 -  Easy to pick up. Syntax similar to Python's.
--  You need an eval-based templating engine.
+-  You need an eval-based template engine.
 
 **What does it look like?**
 
