@@ -9,6 +9,8 @@ short learning curve.
 -  Easy to pick up. Syntax similar to Python's.
 -  You need an eval-based template engine.
 
+pypage supports Python 3.x and 2.7, and has been `tested <https://travis-ci.org/arjun-menon/pypage>`_ on CPython and PyPy.
+
 **What does it look like?**
 
 .. code:: html
@@ -29,7 +31,7 @@ You can `install <https://docs.python.org/3/installing/>`_ pypage easily with `p
 
     pip install pypage
 
-Try running ``pypage -h`` afterward.
+Try running ``pypage -h`` to see the command-line options available.
 
 .. contents:: **Table of Contents**
 
