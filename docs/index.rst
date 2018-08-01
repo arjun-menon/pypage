@@ -1,5 +1,5 @@
-pypage |build| |pypi| |docs|
-============================
+pypage |build| |pypi|
+=====================
 
 .. toctree::
    :maxdepth: 1
@@ -401,5 +401,3 @@ License
    :target: https://travis-ci.org/arjun-menon/pypage
 .. |pypi| image:: https://badge.fury.io/py/pypage.svg
    :target: https://pypi.python.org/pypi/pypage
-.. |docs| image:: https://readthedocs.org/projects/pypage/badge/?version=latest
-   :target: http://pypage.readthedocs.io/en/latest/?badge=latest
