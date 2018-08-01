@@ -1,9 +1,6 @@
 pypage |build| |pypi|
 =====================
 
-.. toctree::
-   :maxdepth: 1
-
 pypage is a document template engine for Python programmers with a
 short learning curve.
 
