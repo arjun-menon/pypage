@@ -1,0 +1,14 @@
+<!doctype html ⚡>
+
+<html>
+<head>
+    <title>
+        Felicity
+    </title>
+</head>
+<body>
+<div>
+There is a beautiful nature to all people.
+</div>
+</body>
+</html>

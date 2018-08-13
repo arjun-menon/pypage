@@ -705,7 +705,16 @@ class PypageExec(object):
         self.env.update(seed_env)
 
         self.env['write'] = self.write
+        self.env['inject'] = self.inject
+        self.env['exists'] = self.exists
         self.env['escape'] = cgi.escape
+
+    def inject(self, filepath):
+        source = read_file(filepath)
+        self.output += pypage(source, self.env)
+
+    def exists(self, varname):
+        return varname in self.env
 
     def write(self, *args, **kwargs):
         """Writes *args to output.
@@ -800,6 +809,14 @@ def pypage(source, seed_env=dict()):
     pe = PypageExec(seed_env)
     return exec_tree(tree, pe)
 
+def read_file(filepath):
+    if os.path.exists(filepath):
+        with open(filepath, 'r') as source_file:
+            return source_file.read()
+    else:
+        print("File %s does not exist." % repr(filepath), file=sys.stderr)
+        sys.exit(1)
+
 __all__ = ['pypage', 'pypage_version']
 
 def main():
@@ -812,15 +829,7 @@ def main():
     parser.add_argument('--tree', action='store_true', help='print the abstract syntax tree and exit')
     args = parser.parse_args()
 
-    if args.source_file == '-':
-        source = sys.stdin.read()
-    else:
-        if os.path.exists(args.source_file):
-            with open(args.source_file, 'r') as source_file:
-                source = source_file.read()
-        else:
-            print("File %s does not exist." % repr(args.source_file), file=sys.stderr)
-            sys.exit(1)
+    source = sys.stdin.read() if args.source_file == '-' else read_file(args.source_file)
 
     try:
         tree = parse(source)

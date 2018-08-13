@@ -1,0 +1,8 @@
+<!doctype html ⚡>
+{{
+    title = 'Felicity'
+}}
+{% capture body %}<div>
+There is a beautiful nature to all people.
+</div>{% %}
+{{ inject('tests/Injection-Test-1-Skeleton.html') }}

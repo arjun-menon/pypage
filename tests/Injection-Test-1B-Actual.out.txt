@@ -1,0 +1,15 @@
+<!doctype html>
+
+<html>
+<head>
+    <title>
+        No title
+    </title>
+</head>
+<body>
+<div>
+I like to fly!
+</div>
+</body>
+</html>
+

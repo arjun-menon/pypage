@@ -1,0 +1,14 @@
+<html>
+<head>
+    <title>
+        {% if exists('title') %}
+        {{title}}
+        {% else %}
+        No title
+        {% endif %}
+    </title>
+</head>
+<body>
+{{body}}
+</body>
+</html>

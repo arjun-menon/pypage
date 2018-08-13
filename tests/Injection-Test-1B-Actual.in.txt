@@ -1,0 +1,6 @@
+<!doctype html>
+{% capture body %}<div>
+I like to fly!
+</div>{% %}
+{{ inject('tests/Injection-Test-1-Skeleton.html') }}
+
