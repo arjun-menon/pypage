@@ -20,6 +20,6 @@ deploy:
   provider: pypi
   user: arjungmenon
   password:
-    secure: ZWHunVRATwgC76rr5N2GelrKxHU1Y+yagkRCLetVZx9yOEtrXVFlQNLYcdX7EY8BjapJia3azdBijsi7cnHecfgywpfXLvpbt+5giKSmtgpGpVt+MInsxotry4/tmH9BTDNI89DHzoeuagJVvguI6xcm80PumhMvb9gkTE+9obI=
+    secure: Z41thHMuv5hDU4G8Gd4y9Y2KqzPyHquB/hWSdpMw94oRwVdsLJwNUsLQCZlCVxTiabYzsi1ULTWp2kL7K2fE1qJck1WeN66ESMPonai7i8GgsJ2zRgMjWHG99ZxZgaxOx/+xbuW7F4w8mYmkLly8GPDTP6H2Q1bkV/DhCk4r7gM=
   on:
     tags: true
