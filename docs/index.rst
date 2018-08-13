@@ -239,7 +239,7 @@ A while loops looks like ``{{% while condition %}} ... {{% %}``, where
         write(str(i))
         i += 1
     }}
-    {%%}
+    {% %}
 
 This would simply list the numbers from 10 to 20.
 
@@ -259,15 +259,14 @@ evaluated.
 Long Loops
 ''''''''''
 
-If a loop runs for more than 2 seconds, pypage stops executing it, and
+If a loop runs *for more than 2 seconds*, pypage stops executing it, and
 writes an error message to ``stdout`` saying that the loop had been
 terminated. As pypage is mostly intended to be used as a templatig
-language, it is unlikely for loops to be running for more than 2
-seconds, and this was added in to make it easier to catch accidental
-infinite loops. If you do wish for the loop to run for longer than 2
-seoncds, you can add ``slow`` right after the expressions
-(``{{% while condition slow %%}}``), and that would suppress this
-2-second timeout.
+language, loops generally shouldn't be running for longer than two
+seconds, and this timeout was added to make it easier to catch accidental
+infinite loops. If you actually need a loop to run for longer than 2
+seoncds, you can add the keyword ``slow`` right after the condition expression
+(``{{% while condition slow %}}``), and that would suppress this 2-second timeout.
 
 Capture Blocks
 ^^^^^^^^^^^^^^
@@ -305,14 +304,14 @@ A base template could look like this:
     <head>
         <title>
             {% if exists('title') %}
-            {{title}}
+            {{ title }}
             {% else %}
             No title
-            {% endif %}
+            {% %}
         </title>
     </head>
     <body>
-    {{body}}
+    {{ body }}
     </body>
     </html>
 
@@ -328,7 +327,7 @@ A derived templates only needs to define ``body`` and optionally ``title``, to "
 We didn't specify a ``title`` above, but if we wanted to, we'd just need to make sure it was defined before ``inject``
 was called. The base template checks whether a ``title`` variable exists by calling the function ``exists``. As is obvious,
 the ``exists`` function simply takes a variable name as a string, and returns a boolean indicating whether the variable
-exists in the current scope.
+exists in the scope.
 
 This approach to inheritance is explicit and easy-to-grasp. Rather than have complex inheritance rules, with a default
 block definition that is optionally overridden by a derived template, we make things more explicit by using conditionals
