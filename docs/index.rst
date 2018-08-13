@@ -288,6 +288,53 @@ will be created that captures the output of everything enclosed by it
 Finer Details
 -------------
 
+Inheritance (with inject and exists)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The approach taken by pypage toward template inheritance is quite distinct from that of other
+templating engines (`like Jinja's <http://jinja.pocoo.org/docs/2.10/templates/#template-inheritance>`_).
+It's a lot simpler. You call a pypage-provided function ``inject`` with the path of a *pypage template* you want
+to inject (i.e. "*extend*" in Jinja parlance), and pypage will process that template under the current scope (with all
+previously defined variables being available to the injected template), and the ``inject`` function will return its output.
+
+A base template could look like this:
+
+.. code:: html
+
+    <html>
+    <head>
+        <title>
+            {% if exists('title') %}
+            {{title}}
+            {% else %}
+            No title
+            {% endif %}
+        </title>
+    </head>
+    <body>
+    {{body}}
+    </body>
+    </html>
+
+A derived templates only needs to define ``body`` and optionally ``title``, to "extend" the template above.
+
+.. code::
+
+    {% capture body %}
+    The HTML body content would go in here.
+    {% %}
+    {{ inject('...path to the base template...') }}
+
+We didn't specify a ``title`` above, but if we wanted to, we'd just need to make sure it was defined before ``inject``
+was called. The base template checks whether a ``title`` variable exists by calling the function ``exists``. As is obvious,
+the ``exists`` function simply takes a variable name as a string, and returns a boolean indicating whether the variable
+exists in the current scope.
+
+This approach to inheritance is explicit and easy-to-grasp. Rather than have complex inheritance rules, with a default
+block definition that is optionally overridden by a derived template, we make things more explicit by using conditionals
+for cases where we want to provide a default/fallback definition. We error out if a definition is expected to be provided,
+and is not present. The output of the "dervied" template is clear and obvious, with this approach.
+
 Comments
 ^^^^^^^^
 
