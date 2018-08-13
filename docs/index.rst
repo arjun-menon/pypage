@@ -9,7 +9,8 @@ short learning curve.
 -  Easy to pick up. Syntax similar to Python's.
 -  You need an eval-based template engine.
 
-pypage supports Python 3.x and 2.7, and has been `tested <https://travis-ci.org/arjun-menon/pypage>`_ on CPython and PyPy.
+pypage supports Python 3.x and 2.7, and has been `tested <https://travis-ci.org/arjun-menon/pypage>`_
+(using `test_cmd <https://github.com/arjun-menon/test_cmd>`_) on CPython and PyPy.
 
 **What does it look like?**
 
@@ -311,7 +312,7 @@ For example:
 Comment Blocks
 ''''''''''''''
 
-You can comment an existing block easily, be placing the word
+You can also easily comment an existing block, by simply placing the word ``comment`` in front of it:
 
 .. code:: html
 
@@ -323,7 +324,7 @@ You can comment an existing block easily, be placing the word
       consectetur adipisicing elit
     </p>
 
-The ``comment`` keyword before the ``for`` results in the entire block
+The ``comment`` keyword before the ``for`` above results in the entire block
 being commented out and omitted from the output.
 
 Whitespace & Indentation
