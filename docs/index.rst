@@ -1,5 +1,5 @@
-pypage |build| |pypi|
-=====================
+pypage |build| |pypi| |docs|
+============================
 
 pypage is a document template engine for Python programmers with a
 short learning curve.
@@ -454,3 +454,5 @@ License
    :target: https://travis-ci.org/arjun-menon/pypage
 .. |pypi| image:: https://badge.fury.io/py/pypage.svg
    :target: https://pypi.python.org/pypi/pypage
+.. |docs| image:: https://readthedocs.org/projects/pypage/badge/?version=latest&style=flat
+   :target: https://pypage.readthedocs.io/en/latest/
