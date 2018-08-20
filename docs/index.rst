@@ -334,6 +334,13 @@ block definition that is optionally overridden by a derived template, we make th
 for cases where we want to provide a default/fallback definition. We error out if a definition is expected to be provided,
 and is not present. The output of the "dervied" template is clear and obvious, with this approach.
 
+The include function
+''''''''''''''''''''
+
+If you want to include (as in, substitute) a file directly without processing it with pypage, you can use the
+``include`` function. It functions like the ``inject`` function, taking the path to a file as argument, and
+returning the contents of the file unprocessed.
+
 Comments
 ^^^^^^^^
 

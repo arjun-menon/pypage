@@ -706,12 +706,17 @@ class PypageExec(object):
 
         self.env['write'] = self.write
         self.env['inject'] = self.inject
+        self.env['include'] = self.include
         self.env['exists'] = self.exists
         self.env['escape'] = cgi.escape
 
     def inject(self, filepath):
         source = read_file(filepath)
         self.output += pypage(source, self.env)
+
+    def include(self, filepath):
+        file_contents = read_file(filepath)
+        self.output += file_contents
 
     def exists(self, varname):
         return varname in self.env
