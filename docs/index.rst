@@ -1,4 +1,4 @@
-pypage |build| |pypi| |docs|
+pypage |pypi| |docs| |build|
 ============================
 
 pypage is a document template engine for Python programmers with a
