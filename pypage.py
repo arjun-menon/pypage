@@ -705,15 +705,15 @@ class PypageExec(object):
     Execute or evaluate code, while persisting the environment.
     """
     def __init__(self, env, duplicate_env=False):
-        self.env['__package__'] = None
-        self.env['__name__'] = 'pypage_code'
-        self.env['__doc__'] = None
-
         if duplicate_env:
             self.env = dict()
             self.env.update(env)
         else:
             self.env = env
+
+        self.env['__package__'] = None
+        self.env['__name__'] = 'pypage_code'
+        self.env['__doc__'] = None
 
         self.env['write'] = self.write
         self.env['inject'] = self.inject
