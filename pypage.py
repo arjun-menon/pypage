@@ -16,7 +16,7 @@
 # limitations under the License.
 
 from __future__ import print_function
-import string, sys, time, os, cgi, json
+import string, sys, time, os, json
 
 pypage_version = '2.0.7'
 
@@ -692,6 +692,14 @@ def parse(src):
 
     return tree
 
+# Define _escape(str):
+if sys.version_info[0] > 3 or (sys.version_info[0] == 3 and sys.version_info[1] >= 2):
+    import html
+    _escape = html.escape
+else:
+    import cgi
+    _escape = cgi.escape
+
 class PypageExec(object):
     """
     Execute or evaluate code, while persisting the environment.
@@ -708,7 +716,7 @@ class PypageExec(object):
         self.env['inject'] = self.inject
         self.env['include'] = self.include
         self.env['exists'] = self.exists
-        self.env['escape'] = cgi.escape
+        self.env['escape'] = _escape
 
     def inject(self, filepath):
         source = read_file(filepath)
@@ -727,8 +735,8 @@ class PypageExec(object):
         Optional keyword arguments: end = '\n', sep = ' ', escape = False
 
         Before writing each element of *args to output, end is appended to
-        it, and all the elemented are joined using sep. If escape is True,
-        then cgi.escape is applied on each element of *args.
+        it, and all the elements are joined using sep. If escape is True,
+        then [html|cgi].escape is applied on each element of *args.
         """
 
         def kwarg(name):
@@ -742,7 +750,7 @@ class PypageExec(object):
         end = str( get_kwarg('end', '\n') )
         escape = get_kwarg('escape', False)
 
-        self.output += sep.join(cgi.escape(arg) if escape else str(arg) + end for arg in args)
+        self.output += sep.join(_escape(arg) if escape else str(arg) + end for arg in args)
 
     def run(self, code, loc):
         code_lines = code.split('\n')
