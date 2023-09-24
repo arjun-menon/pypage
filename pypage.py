@@ -816,13 +816,15 @@ def exec_tree(parent_node, pe):
 
     return output
 
-def pypage(source, seed_env=dict()):
+def pypage(source, seed_env=None, duplicate_env=False):
     """pypage(source) -> output
 
     Takes source, transforms it and returns it.
     """
+    if seed_env is None:
+        seed_env = dict()
     tree = parse(source)
-    pe = PypageExec(seed_env)
+    pe = PypageExec(seed_env, duplicate_env)
     return exec_tree(tree, pe)
 
 def read_file(filepath):
