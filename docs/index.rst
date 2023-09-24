@@ -15,9 +15,9 @@ pypage supports Python 3.x and 2.7, and has been on CPython and PyPy.
 
 .. code:: html
 
-    Fruits:
+    Some fruits with the character `r` in their name:
     <ul>
-      {% for fruit in ['Apple', 'Strawberry', 'Orange'] %}
+      {% for fruit in ['Apple', 'Strawberry', 'Orange', 'Raspberry']] if 'r' in fruit %}
         <li>
           {{ fruit }}
         </li>
