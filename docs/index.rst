@@ -16,10 +16,11 @@ pypage supports Python 3.x and 2.7, and has been `tested <https://travis-ci.org/
 
 .. code:: html
 
-    <ul id="users">
-      {% for user in users %}
+    Fruits:
+    <ul>
+      {% for fruit in ['Apple', 'Strawberry', 'Orange'] %}
         <li>
-          <a href="mailto: {{ html_ascii( user.email ) }}">{{ user.name }}</a>
+          {{ fruit }}
         </li>
       {% endfor %}
     </ul>
