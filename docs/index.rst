@@ -1,5 +1,5 @@
-pypage |pypi| |docs| |build|
-============================
+pypage |pypi| |docs|
+====================
 
 pypage is a document template engine for Python programmers with a
 short learning curve.
@@ -9,8 +9,7 @@ short learning curve.
 -  Easy to pick up. Syntax similar to Python's.
 -  You need an eval-based template engine.
 
-pypage supports Python 3.x and 2.7, and has been `tested <https://travis-ci.org/arjun-menon/pypage>`_
-(using `test_cmd <https://github.com/arjun-menon/test_cmd>`_) on CPython and PyPy.
+pypage supports Python 3.x and 2.7, and has been on CPython and PyPy.
 
 **What does it look like?**
 
@@ -451,8 +450,6 @@ License
 `Apache License Version
 2.0 <https://www.apache.org/licenses/LICENSE-2.0>`__
 
-.. |build| image:: https://travis-ci.org/arjun-menon/pypage.svg?branch=master
-   :target: https://travis-ci.org/arjun-menon/pypage
 .. |pypi| image:: https://badge.fury.io/py/pypage.svg
    :target: https://pypi.python.org/pypi/pypage
 .. |docs| image:: https://readthedocs.org/projects/pypage/badge/?version=latest&style=flat
