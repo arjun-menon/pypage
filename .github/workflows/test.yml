@@ -267,13 +267,13 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v2
         with:
           python-version: '3.5'
 
@@ -292,13 +292,13 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v2
         with:
           python-version: 'pypy3.5'
 
@@ -567,13 +567,13 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v2
         with:
           python-version: '2.7'
 
