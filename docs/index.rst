@@ -1,15 +1,15 @@
-pypage |pypi| |docs|
+PyPage |pypi| |docs|
 ====================
 
-pypage is a document template engine for Python programmers with a
+PyPage is a document template engine for Python programmers with a
 short learning curve.
 
-**Why use pypage?**
+**Why use PyPage?**
 
 -  Easy to pick up. Syntax similar to Python's.
 -  You need an eval-based template engine.
 
-pypage supports Python 3.x and 2.7, and has been tested
+PyPage supports Python 3.x and 2.7, and has been tested
 (using `test_cmd <https://github.com/arjun-menon/test_cmd>`_) on CPython and PyPy.
 
 **What does it look like?**
@@ -27,7 +27,7 @@ pypage supports Python 3.x and 2.7, and has been tested
 
 **Installation**
 
-You can `install <https://docs.python.org/3/installing/>`_ pypage easily with `pip <https://pip.pypa.io/en/stable/>`_:
+You can `install <https://docs.python.org/3/installing/>`_ PyPage easily with `pip <https://pip.pypa.io/en/stable/>`_:
 
 .. code::
 
@@ -56,7 +56,7 @@ example of an inline code tag:
 
     There are {{ 5 + 2 }} days in a week.
 
-The above, when processed by pypage, yields:
+The above, when processed by PyPage, yields:
 
 ::
 
@@ -98,7 +98,7 @@ for all code tags in the same file.
 
 As such, a variable instantiated in a code tag at the
 beginning of the document, will be available to all other code tags in
-the document. When pypage is invoked as library, an initial seed
+the document. When PyPage is invoked as library, an initial seed
 environment consisting of a Python dictionary mapping variable names to
 values, can be provided.
 
@@ -169,7 +169,7 @@ It's best to explain this with an example:
     {% %}
 
 When the above template is run, the resulting page will contain a
-randomly chosen greeting. As is evident, pypage syntax for if/elif/else
+randomly chosen greeting. As is evident, PyPage syntax for if/elif/else
 conditions closely mirrors Python's. The terminal ``{% %}`` can be
 replaced with an ``{% endif %}`` with no change in meaning (as with any
 block tag).
@@ -185,7 +185,7 @@ Let's start with a simple example:
 
 This will print out the vowels with a space after every character.
 
-Now that's an ordinary for loop. pypage permits for loops that are more
+Now that's an ordinary for loop. PyPage permits for loops that are more
 expressive than traditional Python for loops, by leveraging Python's
 *generator expressions*.
 
@@ -212,7 +212,7 @@ The above loop would result in:
     3 ~ b
     3 ~ c
 
-*Internally*, pypage morphs the expression
+*Internally*, PyPage morphs the expression
 ``for x in [1,2,3] for y in ['a','b','c']`` into the generator
 expression ``(x, y) for x in [1,2,3] for y in ['a','b','c']``. It
 exposes the the loop variables ``x`` and ``y`` by injecting them into
@@ -220,7 +220,7 @@ your namespace.
 
 *Note:* Injected loop variables replace variables with the same name for
 the duration of the loop. After the loop, the old variables with the
-identical names are restored (pypage backs them up).
+identical names are restored (PyPage backs them up).
 
 While Loops
 ^^^^^^^^^^^
@@ -260,13 +260,13 @@ evaluated.
 Long Loops
 ''''''''''
 
-If a loop runs *for more than 2 seconds*, pypage stops executing it, and
+If a loop runs *for more than 2 seconds*, PyPage stops executing it, and
 writes an error message to ``stdout`` saying that the loop had been
-terminated. As pypage is mostly intended to be used as a templatig
+terminated. As PyPage is mostly intended to be used as a templating
 language, loops generally shouldn't be running for longer than two
 seconds, and this timeout was added to make it easier to catch accidental
 infinite loops. If you actually need a loop to run for longer than 2
-seoncds, you can add the keyword ``slow`` right after the condition expression
+seconds, you can add the keyword ``slow`` right after the condition expression
 (``{{% while condition slow %}}``), and that would suppress this 2-second timeout.
 
 Capture Blocks
@@ -291,10 +291,10 @@ Finer Details
 Inheritance (with inject and exists)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The approach taken by pypage toward template inheritance is quite distinct from that of other
+The approach taken by PyPage toward template inheritance is quite distinct from that of other
 templating engines (`like Jinja's <http://jinja.pocoo.org/docs/2.10/templates/#template-inheritance>`_).
-It's a lot simpler. You call a pypage-provided function ``inject`` with the path of a *pypage template* you want
-to inject (i.e. "*extend*" in Jinja parlance), and pypage will process that template under the current scope (with all
+It's a lot simpler. You call a PyPage-provided function ``inject`` with the path of a *PyPage template* you want
+to inject (i.e. "*extend*" in Jinja parlance), and PyPage will process that template under the current scope (with all
 previously defined variables being available to the injected template), and the ``inject`` function will return its output.
 
 A base template could look like this:
@@ -338,7 +338,7 @@ and is not present. The output of the "dervied" template is clear and obvious, w
 The include function
 ''''''''''''''''''''
 
-If you want to include (as in, substitute) a file directly without processing it with pypage, you can use the
+If you want to include (as in, substitute) a file directly without processing it with PyPage, you can use the
 ``include`` function. It functions like the ``inject`` function, taking the path to a file as argument, and
 returning the contents of the file unprocessed.
 
@@ -395,7 +395,7 @@ whitespace in the generated document.
 Automatic Indentation
 '''''''''''''''''''''
 
-pypage smartly handles indentation for you. In a multi-line code tag, if
+PyPage smartly handles indentation for you. In a multi-line code tag, if
 you consistently indent your Python code with a specific amount of
 whitespace, that indentation will be stripped off before executing the
 code block (as Python is indentation-sensitive), and the resulting
@@ -438,7 +438,7 @@ would produce the following output:
 Note that the ``Hello!`` was indented with same whitespace that the code
 in the code block was.
 
-pypage automatically intends the output of a multi-line tag to match the
+PyPage automatically intends the output of a multi-line tag to match the
 indentation level of the code tag. The number of whitespace characters
 at the beginning of the second line of the code block determines the
 indentation level for the whole block. All lines of code following the
