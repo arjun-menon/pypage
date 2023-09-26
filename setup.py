@@ -3,8 +3,10 @@
 from setuptools import setup
 
 from pypage import pypage_version as version
+
 repo_url = 'https://github.com/arjun-menon/pypage'
 download_url = '%s/archive/v%s.tar.gz' % (repo_url, version)
+
 
 def get_long_desc():
     doc_file_name = 'README.rst'
@@ -14,6 +16,7 @@ def get_long_desc():
         lines = f.readlines()
         return ''.join(line for line in lines if not any(word in line for word in exclude_lines_with_words))
 
+
 setup(name='pypage',
       version=version,
       description=' Light-weight Python Templating Engine',
@@ -22,15 +25,23 @@ setup(name='pypage',
       download_url=download_url,
       author='Arjun G. Menon',
       author_email='contact@arjungmenon.com',
-      keywords='templating enigne text processing static generator',
-      license='Apache',
+      keywords=[
+          'templating engine text processing static generator',
+          'templating engine',
+          'text processing',
+          'template',
+          'templates'
+      ],
+      license='Apache-2.0',
       py_modules=['pypage'],
       entry_points={
           'console_scripts': ['pypage=pypage:main'],
       },
       classifiers=[
           'Topic :: Text Processing',
+          'Intended Audience :: Developers',
           'Topic :: Internet :: WWW/HTTP',
+          'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
           'Topic :: Text Processing :: Markup :: HTML',
           'License :: OSI Approved :: Apache Software License',
           'Topic :: Software Development :: Libraries :: Python Modules',
@@ -41,10 +52,5 @@ setup(name='pypage',
           'Programming Language :: Python :: Implementation :: CPython',
           'Programming Language :: Python :: Implementation :: PyPy',
           'Programming Language :: Python :: 2',
-          'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.2',
-          'Programming Language :: Python :: 3.3',
-          'Programming Language :: Python :: 3.4',
-          'Programming Language :: Python :: 3.5',
       ])
