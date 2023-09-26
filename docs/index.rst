@@ -1,5 +1,5 @@
-PyPage |pypi| |docs|
-====================
+PyPage |pypi| |tests| |docs|
+============================
 
 PyPage is a document template engine for Python programmers with a
 short learning curve.
@@ -453,5 +453,7 @@ License
 
 .. |pypi| image:: https://badge.fury.io/py/pypage.svg
    :target: https://pypi.python.org/pypi/pypage
+.. |tests| image:: https://github.com/arjun-menon/pypage/actions/workflows/test.yml/badge.svg
+   :target: https://github.com/arjun-menon/pypage/actions/workflows/test.yml/
 .. |docs| image:: https://readthedocs.org/projects/pypage/badge/?version=latest&style=flat
    :target: https://pypage.readthedocs.io/en/latest/
