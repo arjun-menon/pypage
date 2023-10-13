@@ -35,6 +35,29 @@ You can `install <https://docs.python.org/3/installing/>`_ PyPage easily with `p
 
 Try running ``pypage -h`` to see the command-line options available.
 
+
+**Why another templating language?**
+
+PyPage is lets you embed Python code easily and flexibly in textual documents (such as Markdown_, HTML, reStructuredText_, plain text, etc). It lets you construct powerful  programmatically-generated documents by embedding Python code in an elegant and flexible manner. Its syntax is similar to and partially inspired by the templating languages Jinja_ and Liquid_.
+
+While there are many templating engines out there, the primarily advantage of PyPage is the fact that its syntax is very close to Python's, and therefore the learning curve is very short for Python programmers.
+
+Rather than create a new mini domain-specific language for constructs such as ``for`` and ``if``, PyPage does a teeny tiny bit of obvious string manipulation, and passes your logical directives unaltered to the Python interpreter. As such, PyPage inherits Python's syntax for the most part. For example, ``for`` loops in PyPage get converted into Python's generator expressions. The ``for`` loop in a Python generator expression (or list comprehension) is far more powerful than its regular ``for`` loop. This means that PyPage ``for`` loops are richer and more expressive than you'd otherwise expect, while the learning curve is nearly non-existent.
+
+The primary disadvantage of using PyPage instead of a templating engine like Liquid is that PyPage does not operate on a restricted non-Turing-complete subset of programming languages, as Liquid for instance does. Liquid allows untrusted users to write and upload their own templates, because the expressiveness of Liquid is limited such that there is an implicit guarantee that the template will be processed in a reasonable (probably linear) amount of time using a reasonable amount of system resources. As such, Liquid's templating language is rather limited -- it offers a limited number of pre-defined functions/filters, and the overall flexibility of the language has been constrained in order to guarantee termination in a reasonable amount of time.
+
+PyPage, on the other hand gives the template writer full unfettered access to the Python interpreter. As such, PyPage is meant only for use in trusted contexts (or containers), and in some ways it's similar to PHP in that a you're mixing a full-blown programming language (Python) and text that could be HTML.
+
+This brings us to another topic: mixing code and UI. It is generally frowned upon to mix logic/code and the UI (or "view"). So it is good practise to not do any intelligent processing within your PyPage template. Instead, you can do it in a separate program, and pass an *environment* containing the results, to PyPage. An environment is a dictionary of variables that is passed to Python's ``exec``, and is therefore accessible from all of the code in the PyPage template. From within your template you can focus solely on how to transform these input variables into the HTML/rST/other page you're building.
+
+A pleasant aspect of PyPage, in comparison to other templating languages is that you don't have to learn much new syntax. It's probably the easiest to learn and most *flexible* templating language out there. It is highly flexible because of the plethora of easy-to-use powerful constructs that PyPage offers.
+
+.. _Markdown: https://en.wikipedia.org/wiki/Markdown
+.. _reStructuredText: http://docutils.sourceforge.net/docs/user/rst/quickref.html
+.. _Liquid: https://github.com/Shopify/liquid/wiki/Liquid-for-Designers
+.. _Jinja: https://github.com/pallets/jinja
+
+
 .. contents:: **Table of Contents**
 
 
