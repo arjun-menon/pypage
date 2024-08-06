@@ -62,7 +62,7 @@ class TagNode(object):
         open_delim:  string containig the opening delimiter
         close_delim: string containig the closing delimiter
     """
-    escape_delims = {'\{':'{', '\}':'}'}
+    escape_delims = {('\\' + '{'):'{', ('\\' + '}'):'}'}
 
     def __init__(self, loc):
         self.src = str()
