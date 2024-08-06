@@ -383,7 +383,13 @@ class EndBlockTag(BlockTag):
     def __repr__(self):
         return 'EndBlockTag.\n'
 
-class PypageSyntaxError(Exception):
+class PypageError(Exception):
+    def __init__(self, description='undefined'):
+        self.description = description
+    def __str__(self):
+        return "Error: " + self.description
+
+class PypageSyntaxError(PypageError):
     def __init__(self, description='undefined'):
         self.description = description
     def __str__(self):
@@ -832,10 +838,9 @@ def read_file(filepath):
         with open(filepath, 'r') as source_file:
             return source_file.read()
     else:
-        print("File %s does not exist." % repr(filepath), file=sys.stderr)
-        sys.exit(1)
+        raise PypageError("File %s does not exist. CWD: %s" % (repr(filepath), os.getcwd()))
 
-__all__ = ['pypage', 'pypage_version']
+__all__ = ['pypage', 'pypage_version', PypageError, PypageSyntaxError]
 
 def main():
     import argparse
