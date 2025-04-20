@@ -18,7 +18,7 @@
 from __future__ import print_function
 import string, sys, time, os, json
 
-pypage_version = '2.1.0'
+pypage_version = '2.2.0'
 
 class RootNode(object):
     """
@@ -327,6 +327,9 @@ class DefBlock(BlockTag):
 
     def run(self, pe):
         def invoke(args):
+            if len(args) != len(self.argnames):
+                raise InvalidDefBlockMismatchingArgCount(self.argnames, args)
+
             conflicting = set(pe.env.keys()) & set(self.argnames)
             backup = { x : pe.env[x] for x in conflicting }
 
@@ -494,6 +497,11 @@ class InvalidCaptureBlockVariableName(PypageSyntaxError):
 class InvalidDefBlockFunctionOrArgName(PypageSyntaxError):
     def __init__(self, varname):
         self.description = "Incorrect DefBlock: '%s' is not a valid function or argument name." % varname
+
+class InvalidDefBlockMismatchingArgCount(PypageSyntaxError):
+    def __init__(self, argnames, args):
+        self.description = "Incorrect DefBlock function call: expected %d arguments (%s) but received %d arguments (%s) instead." % (
+            len(argnames), ', '.join(argnames), len(args), ', '.join(map(repr, args)))
 
 class UnknownTag(PypageSyntaxError):
     def __init__(self, node):

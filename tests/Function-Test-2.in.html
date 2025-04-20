@@ -1,0 +1,23 @@
+Hi
+{% def sum a b %}{{ a + b }}{% enddef %}
+
+Howdy?
+{% def hmm a b c %}
+{{ a * int(sum(b, c)) }}{% enddef %}
+{{ sum(2, 5) }}
+{{ sum(3, 6) }}
+
+So...
+{{ hmm(3, 2, 5) }}
+{{ hmm(2, 3, 6) }}
+
+Factorials:
+{% def fact n %}
+{% if n == 0 %}1{% else %}{{ n * int(fact(n - 1)) }}{% endif %}
+{% enddef %}
+
+{% for n in range(1, 11) %}
+{{ n }}! = {{ fact(n) }}
+{% endfor %}
+
+Done.
