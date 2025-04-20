@@ -319,32 +319,30 @@ class DefBlock(BlockTag):
 
         name_and_args = self.src[len(self.tag_startswith):].strip().split()
         for name  in name_and_args:
-            if not isidentifier(name) or name == 'kwargs':
+            if not isidentifier(name):
                 raise InvalidDefBlockFunctionOrArgName(name)
 
         self.funcname = name_and_args[0]
         self.argnames = name_and_args[1:]
 
     def run(self, pe):
-        def invoke(args, kwargs):
+        def invoke(args):
             conflicting = set(pe.env.keys()) & set(self.argnames)
             backup = { x : pe.env[x] for x in conflicting }
 
             local_vars = dict(zip(self.argnames, args))
             pe.env.update(local_vars)
-            pe.env.update({'kwargs': kwargs})
 
             output = exec_tree(self, pe)
 
             for argname in self.argnames:
                 if argname in pe.env:
                     del pe.env[argname]
-            del pe.env['kwargs']
 
             pe.env.update(backup)
             return output
 
-        pe.env[self.funcname] = lambda *args, **kwargs: invoke(args, kwargs)
+        pe.env[self.funcname] = lambda *args: invoke(args)
         return ""
 
 class CaptureBlock(BlockTag):
