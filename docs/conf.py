@@ -140,7 +140,7 @@ html_theme_options = {
     'github_count': 'true',
     'github_button': 'true',
     'github_banner': 'true',
-    'travis_button': 'true'
+    'travis_button': 'false'
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
