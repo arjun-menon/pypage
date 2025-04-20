@@ -303,6 +303,50 @@ class WhileBlock(BlockTag):
 
         return output
 
+class DefBlock(BlockTag):
+    """
+    The function tag. {% def foo a b c %}
+    """
+    tag_startswith = 'def '
+
+    @staticmethod
+    def identify(src):
+        return src.strip().startswith(DefBlock.tag_startswith)
+
+    def __init__(self, node):
+        super(DefBlock, self).__init__(node.loc)
+        self.src = node.src.strip()
+
+        name_and_args = self.src[len(self.tag_startswith):].strip().split()
+        for name  in name_and_args:
+            if not isidentifier(name) or name == 'kwargs':
+                raise InvalidDefBlockFunctionOrArgName(name)
+
+        self.funcname = name_and_args[0]
+        self.argnames = name_and_args[1:]
+
+    def run(self, pe):
+        def invoke(args, kwargs):
+            conflicting = set(pe.env.keys()) & set(self.argnames)
+            backup = { x : pe.env[x] for x in conflicting }
+
+            local_vars = dict(zip(self.argnames, args))
+            pe.env.update(local_vars)
+            pe.env.update({'kwargs': kwargs})
+
+            output = exec_tree(self, pe)
+
+            for argname in self.argnames:
+                if argname in pe.env:
+                    del pe.env[argname]
+            del pe.env['kwargs']
+
+            pe.env.update(backup)
+            return output
+
+        pe.env[self.funcname] = lambda *args, **kwargs: invoke(args, kwargs)
+        return ""
+
 class CaptureBlock(BlockTag):
     """
     Capture all content within this tag, and bind it to a variable.
@@ -448,6 +492,10 @@ class IncorrectForTag(PypageSyntaxError):
 class InvalidCaptureBlockVariableName(PypageSyntaxError):
     def __init__(self, varname):
         self.description = "Incorrect CaptureBlock: '%s' is not a valid Python variable name." % varname
+
+class InvalidDefBlockFunctionOrArgName(PypageSyntaxError):
+    def __init__(self, varname):
+        self.description = "Incorrect DefBlock: '%s' is not a valid function or argument name." % varname
 
 class UnknownTag(PypageSyntaxError):
     def __init__(self, node):
