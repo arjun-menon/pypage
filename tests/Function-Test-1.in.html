@@ -9,4 +9,12 @@ So...
 {{ sum(3, 6) }}
 {{ prod(1, 2, 3) }}
 {{ prod(2, 3, 4) }}
+
+Anchors...
+{% def anchor name href %}
+<a href="{{href}}">{{name}}</a>
+{% %}
+{% for name, href in [('Kagi', 'https://kagi.com/'), ('Wikipedia', 'https://en.wikipedia.org')] %}
+{{ anchor(name, href) }}{% %}
+
 Done.

@@ -304,9 +304,22 @@ tag:
       hello {{"bob"}}
     {% %}
 
-The above tag will not yield any output, but rather a new variable ``x``
+The tag above will not yield any output, but rather a new variable ``x``
 will be created that captures the output of everything enclosed by it
 (which in this case is ``"hello bob"``).
+
+Function Blocks
+^^^^^^^^^^^^^^^
+
+You can define functions using the ``def`` tag:
+
+.. code:: python
+
+    {% def anchor name href %}
+      <a href="{{href}}">{{name}}</a>
+    {% %}
+
+The tag above will not yield any output, but rather create a new function ``anchor`` that behaves like a function, and returns the output of everything enclosed by it, with the named positional arguments injected (in an effective stacked local scope) as expected. In this example, we can invoke it with ``{{ anchor('Wikipedia', 'https://en.wikipedia.org') }}``.
 
 Finer Details
 -------------
