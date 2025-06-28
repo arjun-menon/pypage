@@ -10,7 +10,7 @@ short learning curve.
 -  You need an eval-based template engine.
 
 PyPage supports Python 3.x and 2.7, and has been tested
-(using `test_cmd <https://github.com/arjun-menon/test_cmd>`_) on CPython and PyPy.
+(using test_cmd_) on CPython and PyPy.
 
 **What does it look like?**
 
@@ -480,6 +480,26 @@ at the beginning of the second line of the code block determines the
 indentation level for the whole block. All lines of code following the
 second line must at least have the same level of indentation as the
 second line (or else, a PypageSyntaxError exception will be thrown).
+
+Development
+^^^^^^^^^^^
+PyPage has no dependencies, and the entire code is in a single file, ``pypage.py``.
+
+It is also written in Python compatible with both Python 2.7 and Python 3.x.
+
+To run the tests, first install `test_cmd`_:
+
+.. _test_cmd: https://github.com/arjun-menon/test_cmd
+
+.. code::
+
+    pip install test_cmd
+
+Then run the following command at the root of this repository:
+
+.. code::
+
+    test_cmd tests env/bin/python pypage.py @ -
 
 License
 ^^^^^^^
