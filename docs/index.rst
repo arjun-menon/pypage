@@ -501,6 +501,10 @@ Then run the following command at the root of this repository:
 
     test_cmd tests env/bin/python pypage.py @ -
 
+A bit of history
+''''''''''''''''
+This project was started on January 25, 2013 (`an early commit <https://github.com/arjun-menon/pypage/commit/de81a71220d483cd57c8bd82c4445ee3467d1a2f>`_). But it went underwent a pretty heavy rewrite from scratch in summer of 2014 (`an early commit from July 11, 2014 <https://github.com/arjun-menon/pypage/commit/1d2f6fe0ec41fcdabf1da1d1928c3711a5c3722d>`_ during that rewrite, and `other commits from around then <https://github.com/arjun-menon/pypage/commits/master/?after=105d5b3ff523d7a4e1c092200c4299546246c586+209>`_) which gave it the form it has today.
+
 License
 ^^^^^^^
 
