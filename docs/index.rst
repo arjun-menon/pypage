@@ -9,6 +9,8 @@ short learning curve.
 -  Easy to pick up. Syntax similar to Python's.
 -  You need an eval-based template engine.
 
+PyPage can be used in conjunction with the static site generator Alteza_ to build websites.
+
 PyPage supports Python 3.x and 2.7, and has been tested
 (using test_cmd_) on CPython and PyPy.
 
@@ -507,7 +509,16 @@ PyPage was started on January 25, 2013 (`an early commit <https://github.com/arj
 
 Later in 2015, tests were added (`e.g. some commits <https://github.com/arjun-menon/pypage/commits/master/?before=105d5b3ff523d7a4e1c092200c4299546246c586+140>`_) with a dedicated testing tool, test_cmd_, which was actually created speficially for PyPage. This in-depth documentation came around in late 2016 (`some of those commits <https://github.com/arjun-menon/pypage/commits/master/?before=105d5b3ff523d7a4e1c092200c4299546246c586+105>`_).
 
-Many small improvements and enhancements have been made to PyPage since then. And PyPage now serves as the template engine of the `Alteza <https://github.com/arjun-menon/alteza?tab=readme-ov-file#a-bit-of-history>`_ static site generator (which was originally called ``pypage-site``).
+Many small improvements and enhancements have been made to PyPage since then. And PyPage now serves as the template engine of the Alteza_ static site generator (which was originally called ``pypage-site``).
+
+Ideas for the future: a Rust rewrite, perhaps?
+''''''''''''''''''''''''''''''''''''''''''''''
+I'm thinking that the core logic in this could be rewritten in Rust, using the `PyO3 <https://github.com/PyO3/pyo3>`_ library, which allows calling into Python easily.
+Further, I could add `pulldown-cmark <https://crates.io/crates/pulldown-cmark>`_ as a dependency, to bundle Markdown processing into `pypapge`.
+`Some of the logic <https://github.com/arjun-menon/alteza/blob/092122a9177d8d68c5cadd700ed8f46b0f5ff2be/alteza/content.py#L112-L142>`_ in Alteza_ could then be moved here.
+Doing it in Rust would likely be a lot faster, and speed up Alteza_'s processing time quite substantially.
+
+.. _Alteza: https://github.com/arjun-menon/alteza
 
 License
 ^^^^^^^
