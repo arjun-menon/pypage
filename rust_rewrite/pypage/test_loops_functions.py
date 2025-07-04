@@ -21,8 +21,8 @@ test_cases = [
     # Simple while loop (should not execute)
     ("While false", "{% while False %}This should not show{% endwhile %}", None),
     
-         # While loop with counter (will be infinite, but time limit will stop it)
-     ("While with counter", "{% while int(counter) < 3 %}{{ counter }}{% endwhile %}", {"counter": "0"}),
+    # While loop with counter (will be infinite, but time limit will stop it)
+    ("While with counter", "{% while int(counter) < 3 %}{{ counter }}{% endwhile %}", {"counter": "0"}),
     
     # Dofirst while loop
     ("Dofirst while", "{% while dofirst False %}Executed once{% endwhile %}", None),
@@ -45,4 +45,4 @@ for i, (description, test, env) in enumerate(test_cases):
         print(f"Result: '{result}'")
     except Exception as e:
         print(f"Error: {e}")
-    print() 
+    print()
