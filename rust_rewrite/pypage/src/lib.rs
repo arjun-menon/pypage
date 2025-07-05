@@ -835,8 +835,7 @@ fn build_tree_for_block(
                 // as a continuation of the parent conditional block
                 if let BlockType::Conditional(ref cond) = child_block.block_type {
                     if matches!(cond.tag_type, ConditionalType::Elif | ConditionalType::Else) {
-                        // This token should be handled as a continuation of the parent block
-                        // We'll use a special return mechanism
+                        // This should be handled as a continuation - signal it
                         return Err(PypageError::SyntaxError(format!(
                             "CONTINUATION:{}:{}",
                             src, loc.line
@@ -845,7 +844,11 @@ fn build_tree_for_block(
                 }
 
                 // Build children for this child block recursively
-                build_tree_for_block(&mut child_block, tokens)?;
+                if let BlockType::Conditional(_) = child_block.block_type {
+                    build_conditional_chain(&mut child_block, tokens)?;
+                } else {
+                    build_tree_for_block(&mut child_block, tokens)?;
+                }
 
                 block_node.children.push(Node::Block(child_block));
             }
@@ -959,7 +962,7 @@ pub struct PypageExec<'py> {
 }
 
 impl<'py> PypageExec<'py> {
-    pub fn new(py: Python<'py>, seed_env: Option<HashMap<String, String>>) -> PyResult<Self> {
+    pub fn new(py: Python<'py>, seed_env: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         let globals = PyDict::new(py);
 
         // Set up built-in variables
@@ -969,7 +972,7 @@ impl<'py> PypageExec<'py> {
 
         // Add any seed environment
         if let Some(env) = seed_env {
-            for (key, value) in env {
+            for (key, value) in env.iter() {
                 globals.set_item(key, value)?;
             }
         }
@@ -1106,10 +1109,24 @@ pub fn exec_tree<'py>(node: &Node, exec: &PypageExec<'py>) -> Result<String, Pyp
                                     exec.set_global_object(&for_block.targets[0], &result)?;
                                 } else {
                                     // Multiple target variables - unpack the result
-                                    let result_tuple = result.extract::<Vec<Bound<'_, PyAny>>>()?;
-                                    for (i, target) in for_block.targets.iter().enumerate() {
-                                        if i < result_tuple.len() {
-                                            exec.set_global_object(target, &result_tuple[i])?;
+                                    // First, check if the result is iterable (tuple, list, etc.)
+                                    if let Ok(result_iter) = result.try_iter() {
+                                        // Use iterator to unpack
+                                        let values: Vec<Bound<'_, PyAny>> =
+                                            result_iter.collect::<PyResult<Vec<_>>>()?;
+                                        for (i, target) in for_block.targets.iter().enumerate() {
+                                            if i < values.len() {
+                                                exec.set_global_object(target, &values[i])?;
+                                            }
+                                        }
+                                    } else {
+                                        // Try to extract as tuple/list
+                                        let result_tuple =
+                                            result.extract::<Vec<Bound<'_, PyAny>>>()?;
+                                        for (i, target) in for_block.targets.iter().enumerate() {
+                                            if i < result_tuple.len() {
+                                                exec.set_global_object(target, &result_tuple[i])?;
+                                            }
                                         }
                                     }
                                 }
@@ -1203,7 +1220,7 @@ def {}(*args):
 }
 
 #[pyfunction]
-pub fn pypage_process(source: &str, seed_env: Option<HashMap<String, String>>) -> PyResult<String> {
+pub fn pypage_process(source: &str, seed_env: Option<&Bound<'_, PyDict>>) -> PyResult<String> {
     Python::with_gil(|py| {
         let tree = parse(source)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
