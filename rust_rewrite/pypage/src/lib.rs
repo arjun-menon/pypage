@@ -216,20 +216,20 @@ impl Location {
 
 // AST Node types
 #[derive(Debug, Clone)]
-pub enum Node {
-    Root(RootNode),
-    Text(TextNode),
-    Code(CodeNode),
-    Comment(CommentNode),
-    Block(BlockNode),
+pub enum Node<'a> {
+    Root(RootNode<'a>),
+    Text(TextNode<'a>),
+    Code(CodeNode<'a>),
+    Comment(CommentNode<'a>),
+    Block(BlockNode<'a>),
 }
 
 #[derive(Debug, Clone)]
-pub struct RootNode {
-    pub children: Vec<Node>,
+pub struct RootNode<'a> {
+    pub children: Vec<Node<'a>>,
 }
 
-impl RootNode {
+impl<'a> RootNode<'a> {
     pub fn new() -> Self {
         Self {
             children: Vec::new(),
@@ -238,49 +238,43 @@ impl RootNode {
 }
 
 #[derive(Debug, Clone)]
-pub struct TextNode {
-    pub src: String,
+pub struct TextNode<'a> {
+    pub src: &'a str,
 }
 
-impl TextNode {
-    pub fn new() -> Self {
-        Self { src: String::new() }
+impl<'a> TextNode<'a> {
+    pub fn new(src: &'a str) -> Self {
+        Self { src }
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct CodeNode {
-    pub src: String,
+pub struct CodeNode<'a> {
+    pub src: &'a str,
     pub loc: Location,
 }
 
-impl CodeNode {
-    pub fn new(loc: Location) -> Self {
-        Self {
-            src: String::new(),
-            loc,
-        }
+impl<'a> CodeNode<'a> {
+    pub fn new(src: &'a str, loc: Location) -> Self {
+        Self { src, loc }
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct CommentNode {
-    pub src: String,
+pub struct CommentNode<'a> {
+    pub src: &'a str,
     pub loc: Location,
 }
 
-impl CommentNode {
-    pub fn new(loc: Location) -> Self {
-        Self {
-            src: String::new(),
-            loc,
-        }
+impl<'a> CommentNode<'a> {
+    pub fn new(src: &'a str, loc: Location) -> Self {
+        Self { src, loc }
     }
 }
 
 #[derive(Debug, Clone)]
-pub enum BlockType {
-    Conditional(ConditionalBlock),
+pub enum BlockType<'a> {
+    Conditional(ConditionalBlock<'a>),
     For(ForBlock),
     While(WhileBlock),
     Def(DefBlock),
@@ -290,17 +284,17 @@ pub enum BlockType {
 }
 
 #[derive(Debug, Clone)]
-pub struct BlockNode {
-    pub src: String,
+pub struct BlockNode<'a> {
+    pub src: &'a str,
     pub loc: Location,
-    pub children: Vec<Node>,
-    pub block_type: BlockType,
+    pub children: Vec<Node<'a>>,
+    pub block_type: BlockType<'a>,
 }
 
-impl BlockNode {
-    pub fn new(loc: Location, block_type: BlockType) -> Self {
+impl<'a> BlockNode<'a> {
+    pub fn new(src: &'a str, loc: Location, block_type: BlockType<'a>) -> Self {
         Self {
-            src: String::new(),
+            src,
             loc,
             children: Vec::new(),
             block_type,
@@ -309,10 +303,10 @@ impl BlockNode {
 }
 
 #[derive(Debug, Clone)]
-pub struct ConditionalBlock {
+pub struct ConditionalBlock<'a> {
     pub tag_type: ConditionalType,
     pub expr: String,
-    pub continuation: Option<Box<BlockNode>>,
+    pub continuation: Option<Box<BlockNode<'a>>>,
 }
 
 #[derive(Debug, Clone)]
@@ -774,110 +768,178 @@ pub fn prune_tokens(tokens: Vec<Token>) -> Vec<Token> {
         .collect()
 }
 
-fn build_conditional_chain(
-    block_node: &mut BlockNode,
-    tokens: &mut std::iter::Peekable<std::vec::IntoIter<Token>>,
+// Token queue wrapper that allows putting tokens back
+struct TokenQueue<'a> {
+    tokens: std::iter::Peekable<std::vec::IntoIter<Token<'a>>>,
+    queue: Vec<Token<'a>>,
+}
+
+impl<'a> TokenQueue<'a> {
+    fn new(tokens: std::iter::Peekable<std::vec::IntoIter<Token<'a>>>) -> Self {
+        Self {
+            tokens,
+            queue: Vec::new(),
+        }
+    }
+
+    fn next(&mut self) -> Option<Token<'a>> {
+        if let Some(token) = self.queue.pop() {
+            Some(token)
+        } else {
+            self.tokens.next()
+        }
+    }
+
+    fn peek(&mut self) -> Option<&Token<'a>> {
+        if self.queue.is_empty() {
+            self.tokens.peek()
+        } else {
+            self.queue.last()
+        }
+    }
+
+    fn put_back(&mut self, token: Token<'a>) {
+        self.queue.push(token);
+    }
+}
+
+enum StopReason<'a> {
+    EndOfTokens,
+    EndTag(Token<'a>),
+    Continuation(Token<'a>),
+}
+
+fn build_conditional_chain<'a>(
+    block_node: &mut BlockNode<'a>,
+    tokens: &mut TokenQueue<'a>,
 ) -> Result<(), PypageError> {
     // Build children for this block
-    match build_tree_for_block(block_node, tokens) {
-        Ok(()) => {
-            // Normal completion, no continuation
-        }
-        Err(PypageError::SyntaxError(msg)) if msg.starts_with("CONTINUATION:") => {
-            // Extract the continuation token information
-            let parts: Vec<&str> = msg.split(':').collect();
-            if parts.len() >= 3 {
-                let cont_src = parts[1].to_string();
-                let cont_line: usize = parts[2].parse().unwrap_or(0);
-                let cont_loc = Location::new(cont_line, 0);
+    let stop_reason = build_tree_for_block_with_reason(block_node, tokens)?;
 
-                // Parse the continuation block
-                let cont_block_type = parse_block_type(&cont_src, cont_loc)?;
-                let mut continuation_block = BlockNode::new(cont_loc, cont_block_type);
-                continuation_block.src = cont_src;
+    // Handle continuations based on the stop reason
+    if let StopReason::Continuation(continuation_token) = stop_reason {
+        if let Token::Block { src, loc } = continuation_token {
+            let block_type = parse_block_type(src, loc)?;
+            if let BlockType::Conditional(ref cond) = block_type {
+                if matches!(cond.tag_type, ConditionalType::Elif | ConditionalType::Else) {
+                    let mut continuation_block = BlockNode::new(src, loc, block_type);
 
-                // Recursively build the continuation chain
-                build_conditional_chain(&mut continuation_block, tokens)?;
+                    // Recursively build the continuation chain
+                    build_conditional_chain(&mut continuation_block, tokens)?;
 
-                // Attach as continuation
-                if let BlockType::Conditional(ref mut main_cond) = block_node.block_type {
-                    main_cond.continuation = Some(Box::new(continuation_block));
+                    // Attach as continuation
+                    if let BlockType::Conditional(ref mut main_cond) = block_node.block_type {
+                        main_cond.continuation = Some(Box::new(continuation_block));
+                    }
                 }
             }
         }
-        Err(e) => return Err(e),
+    } else if let StopReason::EndTag(end_token) = stop_reason {
+        // Put the end tag back for the parent to handle
+        tokens.put_back(end_token);
     }
+
     Ok(())
 }
 
-fn build_tree_for_block(
-    block_node: &mut BlockNode,
-    tokens: &mut std::iter::Peekable<std::vec::IntoIter<Token>>,
-) -> Result<(), PypageError> {
+fn build_tree_for_block_with_reason<'a>(
+    block_node: &mut BlockNode<'a>,
+    tokens: &mut TokenQueue<'a>,
+) -> Result<StopReason<'a>, PypageError> {
     while let Some(token) = tokens.next() {
         match token {
             Token::Text(text) => {
-                block_node.children.push(Node::Text(TextNode {
-                    src: text.to_string(),
-                }));
+                block_node.children.push(Node::Text(TextNode::new(text)));
             }
             Token::Code { src, loc } => {
-                block_node.children.push(Node::Code(CodeNode {
-                    src: src.to_string(),
-                    loc,
-                }));
+                block_node
+                    .children
+                    .push(Node::Code(CodeNode::new(src, loc)));
             }
             Token::Comment { src: _, loc: _ } => {
                 // Comments are ignored
             }
             Token::Block { src, loc } => {
-                let block_type = parse_block_type(&src, loc)?;
+                let block_type = parse_block_type(src, loc)?;
 
-                if let BlockType::End(_end_block) = block_type {
-                    // This is an end tag, we should return
-                    return Ok(());
-                }
+                if let BlockType::End(end_block) = block_type {
+                    // This is an end tag - check if it matches our current block
+                    let matches_current = if end_block.tag_to_end.is_empty() {
+                        // Generic end tag - matches any block
+                        true
+                    } else {
+                        // Specific end tag - check if it matches current block
+                        match &block_node.block_type {
+                            BlockType::Conditional(_) => end_block.tag_to_end == "if",
+                            BlockType::For(_) => end_block.tag_to_end == "for",
+                            BlockType::While(_) => end_block.tag_to_end == "while",
+                            BlockType::Def(_) => end_block.tag_to_end == "def",
+                            BlockType::Capture(_) => end_block.tag_to_end == "capture",
+                            BlockType::Comment(_) => end_block.tag_to_end == "comment",
+                            BlockType::End(_) => false,
+                        }
+                    };
 
-                let mut child_block = BlockNode::new(loc, block_type);
-                child_block.src = src.to_string();
-
-                // Handle conditional continuation (elif/else) - this is a special case
-                // We need to return this information to the caller so it can be handled
-                // as a continuation of the parent conditional block
-                if let BlockType::Conditional(ref cond) = child_block.block_type {
-                    if matches!(cond.tag_type, ConditionalType::Elif | ConditionalType::Else) {
-                        // This should be handled as a continuation - signal it
-                        return Err(PypageError::SyntaxError(format!(
-                            "CONTINUATION:{}:{}",
-                            src, loc.line
-                        )));
+                    if matches_current {
+                        return Ok(StopReason::EndOfTokens);
+                    } else {
+                        // End tag doesn't match - return it for parent to handle
+                        return Ok(StopReason::EndTag(Token::Block { src, loc }));
                     }
                 }
+
+                // Check if this is a continuation block (elif/else)
+                if let BlockType::Conditional(ref cond) = block_type {
+                    if matches!(cond.tag_type, ConditionalType::Elif | ConditionalType::Else) {
+                        // This is a continuation - return it
+                        return Ok(StopReason::Continuation(Token::Block { src, loc }));
+                    }
+                }
+
+                let mut child_block = BlockNode::new(src, loc, block_type);
 
                 // Build children for this child block recursively
                 if let BlockType::Conditional(_) = child_block.block_type {
                     build_conditional_chain(&mut child_block, tokens)?;
                 } else {
-                    build_tree_for_block(&mut child_block, tokens)?;
+                    let stop_reason = build_tree_for_block_with_reason(&mut child_block, tokens)?;
+                    // If the child stopped due to an end tag or continuation, we need to handle it
+                    if let StopReason::EndTag(end_token) = stop_reason {
+                        tokens.put_back(end_token);
+                    } else if let StopReason::Continuation(cont_token) = stop_reason {
+                        tokens.put_back(cont_token);
+                    }
                 }
 
                 block_node.children.push(Node::Block(child_block));
             }
         }
     }
+    Ok(StopReason::EndOfTokens)
+}
+
+fn build_tree_for_block<'a>(
+    block_node: &mut BlockNode<'a>,
+    tokens: &mut TokenQueue<'a>,
+) -> Result<(), PypageError> {
+    let stop_reason = build_tree_for_block_with_reason(block_node, tokens)?;
+    // Handle any remaining tokens
+    if let StopReason::EndTag(end_token) = stop_reason {
+        tokens.put_back(end_token);
+    } else if let StopReason::Continuation(cont_token) = stop_reason {
+        tokens.put_back(cont_token);
+    }
     Ok(())
 }
 
-pub fn build_tree(
-    parent: &mut Node,
-    tokens: &mut std::iter::Peekable<std::vec::IntoIter<Token>>,
+pub fn build_tree<'a>(
+    parent: &mut Node<'a>,
+    tokens: &mut TokenQueue<'a>,
 ) -> Result<(), PypageError> {
     while let Some(token) = tokens.next() {
         match token {
             Token::Text(text) => {
-                let text_node = Node::Text(TextNode {
-                    src: text.to_string(),
-                });
+                let text_node = Node::Text(TextNode::new(text));
                 match parent {
                     Node::Root(ref mut root) => root.children.push(text_node),
                     Node::Block(ref mut block) => block.children.push(text_node),
@@ -889,10 +951,7 @@ pub fn build_tree(
                 }
             }
             Token::Code { src, loc } => {
-                let code_node = Node::Code(CodeNode {
-                    src: src.to_string(),
-                    loc,
-                });
+                let code_node = Node::Code(CodeNode::new(src, loc));
                 match parent {
                     Node::Root(ref mut root) => root.children.push(code_node),
                     Node::Block(ref mut block) => block.children.push(code_node),
@@ -907,15 +966,45 @@ pub fn build_tree(
                 // Comments are ignored
             }
             Token::Block { src, loc } => {
-                let block_type = parse_block_type(&src, loc)?;
+                let block_type = parse_block_type(src, loc)?;
 
-                if let BlockType::End(_end_block) = block_type {
-                    // This is an end tag, we should return
-                    return Ok(());
+                if let BlockType::End(end_block) = block_type {
+                    // This is an end tag - should only return if we're in a block context
+                    if let Node::Block(ref parent_block) = parent {
+                        if end_block.tag_to_end.is_empty() {
+                            // Generic end tag - matches any block
+                            return Ok(());
+                        } else {
+                            // Specific end tag - check if it matches current block
+                            let matches = match &parent_block.block_type {
+                                BlockType::Conditional(_) => end_block.tag_to_end == "if",
+                                BlockType::For(_) => end_block.tag_to_end == "for",
+                                BlockType::While(_) => end_block.tag_to_end == "while",
+                                BlockType::Def(_) => end_block.tag_to_end == "def",
+                                BlockType::Capture(_) => end_block.tag_to_end == "capture",
+                                BlockType::Comment(_) => end_block.tag_to_end == "comment",
+                                BlockType::End(_) => false,
+                            };
+
+                            if matches {
+                                return Ok(());
+                            } else {
+                                // End tag doesn't match - put it back and return
+                                tokens.put_back(Token::Block { src, loc });
+                                return Ok(());
+                            }
+                        }
+                    } else {
+                        // We're at root level - this is an unbound end tag
+                        return Err(PypageError::UnboundEndBlockTag {
+                            tag: format!("end{}", end_block.tag_to_end),
+                            line: loc.line,
+                            column: loc.column,
+                        });
+                    }
                 }
 
-                let mut block_node = BlockNode::new(loc, block_type);
-                block_node.src = src.to_string();
+                let mut block_node = BlockNode::new(src, loc, block_type);
 
                 // Handle conditional continuation
                 if let BlockType::Conditional(ref cond) = block_node.block_type {
@@ -965,8 +1054,8 @@ pub fn parse(src: &str) -> Result<Node, PypageError> {
     let tokens = prune_tokens(tokens);
 
     let mut tree = Node::Root(RootNode::new());
-    let mut token_iter = tokens.into_iter().peekable();
-    build_tree(&mut tree, &mut token_iter)?;
+    let mut token_queue = TokenQueue::new(tokens.into_iter().peekable());
+    build_tree(&mut tree, &mut token_queue)?;
 
     Ok(tree)
 }
@@ -1079,7 +1168,7 @@ impl<'py> PypageExec<'py> {
     }
 }
 
-pub fn exec_tree<'py>(node: &Node, exec: &PypageExec<'py>) -> Result<String, PypageError> {
+pub fn exec_tree<'py, 'a>(node: &Node<'a>, exec: &PypageExec<'py>) -> Result<String, PypageError> {
     match node {
         Node::Root(root) => {
             let mut output = String::new();
@@ -1088,8 +1177,8 @@ pub fn exec_tree<'py>(node: &Node, exec: &PypageExec<'py>) -> Result<String, Pyp
             }
             Ok(output)
         }
-        Node::Text(text) => Ok(text.src.clone()),
-        Node::Code(code) => exec.run_code(&code.src, code.loc),
+        Node::Text(text) => Ok(text.src.to_string()),
+        Node::Code(code) => exec.run_code(code.src, code.loc),
         Node::Comment(_) => Ok(String::new()),
         Node::Block(block) => {
             match &block.block_type {
