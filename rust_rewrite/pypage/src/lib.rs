@@ -364,11 +364,25 @@ const BLOCK_CLOSE: &str = "%}";
 
 // Token types for lexing
 #[derive(Debug, Clone)]
-pub enum Token {
-    Text(String),
-    Code { src: String, loc: Location },
-    Comment { src: String, loc: Location },
-    Block { src: String, loc: Location },
+pub enum Token<'a> {
+    Text(&'a str),
+    Code { src: &'a str, loc: Location },
+    Comment { src: &'a str, loc: Location },
+    Block { src: &'a str, loc: Location },
+}
+
+// Helper enum to track token in progress during lexing
+#[derive(Debug)]
+enum TokenInProgress {
+    None,
+    Text(usize),              // start index
+    Code(usize, Location),    // start index, location
+    Comment(usize, Location), // start index, location
+    Block(usize, Location),   // start index, location
+}
+
+pub fn unescape_str(s: &str) -> String {
+    s.replace("\\{", "{").replace("\\}", "}")
 }
 
 pub fn is_identifier(s: &str) -> bool {
@@ -405,185 +419,179 @@ pub fn indent(text: &str, level: usize, width: usize) -> String {
 // Lexer implementation
 pub fn lex(src: &str) -> Result<Vec<Token>, PypageError> {
     let mut tokens = Vec::new();
-    let mut current_token: Option<Token> = None;
+    let mut current_token = TokenInProgress::None;
     let mut comment_tag_depth = 0;
 
-    let mut i = 0;
     let mut line_number = 1;
     let mut newline_position = 0;
-    let chars: Vec<char> = src.chars().collect();
+    let chars: Vec<(usize, char)> = src.char_indices().collect();
+    let mut i = 0;
 
     while i < chars.len() {
-        let c = chars.get(i).copied().unwrap_or('\0');
+        let (byte_pos, c) = chars[i];
         let c2 = if i + 1 < chars.len() {
-            format!("{}{}", c, chars.get(i + 1).copied().unwrap_or('\0'))
+            format!("{}{}", c, chars[i + 1].1)
         } else {
             c.to_string()
         };
 
         if c == '\n' {
             line_number += 1;
-            newline_position = i;
+            newline_position = byte_pos;
         }
-        let column_number = i - newline_position;
+        let column_number = byte_pos - newline_position;
         let loc = Location::new(line_number, column_number);
 
-        // If we don't have a current token, look for tag delimiters
-        if current_token.is_none() {
-            if c2 == CODE_OPEN {
-                current_token = Some(Token::Code {
-                    src: String::new(),
-                    loc,
-                });
-                i += 2;
-                continue;
-            } else if c2 == COMMENT_OPEN {
-                current_token = Some(Token::Comment {
-                    src: String::new(),
-                    loc,
-                });
-                comment_tag_depth += 1;
-                i += 2;
-                continue;
-            } else if c2 == BLOCK_OPEN {
-                current_token = Some(Token::Block {
-                    src: String::new(),
-                    loc,
-                });
-                i += 2;
-                continue;
-            } else {
-                current_token = Some(Token::Text(String::new()));
+        match current_token {
+            TokenInProgress::None => {
+                if c2 == CODE_OPEN {
+                    let start_pos = if i + 2 < chars.len() {
+                        chars[i + 2].0
+                    } else {
+                        src.len()
+                    };
+                    current_token = TokenInProgress::Code(start_pos, loc);
+                    i += 2;
+                    continue;
+                } else if c2 == COMMENT_OPEN {
+                    let start_pos = if i + 2 < chars.len() {
+                        chars[i + 2].0
+                    } else {
+                        src.len()
+                    };
+                    current_token = TokenInProgress::Comment(start_pos, loc);
+                    comment_tag_depth += 1;
+                    i += 2;
+                    continue;
+                } else if c2 == BLOCK_OPEN {
+                    let start_pos = if i + 2 < chars.len() {
+                        chars[i + 2].0
+                    } else {
+                        src.len()
+                    };
+                    current_token = TokenInProgress::Block(start_pos, loc);
+                    i += 2;
+                    continue;
+                } else {
+                    current_token = TokenInProgress::Text(byte_pos);
+                }
             }
-        }
-
-        match &mut current_token {
-            Some(Token::Text(ref mut src)) => {
+            TokenInProgress::Text(start) => {
                 if c2 == CODE_OPEN || c2 == COMMENT_OPEN || c2 == BLOCK_OPEN {
-                    tokens.push(current_token.take().unwrap());
+                    // Finish current text token
+                    if byte_pos > start {
+                        tokens.push(Token::Text(&src[start..byte_pos]));
+                    }
                     // Start new token
+                    let start_pos = if i + 2 < chars.len() {
+                        chars[i + 2].0
+                    } else {
+                        src.len()
+                    };
                     if c2 == CODE_OPEN {
-                        current_token = Some(Token::Code {
-                            src: String::new(),
-                            loc,
-                        });
+                        current_token = TokenInProgress::Code(start_pos, loc);
                     } else if c2 == COMMENT_OPEN {
-                        current_token = Some(Token::Comment {
-                            src: String::new(),
-                            loc,
-                        });
+                        current_token = TokenInProgress::Comment(start_pos, loc);
                         comment_tag_depth += 1;
                     } else if c2 == BLOCK_OPEN {
-                        current_token = Some(Token::Block {
-                            src: String::new(),
-                            loc,
-                        });
+                        current_token = TokenInProgress::Block(start_pos, loc);
                     }
                     i += 2;
                     continue;
                 } else {
-                    src.push(c);
                     i += 1;
                 }
             }
-            Some(Token::Code {
-                ref mut src,
-                loc: _,
-            }) => {
+            TokenInProgress::Code(start, start_loc) => {
                 if c2 == CODE_CLOSE {
-                    tokens.push(current_token.take().unwrap());
-                    i += 2;
-                    continue;
-                } else if c2 == "\\{" {
-                    src.push('{');
-                    i += 2;
-                    continue;
-                } else if c2 == "\\}" {
-                    src.push('}');
+                    tokens.push(Token::Code {
+                        src: &src[start..byte_pos],
+                        loc: start_loc,
+                    });
+                    current_token = TokenInProgress::None;
                     i += 2;
                     continue;
                 } else {
-                    src.push(c);
                     i += 1;
                 }
             }
-            Some(Token::Comment {
-                ref mut src,
-                loc: _,
-            }) => {
+            TokenInProgress::Comment(start, start_loc) => {
                 if c2 == COMMENT_OPEN {
                     comment_tag_depth += 1;
-                    src.push_str(&c2);
                     i += 2;
                     continue;
                 } else if c2 == COMMENT_CLOSE {
                     comment_tag_depth -= 1;
                     if comment_tag_depth == 0 {
-                        tokens.push(current_token.take().unwrap());
+                        tokens.push(Token::Comment {
+                            src: &src[start..byte_pos],
+                            loc: start_loc,
+                        });
+                        current_token = TokenInProgress::None;
                         i += 2;
                         continue;
                     } else {
-                        src.push_str(&c2);
                         i += 2;
                         continue;
                     }
                 } else {
-                    src.push(c);
                     i += 1;
                 }
             }
-            Some(Token::Block { ref mut src, loc }) => {
+            TokenInProgress::Block(start, start_loc) => {
                 if c2 == BLOCK_CLOSE {
-                    if src.contains('\n') {
+                    let block_src = &src[start..byte_pos];
+                    if block_src.contains('\n') {
                         return Err(PypageError::MultiLineBlockTag {
-                            line: loc.line,
-                            column: loc.column,
+                            line: start_loc.line,
+                            column: start_loc.column,
                         });
                     }
-                    tokens.push(current_token.take().unwrap());
-                    i += 2;
-                    continue;
-                } else if c2 == "\\{" {
-                    src.push('{');
-                    i += 2;
-                    continue;
-                } else if c2 == "\\}" {
-                    src.push('}');
+                    tokens.push(Token::Block {
+                        src: block_src,
+                        loc: start_loc,
+                    });
+                    current_token = TokenInProgress::None;
                     i += 2;
                     continue;
                 } else {
-                    src.push(c);
                     i += 1;
                 }
             }
-            None => unreachable!(),
         }
     }
 
     // Handle remaining token
-    if let Some(token) = current_token {
-        match &token {
-            Token::Text(_) => tokens.push(token),
-            Token::Code { loc, .. } | Token::Comment { loc, .. } | Token::Block { loc, .. } => {
-                let open_delim = match token {
-                    Token::Code { .. } => CODE_OPEN,
-                    Token::Comment { .. } => COMMENT_OPEN,
-                    Token::Block { .. } => BLOCK_OPEN,
-                    _ => unreachable!(),
-                };
-                let close_delim = match token {
-                    Token::Code { .. } => CODE_CLOSE,
-                    Token::Comment { .. } => COMMENT_CLOSE,
-                    Token::Block { .. } => BLOCK_CLOSE,
-                    _ => unreachable!(),
-                };
-                return Err(PypageError::IncompleteTagNode {
-                    open_delim: open_delim.to_string(),
-                    close_delim: close_delim.to_string(),
-                    line: loc.line,
-                    column: loc.column,
-                });
+    match current_token {
+        TokenInProgress::None => {}
+        TokenInProgress::Text(start) => {
+            if start < src.len() {
+                tokens.push(Token::Text(&src[start..]));
             }
+        }
+        TokenInProgress::Code(_, loc) => {
+            return Err(PypageError::IncompleteTagNode {
+                open_delim: CODE_OPEN.to_string(),
+                close_delim: CODE_CLOSE.to_string(),
+                line: loc.line,
+                column: loc.column,
+            });
+        }
+        TokenInProgress::Comment(_, loc) => {
+            return Err(PypageError::IncompleteTagNode {
+                open_delim: COMMENT_OPEN.to_string(),
+                close_delim: COMMENT_CLOSE.to_string(),
+                line: loc.line,
+                column: loc.column,
+            });
+        }
+        TokenInProgress::Block(_, loc) => {
+            return Err(PypageError::IncompleteTagNode {
+                open_delim: BLOCK_OPEN.to_string(),
+                close_delim: BLOCK_CLOSE.to_string(),
+                line: loc.line,
+                column: loc.column,
+            });
         }
     }
 
@@ -594,7 +602,7 @@ pub fn lex(src: &str) -> Result<Vec<Token>, PypageError> {
 
 // Parser implementation
 pub fn parse_block_type(src: &str, loc: Location) -> Result<BlockType, PypageError> {
-    let trimmed = src.trim();
+    let trimmed = unescape_str(src).trim().to_string();
 
     if trimmed.is_empty() || trimmed.starts_with("end") {
         let tag_to_end = if trimmed.starts_with("end") {
@@ -647,7 +655,7 @@ pub fn parse_block_type(src: &str, loc: Location) -> Result<BlockType, PypageErr
     }
 
     if trimmed.starts_with("for ") {
-        let targets = find_for_targets(trimmed)?;
+        let targets = find_for_targets(&trimmed)?;
         let genexpr = format!("(({}) {})", targets.join(", "), trimmed);
         return Ok(BlockType::For(ForBlock { targets, genexpr }));
     }
@@ -809,10 +817,15 @@ fn build_tree_for_block(
     while let Some(token) = tokens.next() {
         match token {
             Token::Text(text) => {
-                block_node.children.push(Node::Text(TextNode { src: text }));
+                block_node.children.push(Node::Text(TextNode {
+                    src: text.to_string(),
+                }));
             }
             Token::Code { src, loc } => {
-                block_node.children.push(Node::Code(CodeNode { src, loc }));
+                block_node.children.push(Node::Code(CodeNode {
+                    src: src.to_string(),
+                    loc,
+                }));
             }
             Token::Comment { src: _, loc: _ } => {
                 // Comments are ignored
@@ -826,7 +839,7 @@ fn build_tree_for_block(
                 }
 
                 let mut child_block = BlockNode::new(loc, block_type);
-                child_block.src = src.clone();
+                child_block.src = src.to_string();
 
                 // Handle conditional continuation (elif/else) - this is a special case
                 // We need to return this information to the caller so it can be handled
@@ -862,7 +875,9 @@ pub fn build_tree(
     while let Some(token) = tokens.next() {
         match token {
             Token::Text(text) => {
-                let text_node = Node::Text(TextNode { src: text });
+                let text_node = Node::Text(TextNode {
+                    src: text.to_string(),
+                });
                 match parent {
                     Node::Root(ref mut root) => root.children.push(text_node),
                     Node::Block(ref mut block) => block.children.push(text_node),
@@ -874,7 +889,10 @@ pub fn build_tree(
                 }
             }
             Token::Code { src, loc } => {
-                let code_node = Node::Code(CodeNode { src, loc });
+                let code_node = Node::Code(CodeNode {
+                    src: src.to_string(),
+                    loc,
+                });
                 match parent {
                     Node::Root(ref mut root) => root.children.push(code_node),
                     Node::Block(ref mut block) => block.children.push(code_node),
@@ -897,7 +915,7 @@ pub fn build_tree(
                 }
 
                 let mut block_node = BlockNode::new(loc, block_type);
-                block_node.src = src.clone();
+                block_node.src = src.to_string();
 
                 // Handle conditional continuation
                 if let BlockType::Conditional(ref cond) = block_node.block_type {
@@ -979,7 +997,8 @@ impl<'py> PypageExec<'py> {
     }
 
     pub fn run_code(&self, code: &str, _loc: Location) -> Result<String, PypageError> {
-        let trimmed_code = code.trim();
+        let unescaped_code = unescape_str(code);
+        let trimmed_code = unescaped_code.trim();
         let code_cstring = CString::new(trimmed_code)?;
 
         // Try to evaluate as expression first
