@@ -55,6 +55,7 @@ def main():
         "test_tuple_debug.py",
         "test_nested_conditionals.py",
         "test_error_handling.py",
+        "test_escape.py",
         "debug_elif.py",
         # Include existing test files if they exist
         "test_comprehensive_advanced.py",
@@ -105,6 +106,7 @@ def main():
         print("   • Nested structures")
         print("   • Comments and capture blocks")
         print("   • Function definitions")
+        print("   • Escape sequence handling")
         print("   • Error handling and edge cases")
         return True
     else:
@@ -123,11 +125,12 @@ def show_test_info():
     print("   • test_tuple_debug.py - Tuple unpacking edge cases (30+ tests)")
     print("   • test_nested_conditionals.py - Nested conditional logic (50+ tests)")
     print("   • test_error_handling.py - Error handling and edge cases (80+ tests)")
+    print("   • test_escape.py - Escape sequence handling (100+ tests)")
     print("   • debug_elif.py - Debug-focused elif testing")
     print("   • test_comprehensive_advanced.py - Advanced features")
     print("   • test_comprehensive.py - Basic comprehensive tests")
     print("   • test_pypage.py - Core functionality tests")
-    print(f"\n📝 Total estimated tests: 265+ individual test cases")
+    print(f"\n📝 Total estimated tests: 365+ individual test cases")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--info":
@@ -164,6 +167,7 @@ if __name__ == "__main__":
         print("   • ✅ Tuple unpacking and variable scoping")
         print("   • ✅ Comment handling and capture blocks")
         print("   • ✅ Function definition infrastructure")
+        print("   • ✅ Escape sequence handling and unescaping")
         print("   • ✅ Error handling and edge cases")
         print("   • ✅ Memory safety and performance improvements")
         
