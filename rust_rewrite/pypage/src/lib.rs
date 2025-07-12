@@ -1,5 +1,6 @@
 use pyo3::prelude::*;
 use pyo3::types::{PyAny, PyDict};
+
 use std::collections::HashMap;
 use std::ffi::CString;
 use std::fmt;
@@ -375,8 +376,12 @@ enum TokenInProgress {
     Block(usize, Location),   // start index, location
 }
 
-pub fn unescape_str(s: &str) -> String {
-    s.replace("\\{", "{").replace("\\}", "}")
+pub fn unescape_str_cow(s: &str) -> std::borrow::Cow<str> {
+    // Only allocate a new string if escaping is actually needed
+    if !s.contains("\\{") && !s.contains("\\}") {
+        return std::borrow::Cow::Borrowed(s);
+    }
+    std::borrow::Cow::Owned(s.replace("\\{", "{").replace("\\}", "}"))
 }
 
 pub fn is_identifier(s: &str) -> bool {
@@ -410,6 +415,16 @@ pub fn indent(text: &str, level: usize, width: usize) -> String {
         .join("\n")
 }
 
+fn matches_two_char_delim(c: char, next_char: Option<char>, delim: &str) -> bool {
+    if let Some(next) = next_char {
+        let delim_chars: Vec<char> = delim.chars().collect();
+        if delim_chars.len() == 2 {
+            return c == delim_chars[0] && next == delim_chars[1];
+        }
+    }
+    false
+}
+
 // Lexer implementation
 pub fn lex(src: &str) -> Result<Vec<Token>, PypageError> {
     let mut tokens = Vec::new();
@@ -423,10 +438,10 @@ pub fn lex(src: &str) -> Result<Vec<Token>, PypageError> {
 
     while i < chars.len() {
         let (byte_pos, c) = chars[i];
-        let c2 = if i + 1 < chars.len() {
-            format!("{}{}", c, chars[i + 1].1)
+        let next_char = if i + 1 < chars.len() {
+            Some(chars[i + 1].1)
         } else {
-            c.to_string()
+            None
         };
 
         if c == '\n' {
@@ -438,7 +453,7 @@ pub fn lex(src: &str) -> Result<Vec<Token>, PypageError> {
 
         match current_token {
             TokenInProgress::None => {
-                if c2 == CODE_OPEN {
+                if matches_two_char_delim(c, next_char, CODE_OPEN) {
                     let start_pos = if i + 2 < chars.len() {
                         chars[i + 2].0
                     } else {
@@ -447,7 +462,7 @@ pub fn lex(src: &str) -> Result<Vec<Token>, PypageError> {
                     current_token = TokenInProgress::Code(start_pos, loc);
                     i += 2;
                     continue;
-                } else if c2 == COMMENT_OPEN {
+                } else if matches_two_char_delim(c, next_char, COMMENT_OPEN) {
                     let start_pos = if i + 2 < chars.len() {
                         chars[i + 2].0
                     } else {
@@ -457,7 +472,7 @@ pub fn lex(src: &str) -> Result<Vec<Token>, PypageError> {
                     comment_tag_depth += 1;
                     i += 2;
                     continue;
-                } else if c2 == BLOCK_OPEN {
+                } else if matches_two_char_delim(c, next_char, BLOCK_OPEN) {
                     let start_pos = if i + 2 < chars.len() {
                         chars[i + 2].0
                     } else {
@@ -471,7 +486,10 @@ pub fn lex(src: &str) -> Result<Vec<Token>, PypageError> {
                 }
             }
             TokenInProgress::Text(start) => {
-                if c2 == CODE_OPEN || c2 == COMMENT_OPEN || c2 == BLOCK_OPEN {
+                if matches_two_char_delim(c, next_char, CODE_OPEN)
+                    || matches_two_char_delim(c, next_char, COMMENT_OPEN)
+                    || matches_two_char_delim(c, next_char, BLOCK_OPEN)
+                {
                     // Finish current text token
                     if byte_pos > start {
                         tokens.push(Token::Text(&src[start..byte_pos]));
@@ -482,12 +500,12 @@ pub fn lex(src: &str) -> Result<Vec<Token>, PypageError> {
                     } else {
                         src.len()
                     };
-                    if c2 == CODE_OPEN {
+                    if matches_two_char_delim(c, next_char, CODE_OPEN) {
                         current_token = TokenInProgress::Code(start_pos, loc);
-                    } else if c2 == COMMENT_OPEN {
+                    } else if matches_two_char_delim(c, next_char, COMMENT_OPEN) {
                         current_token = TokenInProgress::Comment(start_pos, loc);
                         comment_tag_depth += 1;
-                    } else if c2 == BLOCK_OPEN {
+                    } else if matches_two_char_delim(c, next_char, BLOCK_OPEN) {
                         current_token = TokenInProgress::Block(start_pos, loc);
                     }
                     i += 2;
@@ -497,7 +515,7 @@ pub fn lex(src: &str) -> Result<Vec<Token>, PypageError> {
                 }
             }
             TokenInProgress::Code(start, start_loc) => {
-                if c2 == CODE_CLOSE {
+                if matches_two_char_delim(c, next_char, CODE_CLOSE) {
                     tokens.push(Token::Code {
                         src: &src[start..byte_pos],
                         loc: start_loc,
@@ -510,11 +528,11 @@ pub fn lex(src: &str) -> Result<Vec<Token>, PypageError> {
                 }
             }
             TokenInProgress::Comment(start, start_loc) => {
-                if c2 == COMMENT_OPEN {
+                if matches_two_char_delim(c, next_char, COMMENT_OPEN) {
                     comment_tag_depth += 1;
                     i += 2;
                     continue;
-                } else if c2 == COMMENT_CLOSE {
+                } else if matches_two_char_delim(c, next_char, COMMENT_CLOSE) {
                     comment_tag_depth -= 1;
                     if comment_tag_depth == 0 {
                         tokens.push(Token::Comment {
@@ -533,7 +551,7 @@ pub fn lex(src: &str) -> Result<Vec<Token>, PypageError> {
                 }
             }
             TokenInProgress::Block(start, start_loc) => {
-                if c2 == BLOCK_CLOSE {
+                if matches_two_char_delim(c, next_char, BLOCK_CLOSE) {
                     let block_src = &src[start..byte_pos];
                     if block_src.contains('\n') {
                         return Err(PypageError::MultiLineBlockTag {
@@ -565,24 +583,24 @@ pub fn lex(src: &str) -> Result<Vec<Token>, PypageError> {
         }
         TokenInProgress::Code(_, loc) => {
             return Err(PypageError::IncompleteTagNode {
-                open_delim: CODE_OPEN.to_string(),
-                close_delim: CODE_CLOSE.to_string(),
+                open_delim: CODE_OPEN.to_owned(),
+                close_delim: CODE_CLOSE.to_owned(),
                 line: loc.line,
                 column: loc.column,
             });
         }
         TokenInProgress::Comment(_, loc) => {
             return Err(PypageError::IncompleteTagNode {
-                open_delim: COMMENT_OPEN.to_string(),
-                close_delim: COMMENT_CLOSE.to_string(),
+                open_delim: COMMENT_OPEN.to_owned(),
+                close_delim: COMMENT_CLOSE.to_owned(),
                 line: loc.line,
                 column: loc.column,
             });
         }
         TokenInProgress::Block(_, loc) => {
             return Err(PypageError::IncompleteTagNode {
-                open_delim: BLOCK_OPEN.to_string(),
-                close_delim: BLOCK_CLOSE.to_string(),
+                open_delim: BLOCK_OPEN.to_owned(),
+                close_delim: BLOCK_CLOSE.to_owned(),
                 line: loc.line,
                 column: loc.column,
             });
@@ -596,7 +614,8 @@ pub fn lex(src: &str) -> Result<Vec<Token>, PypageError> {
 
 // Parser implementation
 pub fn parse_block_type(src: &str, loc: Location) -> Result<BlockType, PypageError> {
-    let trimmed = unescape_str(src).trim().to_string();
+    let unescaped = unescape_str_cow(src);
+    let trimmed = unescaped.trim();
 
     if trimmed.is_empty() || trimmed.starts_with("end") {
         let tag_to_end = if trimmed.starts_with("end") {
@@ -612,15 +631,15 @@ pub fn parse_block_type(src: &str, loc: Location) -> Result<BlockType, PypageErr
     }
 
     if trimmed.starts_with("if ") || trimmed.starts_with("elif ") || trimmed == "else" {
-        let (tag_type, expr) = if trimmed.starts_with("if ") {
-            (ConditionalType::If, trimmed[3..].trim().to_string())
+        let (tag_type, expr_str) = if trimmed.starts_with("if ") {
+            (ConditionalType::If, trimmed[3..].trim())
         } else if trimmed.starts_with("elif ") {
-            (ConditionalType::Elif, trimmed[5..].trim().to_string())
+            (ConditionalType::Elif, trimmed[5..].trim())
         } else {
-            (ConditionalType::Else, "True".to_string())
+            (ConditionalType::Else, "True")
         };
 
-        if matches!(tag_type, ConditionalType::Else) && !expr.is_empty() && expr != "True" {
+        if matches!(tag_type, ConditionalType::Else) && !expr_str.is_empty() && expr_str != "True" {
             return Err(PypageError::ExpressionProhibited {
                 tag: "else".to_string(),
                 line: loc.line,
@@ -628,7 +647,7 @@ pub fn parse_block_type(src: &str, loc: Location) -> Result<BlockType, PypageErr
             });
         }
 
-        if expr.is_empty() && !matches!(tag_type, ConditionalType::Else) {
+        if expr_str.is_empty() && !matches!(tag_type, ConditionalType::Else) {
             let tag_name = match tag_type {
                 ConditionalType::If => "if",
                 ConditionalType::Elif => "elif",
@@ -643,7 +662,7 @@ pub fn parse_block_type(src: &str, loc: Location) -> Result<BlockType, PypageErr
 
         return Ok(BlockType::Conditional(ConditionalBlock {
             tag_type,
-            expr,
+            expr: expr_str.to_string(),
             continuation: None,
         }));
     }
@@ -655,22 +674,22 @@ pub fn parse_block_type(src: &str, loc: Location) -> Result<BlockType, PypageErr
     }
 
     if trimmed.starts_with("while ") {
-        let mut expr = trimmed[6..].trim().to_string();
+        let mut expr_str = trimmed[6..].trim();
         let mut dofirst = false;
         let mut slow = false;
 
-        if expr.starts_with("dofirst ") {
+        if expr_str.starts_with("dofirst ") {
             dofirst = true;
-            expr = expr[8..].trim().to_string();
+            expr_str = expr_str[8..].trim();
         }
 
-        if expr.ends_with(" slow") {
+        if expr_str.ends_with(" slow") {
             slow = true;
-            expr = expr[..expr.len() - 5].trim().to_string();
+            expr_str = expr_str[..expr_str.len() - 5].trim();
         }
 
         return Ok(BlockType::While(WhileBlock {
-            expr,
+            expr: expr_str.to_string(),
             dofirst,
             slow,
         }));
@@ -723,18 +742,30 @@ fn find_for_targets(src: &str) -> Result<Vec<String>, PypageError> {
             let for_pos = i;
             if let Some(in_pos) = tokens[for_pos + 1..].iter().position(|&x| x == "in") {
                 let in_pos = for_pos + 1 + in_pos;
-                let target_list: Vec<&str> = tokens[for_pos + 1..in_pos].iter().cloned().collect();
+                let target_list = &tokens[for_pos + 1..in_pos];
 
                 for target in target_list {
-                    let clean_target: String = target
+                    // Only collect clean characters if needed
+                    let needs_cleaning = target
                         .chars()
-                        .filter(|c| c.is_alphanumeric() || *c == '_' || *c == ',')
-                        .collect();
+                        .any(|c| !(c.is_alphanumeric() || c == '_' || c == ','));
 
-                    for t in clean_target.split(',') {
-                        let t = t.trim();
-                        if is_identifier(t) {
-                            if !targets.contains(&t.to_string()) {
+                    if needs_cleaning {
+                        let clean_target: String = target
+                            .chars()
+                            .filter(|c| c.is_alphanumeric() || *c == '_' || *c == ',')
+                            .collect();
+
+                        for t in clean_target.split(',') {
+                            let t = t.trim();
+                            if is_identifier(t) && !targets.iter().any(|existing| existing == t) {
+                                targets.push(t.to_string());
+                            }
+                        }
+                    } else {
+                        for t in target.split(',') {
+                            let t = t.trim();
+                            if is_identifier(t) && !targets.iter().any(|existing| existing == t) {
                                 targets.push(t.to_string());
                             }
                         }
@@ -1086,7 +1117,7 @@ impl<'py> PypageExec<'py> {
     }
 
     pub fn run_code(&self, code: &str, _loc: Location) -> Result<String, PypageError> {
-        let unescaped_code = unescape_str(code);
+        let unescaped_code = unescape_str_cow(code);
         let trimmed_code = unescaped_code.trim();
         let code_cstring = CString::new(trimmed_code)?;
 
@@ -1177,7 +1208,7 @@ pub fn exec_tree<'py, 'a>(node: &Node<'a>, exec: &PypageExec<'py>) -> Result<Str
             }
             Ok(output)
         }
-        Node::Text(text) => Ok(text.src.to_string()),
+        Node::Text(text) => Ok(text.src.to_owned()),
         Node::Code(code) => exec.run_code(code.src, code.loc),
         Node::Comment(_) => Ok(String::new()),
         Node::Block(block) => {
