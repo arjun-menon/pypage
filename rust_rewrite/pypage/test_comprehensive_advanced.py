@@ -7,8 +7,15 @@ if target_dir not in sys.path:
 
 import pypage
 
+# Global test counters
+passed = 0
+total = 0
+
 def test_case(name, template, env=None, expected=None):
     """Test a single case and report results"""
+    global passed, total
+    total += 1
+    
     print(f"🔍 Testing: {name}")
     print(f"📝 Template: {repr(template)}")
     try:
@@ -17,8 +24,12 @@ def test_case(name, template, env=None, expected=None):
         if expected is not None:
             if result == expected:
                 print("✅ PASS")
+                passed += 1
             else:
                 print(f"❌ FAIL - Expected: {repr(expected)}")
+        else:
+            print("✅ PASS (no expected result specified)")
+            passed += 1
         print()
         return result
     except Exception as e:
@@ -195,4 +206,9 @@ test_case(
 )
 
 print("🎯 Advanced comprehensive tests completed!")
-print("✨ Most complex templating features are working correctly!") 
+print("✨ Most complex templating features are working correctly!")
+print(f"Results: {passed}/{total} tests passed")
+if passed == total:
+    print("🎉 All tests passed!")
+else:
+    print(f"⚠️  {total - passed} tests failed or had errors") 

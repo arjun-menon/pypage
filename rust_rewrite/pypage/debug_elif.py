@@ -4,6 +4,10 @@ import subprocess
 import sys
 import os
 
+# Global test counters
+passed = 0
+total = 0
+
 def build_and_test():
     """Build the Rust library and run tests"""
     try:
@@ -24,6 +28,9 @@ def build_and_test():
 
 def debug_test(name, template, expected, env=None):
     """Debug a single test with detailed output"""
+    global passed, total
+    total += 1
+    
     try:
         import pypage
         print(f"\n🔍 DEBUG: {name}")
@@ -36,6 +43,7 @@ def debug_test(name, template, expected, env=None):
         
         if result == expected:
             print("✅ PASS")
+            passed += 1
             return True
         else:
             print("❌ FAIL")
@@ -122,7 +130,12 @@ def main():
     
     print("\n" + "=" * 60)
     print("🔬 Debug session completed.")
-    print("If any tests failed, examine the detailed output above.")
+    print(f"Results: {passed}/{total} tests passed")
+    if passed == total:
+        print("🎉 All elif tests passed!")
+    else:
+        print(f"⚠️  {total - passed} tests failed or had errors")
+        print("If any tests failed, examine the detailed output above.")
 
 if __name__ == "__main__":
     main() 
