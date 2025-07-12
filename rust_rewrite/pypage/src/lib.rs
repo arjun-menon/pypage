@@ -715,8 +715,8 @@ fn find_for_targets(src: &str) -> Result<Vec<String>, PypageError> {
     let mut targets = Vec::new();
     let tokens: Vec<&str> = src.split_whitespace().collect();
 
-    let mut i = 0;
-    while i < tokens.len() {
+    // Only process the first 'for' loop, not nested ones
+    for i in 0..tokens.len() {
         if tokens[i] == "for" && i + 2 < tokens.len() {
             let for_pos = i;
             if let Some(in_pos) = tokens[for_pos + 1..].iter().position(|&x| x == "in") {
@@ -738,12 +738,10 @@ fn find_for_targets(src: &str) -> Result<Vec<String>, PypageError> {
                         }
                     }
                 }
-                i = in_pos + 1;
-            } else {
+
+                // Only process the first 'for' loop, then break
                 break;
             }
-        } else {
-            i += 1;
         }
     }
 
@@ -1162,6 +1160,8 @@ pub fn exec_tree<'py>(node: &Node, exec: &PypageExec<'py>) -> Result<String, Pyp
                     // Set up time limit for non-slow loops
                     let loop_start_time = Instant::now();
                     let time_limit = Duration::from_secs_f64(2.0); // 2 seconds
+                    let mut iteration_count = 0;
+                    let max_iterations = 10000; // Prevent runaway loops
 
                     // Main loop
                     while exec.eval_expression(&while_block.expr)? {
@@ -1170,10 +1170,24 @@ pub fn exec_tree<'py>(node: &Node, exec: &PypageExec<'py>) -> Result<String, Pyp
                             output.push_str(&exec_tree(child, exec)?);
                         }
 
+                        iteration_count += 1;
+
                         // Check time limit for non-slow loops
-                        if !while_block.slow && loop_start_time.elapsed() > time_limit {
-                            eprintln!("Loop '{}' terminated.", while_block.expr);
-                            break;
+                        if !while_block.slow {
+                            if loop_start_time.elapsed() > time_limit {
+                                eprintln!(
+                                    "Loop '{}' terminated after {} iterations (time limit).",
+                                    while_block.expr, iteration_count
+                                );
+                                break;
+                            }
+                            if iteration_count >= max_iterations {
+                                eprintln!(
+                                    "Loop '{}' terminated after {} iterations ({} iteration limit).",
+                                    while_block.expr, iteration_count, max_iterations
+                                );
+                                break;
+                            }
                         }
                     }
 
