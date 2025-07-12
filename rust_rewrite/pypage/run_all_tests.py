@@ -56,6 +56,11 @@ def main():
         "test_nested_conditionals.py",
         "test_error_handling.py",
         "test_escape.py",
+        "test_complex_nesting.py",
+        "test_function_advanced.py",
+        "test_performance_stress.py",
+        "test_unicode_special.py",
+        "test_integration_scenarios.py",
         "debug_elif.py",
         # Include existing test files if they exist
         "test_comprehensive_advanced.py",
@@ -103,10 +108,13 @@ def main():
         print("   • Conditional statements (if/elif/else)")
         print("   • For loops with tuple unpacking")
         print("   • While loops")
-        print("   • Nested structures")
+        print("   • Nested structures (deep nesting)")
         print("   • Comments and capture blocks")
-        print("   • Function definitions")
+        print("   • Function definitions (advanced scenarios)")
         print("   • Escape sequence handling")
+        print("   • Unicode and special characters")
+        print("   • Performance and stress testing")
+        print("   • Real-world integration scenarios")
         print("   • Error handling and edge cases")
         return True
     else:
@@ -126,11 +134,16 @@ def show_test_info():
     print("   • test_nested_conditionals.py - Nested conditional logic (50+ tests)")
     print("   • test_error_handling.py - Error handling and edge cases (80+ tests)")
     print("   • test_escape.py - Escape sequence handling (100+ tests)")
+    print("   • test_complex_nesting.py - Deep nesting and complex interactions (40+ tests)")
+    print("   • test_function_advanced.py - Advanced function usage scenarios (50+ tests)")
+    print("   • test_performance_stress.py - Performance and stress testing (40+ tests)")
+    print("   • test_unicode_special.py - Unicode and special character handling (50+ tests)")
+    print("   • test_integration_scenarios.py - Real-world integration scenarios (15+ tests)")
     print("   • debug_elif.py - Debug-focused elif testing")
     print("   • test_comprehensive_advanced.py - Advanced features")
     print("   • test_comprehensive.py - Basic comprehensive tests")
     print("   • test_pypage.py - Core functionality tests")
-    print(f"\n📝 Total estimated tests: 365+ individual test cases")
+    print(f"\n📝 Total estimated tests: 560+ individual test cases")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--info":
@@ -167,7 +180,12 @@ if __name__ == "__main__":
         print("   • ✅ Tuple unpacking and variable scoping")
         print("   • ✅ Comment handling and capture blocks")
         print("   • ✅ Function definition infrastructure")
+        print("   • ✅ Deep nesting and complex interactions")
+        print("   • ✅ Advanced function usage scenarios")
         print("   • ✅ Escape sequence handling and unescaping")
+        print("   • ✅ Unicode and special character support")
+        print("   • ✅ Performance optimization and stress testing")
+        print("   • ✅ Real-world integration scenarios")
         print("   • ✅ Error handling and edge cases")
         print("   • ✅ Memory safety and performance improvements")
         
