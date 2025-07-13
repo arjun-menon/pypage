@@ -6,6 +6,9 @@ use std::ffi::CString;
 use std::fmt;
 use std::time::{Duration, Instant};
 
+use unicode_ident;
+use unicode_normalization::UnicodeNormalization;
+
 const PYPAGE_VERSION: &str = "2.2.1";
 
 // Error types
@@ -381,7 +384,11 @@ pub fn unescape_str_cow(s: &str) -> std::borrow::Cow<str> {
     if !s.contains("\\{") && !s.contains("\\}") {
         return std::borrow::Cow::Borrowed(s);
     }
-    std::borrow::Cow::Owned(s.replace("\\{", "{").replace("\\}", "}"))
+
+    // Apply Unicode normalization after unescaping to handle any combining characters
+    let unescaped = s.replace("\\{", "{").replace("\\}", "}");
+    let normalized: String = unescaped.nfc().collect();
+    std::borrow::Cow::Owned(normalized)
 }
 
 pub fn is_identifier(s: &str) -> bool {
@@ -389,14 +396,22 @@ pub fn is_identifier(s: &str) -> bool {
         return false;
     }
 
-    let mut chars = s.chars();
-    let first = chars.next().unwrap();
+    // Normalize the string to handle combining characters properly
+    let normalized: String = s.nfc().collect();
 
-    if !first.is_alphabetic() && first != '_' {
-        return false;
+    // Check if the string is a valid identifier using XID rules
+    let mut chars = normalized.chars();
+    if let Some(first) = chars.next() {
+        // First character must be XID_Start
+        if !unicode_ident::is_xid_start(first) {
+            return false;
+        }
+
+        // All remaining characters must be XID_Continue
+        chars.all(|c| unicode_ident::is_xid_continue(c))
+    } else {
+        false
     }
-
-    chars.all(|c| c.is_alphanumeric() || c == '_')
 }
 
 pub fn first_occurrence(text: &str, c: char) -> Option<usize> {
@@ -1125,11 +1140,15 @@ impl<'py> PypageExec<'py> {
         match self.py.eval(&code_cstring, Some(&self.globals), None) {
             Ok(result) => {
                 let result_str = result.str()?.to_string();
-                Ok(if result_str == "None" {
+                let final_result = if result_str == "None" {
                     String::new()
                 } else {
                     result_str
-                })
+                };
+
+                // Apply Unicode normalization to the result from Python
+                let normalized_result: String = final_result.nfc().collect();
+                Ok(normalized_result)
             }
             Err(_) => {
                 // If evaluation fails, try execution
@@ -1333,16 +1352,18 @@ pub fn exec_tree<'py, 'a>(node: &Node<'a>, exec: &PypageExec<'py>) -> Result<Str
                     Ok(output)
                 }
                 BlockType::Def(def_block) => {
-                    // For now, create a simple Python function that validates arguments
-                    // In a full implementation, this would need to execute the block children
-                    // with the bound arguments, but that requires more complex callback mechanisms
+                    // Store function metadata for later execution
+                    // We'll create a Python function that validates arguments but doesn't execute body yet
+                    // TODO: Implement proper function body execution with argument binding
 
+                    // For now, create a Python lambda that just validates arguments
+                    // This is a simplified version - full implementation would need callback to Rust
                     let func_code = format!(
                         r#"
 def {}(*args):
     if len(args) != {}:
         raise ValueError("Function '{}' expects {} arguments, got {{}}".format(len(args)))
-    # Function definitions are not fully implemented in this version
+    # Function body execution with Rust callback not yet implemented
     return ""
 "#,
                         def_block.funcname,
@@ -1380,6 +1401,7 @@ pub fn pypage_process(source: &str, seed_env: Option<&Bound<'_, PyDict>>) -> PyR
         let exec = PypageExec::new(py, seed_env)?;
         let result = exec_tree(&tree, &exec)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+
         Ok(result)
     })
 }

@@ -10,3 +10,5 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = "0.25.0"
+unicode-ident = "1.0"
+unicode-normalization = "0.1"
